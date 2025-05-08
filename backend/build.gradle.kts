@@ -24,6 +24,8 @@ repositories {
 }
 
 dependencies {
+	implementation("org.springframework.boot:spring-boot-starter-data-jpa") // JPA 관련 어노테이션 추가
+	implementation("org.springframework.boot:spring-boot-starter-validation") // Validation 관련 어노테이션 추가
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
