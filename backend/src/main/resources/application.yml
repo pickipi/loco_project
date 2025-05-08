@@ -1,7 +1,45 @@
 server:
   port: 8090
-
 spring:
+  output:
+    ansi:
+      enabled: ALWAYS
   profiles:
     active: dev
     include: secret
+  datasource:
+    url: jdbc:h2:./db_dev;MODE=MySQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        default_batch_fetch_size: 100
+        format_sql: true
+        highlight_sql: true
+        use_sql_comments: true
+logging:
+  level:
+    com.likelion.loco: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+    org.hibernate.orm.jdbc.extract: TRACE
+    org.springframework.transaction.interceptor: TRACE
+custom:
+  dev: # dev환경에서의 설정
+    cookieDomain: localhost
+    frontUrl: "http://${custom.dev.cookieDomain}:3000" # {} >> custom:dev:cookieDomain인 "localhost"를 가져오게됨
+    backUrl: "http://${custom.dev.cookieDomain}:${server.port}"
+  prod: # 배포환경에서의 설정 - 구매한 도메인 사용
+    cookieDomain: loco.nenomdeul.site # 서브도메인:2차도메인 (loco.2차도메인), 2차도메인은 구매, 서브도메인은 선택 가능
+    frontUrl: "https://www.${custom.prod.cookieDomain}"
+    backUrl: "https://api.${custom.prod.cookieDomain}"
+  site:
+    name: "LOCO DEV"
+    cookieDomain: "${custom.dev.cookieDomain}"
+    frontUrl: "${custom.dev.frontUrl}"
+    backUrl: "${custom.dev.backUrl}"
