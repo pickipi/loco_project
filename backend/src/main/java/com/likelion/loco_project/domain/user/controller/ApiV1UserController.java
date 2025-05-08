@@ -1,6 +1,6 @@
-package com.likelion.loco_project.domain.user.user.controller;
+package com.likelion.loco_project.domain.user.controller;
 
-import com.likelion.loco_project.domain.user.user.service.UserService;
+import com.likelion.loco_project.domain.user.service.UserService;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;

@@ -1,6 +1,6 @@
-package com.likelion.loco_project.domain.user.user.repository;
+package com.likelion.loco_project.domain.user.repository;
 
-import com.likelion.loco_project.domain.user.user.entity.User;
+import com.likelion.loco_project.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

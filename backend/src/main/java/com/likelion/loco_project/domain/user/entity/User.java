@@ -1,4 +1,4 @@
-package com.likelion.loco_project.domain.user.user.entity;
+package com.likelion.loco_project.domain.user.entity;
 
 import com.likelion.loco_project.global.jpa.BaseEntity;
 import jakarta.persistence.Entity;
