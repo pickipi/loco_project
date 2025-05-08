@@ -1,0 +1,7 @@
+#테스트할때..
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:db_test;MODE=MySQL
+    username: sa
+    password:
