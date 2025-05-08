@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
-  console.log(process.env.NEXT_PUBLIC_API_URL);
+  console.log(process.env.NEXT_PUBLIC_API_BASE_URL);
   
   return (
     <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
