@@ -35,7 +35,7 @@
 # 2. Team Members (팀원 및 팀 소개)
 | 김동규 | 노봉준 | 이호준 | 최종민 |
 |:------:|:------:|:------:|:------:|
-| <img src="https://github.com/user-attachments/assets/6a185236-67f8-4b6a-a740-0507d27a5bb2" alt="김동규" width="150"> | <img src="https://github.com/user-attachments/assets/156e3f4c-35a6-46e2-a8b4-7b66642b3215" alt="노봉준" width="150"> | <img src="https://github.com/user-attachments/assets/e2736555-bc1c-487b-9014-571fdce5cfbb" alt="이호준" width="150"> | <img src="https://github.com/user-attachments/assets/d9e5279c-5c88-4c83-8a23-c06f7367a079" alt="최종민" width="150">
+| <img src="https://github.com/user-attachments/assets/85be774d-53a3-4a26-9df4-bdd2a7d2f012" alt="김동규" width="150"> | <img src="https://github.com/user-attachments/assets/3236f1aa-4dd0-412c-9772-2d4b84e5b5e0" alt="노봉준" width="150"> | <img src="https://github.com/user-attachments/assets/e2736555-bc1c-487b-9014-571fdce5cfbb" alt="이호준" width="150"> | <img src="https://github.com/user-attachments/assets/d9e5279c-5c88-4c83-8a23-c06f7367a079" alt="최종민" width="150">
 | Product Manager | Dev Lead | BE/FE | BE/FE |
 | [GitHub](https://github.com/Morgan-EE) | [GitHub](https://github.com/pickipi) | [GitHub](https://github.com/dlghwns200) | [GitHub](https://github.com/Jong-min-choi) |
 | [Blog](https://mmatrix.tistory.com/) | [Blog](https://lefton.tistory.com/) | [Blog]() | [Blog]() |
