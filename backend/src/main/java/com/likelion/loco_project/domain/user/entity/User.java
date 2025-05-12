@@ -15,7 +15,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @ToString
 public class User extends BaseEntity {
-    private String username;
+    private String name;
     private String password;
     private String email;
     private String phoneNumber;
