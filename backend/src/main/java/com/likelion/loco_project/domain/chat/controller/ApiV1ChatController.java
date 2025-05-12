@@ -1,22 +1,5 @@
 package com.likelion.loco_project.domain.chat.controller;
 
-import com.likelion.loco_project.domain.chat.dto.*;
-import com.likelion.loco_project.domain.chat.entity.ChatMessage;
-import com.likelion.loco_project.domain.chat.entity.ChatRoom;
-import com.likelion.loco_project.domain.chat.service.ChatMessageService;
-import com.likelion.loco_project.domain.chat.service.ChatRoomService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
-
-@RestController
-@RequestMapping("/api/v1")
-@RequiredArgsConstructor
 public class ApiV1ChatController {
 
     private final ChatRoomService chatRoomService;
@@ -103,4 +86,5 @@ public class ApiV1ChatController {
         chatRoomService.deleteChatRoom(chatRoomId);
         return ResponseEntity.noContent().build(); // 204 No Content
     }
+
 }
