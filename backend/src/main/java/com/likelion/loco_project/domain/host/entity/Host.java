@@ -14,6 +14,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @SuperBuilder
 @ToString(callSuper = true) // toString() 시 BaseEntity 필드 포함
+@Entity
 public class Host extends BaseEntity {
     // User 엔티티와의 1:1 관계 매핑
     // Host 테이블의 user_id 컬럼이 User 테이블의 id를 참조
