@@ -22,7 +22,7 @@ public class ApiV1ChatController {
     private final ChatRoomService chatRoomService;
     private final ChatMessageService chatMessageService;
 
-    // 전체 채팅방 미리보기
+    // 전체 채팅방 미리보기 기능
     @GetMapping("/my/chatrooms")
     public ResponseEntity<List<ChatRoomSummaryDto>> getMyChatRooms(@RequestParam Long userId) {
         return ResponseEntity.ok(chatRoomService.getMyChatRooms(userId));
