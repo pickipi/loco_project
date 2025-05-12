@@ -10,4 +10,5 @@ public class LocoProjectApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(LocoProjectApplication.class, args);
 	}
+
 }
