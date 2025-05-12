@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 /*
  * @author : pickipi
  * @date : 2025/05/09
@@ -14,6 +16,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BoardDetailResponseDto {
+    // DTO는 BaseEntity를 상속받지 않도록 BaseEntity로부터 가져온 필드
+    private Long id;
+    private LocalDateTime createdDate;
+    private LocalDateTime modifiedDate;
+
     // 기본 출력되어야할 엔티티 정보
     private String title;
     private String description;

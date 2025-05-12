@@ -1,5 +1,6 @@
 package com.likelion.loco_project.domain.board.board.service;
 
+import com.likelion.loco_project.domain.board.board.dto.BoardListResponseDto;
 import com.likelion.loco_project.domain.board.board.dto.BoardRequestDto;
 import com.likelion.loco_project.domain.board.board.dto.BoardResponseDto;
 import com.likelion.loco_project.domain.board.board.entity.Board;
@@ -13,8 +14,13 @@ import com.likelion.loco_project.domain.user.repository.UserRepository;
 import com.likelion.loco_project.global.exception.AccessDeniedException;
 import com.likelion.loco_project.global.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -66,9 +72,23 @@ public class BoardService {
         return BoardResponseDto.from(savedBoard, authorUser.getName(), space.getSpaceName());
     }
 
-    // 게시글 수정
-
-    // 게시글 삭제
-
     // 게시글 조회
+    /**
+     * 모든 게시글 목록 조회 (페이징 기능)
+     * @param pageable 페이징 정보 (페이지 번호, 페이지 크기, 정렬 기준 등)
+     * @return 페이징된 게시글 목록 응답 DTO 리스트
+     */
+    public List<BoardListResponseDto> getAllBoards(Pageable pageable) {
+        // 1. Repository를 사용하여 페이징된 게시글 목록 조회
+        Page<Board> boardPage = boardRepository.findAll(pageable); // 기본적인 페이징 조회 (N+1 발생 가능)
+
+        // 2. 조회된 Entity 목록을 BoardListResponseDto 리스트로 변환하여 반환
+        return boardPage.getContent().stream()
+                .map(board -> {
+                    String authorName = board.getHost() != null && board.getHost().getUser() != null ? board.getHost().getUser().getName() : "Unknown";
+                    String spaceName = board.getSpace() != null ? board.getSpace().getSpaceName() : "Unknown";
+                    return BoardListResponseDto.from(board, authorName, spaceName);
+                })
+                .collect(Collectors.toList());
+    }
 }

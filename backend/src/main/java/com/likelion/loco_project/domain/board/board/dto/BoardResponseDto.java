@@ -1,11 +1,12 @@
 package com.likelion.loco_project.domain.board.board.dto;
 
 import com.likelion.loco_project.domain.board.board.entity.Board;
-import com.likelion.loco_project.global.jpa.BaseEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 /*
  * @author : pickipi
@@ -17,7 +18,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BoardResponseDto extends BaseEntity {
+public class BoardResponseDto {
+    // DTO는 BaseEntity를 상속받지 않도록 BaseEntity로부터 가져온 필드
+    private Long id;
+    private LocalDateTime createdDate;
+    private LocalDateTime modifiedDate;
+
     // 기본 출력되어야할 엔티티 정보
     private String title;
     private String description;

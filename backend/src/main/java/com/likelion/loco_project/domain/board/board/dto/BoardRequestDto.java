@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 /*
     * @author : pickipi
     * @date : 2025/05/09
@@ -18,6 +20,11 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BoardRequestDto {
+    // DTO는 BaseEntity를 상속받지 않도록 BaseEntity로부터 가져온 필드
+    private Long id;
+    private LocalDateTime createdDate;
+    private LocalDateTime modifiedDate;
+
     @NotBlank(message = "제목은 필수입니다.")
     private String title;
 
