@@ -32,7 +32,7 @@ public class ChatMessage extends BaseEntity {
     @Column(name = "message", nullable = false, columnDefinition = "TEXT")
     private String message;
 
+    // 읽음 표시(카카오톡 1 표시같은거)
     @Column(name = "is_read", nullable = false)
     private boolean isRead = false;
-
 }
