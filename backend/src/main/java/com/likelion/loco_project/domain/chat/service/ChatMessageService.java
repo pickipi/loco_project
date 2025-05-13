@@ -27,7 +27,7 @@ public class ChatMessageService {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new RuntimeException("채팅방을 찾을 수 없습니다."));
 
-        return chatMessageRepository.findByChatRoomOrderBySendAtAsc(chatRoom);
+        return chatMessageRepository.findByChatRoomOrderByCreatedDateAsc(chatRoom);
     }
 
     // 메시지 전송
@@ -45,7 +45,7 @@ public class ChatMessageService {
                 .chatRoom(chatRoom)
                 .sender(sender)
                 .message(dto.getMessage())
-                .sendAt(LocalDateTime.now())
+                .createdDate(LocalDateTime.now())
                 .build();
 
         return chatMessageRepository.save(message);

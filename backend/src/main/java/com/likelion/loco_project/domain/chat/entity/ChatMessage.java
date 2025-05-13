@@ -1,22 +1,22 @@
 package com.likelion.loco_project.domain.chat.entity;
 
 import com.likelion.loco_project.domain.user.entity.User;
+import com.likelion.loco_project.global.jpa.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDateTime;
+import static lombok.AccessLevel.PROTECTED;
 
 @Entity
 @Table(name = "chat_messages")
-@Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class ChatMessage {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@Getter
+@AllArgsConstructor(access = PROTECTED)
+@NoArgsConstructor(access = PROTECTED)
+@SuperBuilder
+@ToString(callSuper = true)
+public class ChatMessage extends BaseEntity {
 
     // 채팅방
     @ManyToOne(fetch = FetchType.LAZY)
@@ -31,10 +31,6 @@ public class ChatMessage {
     // 메시지 내용
     @Column(name = "message", nullable = false, columnDefinition = "TEXT")
     private String message;
-
-    // 보낸 시간
-    @Column(name = "send_at", nullable = false)
-    private LocalDateTime sendAt;
 
     @Column(name = "is_read", nullable = false)
     private boolean isRead = false;

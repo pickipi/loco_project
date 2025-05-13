@@ -33,7 +33,7 @@ public class ChatMessageResponseDto {
                 .senderId(message.getSender().getId())
                 .senderName(message.getSender().getName())
                 .message(message.getMessage())
-                .sentAt(message.getSendAt())
+                .sentAt(message.getCreatedDate())
                 .build();
     }
 }

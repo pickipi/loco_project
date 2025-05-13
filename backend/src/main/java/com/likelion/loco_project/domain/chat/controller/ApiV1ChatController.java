@@ -5,6 +5,7 @@ import com.likelion.loco_project.domain.chat.entity.ChatMessage;
 import com.likelion.loco_project.domain.chat.entity.ChatRoom;
 import com.likelion.loco_project.domain.chat.service.ChatMessageService;
 import com.likelion.loco_project.domain.chat.service.ChatRoomService;
+import com.likelion.loco_project.global.rsData.RsData;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,13 +25,14 @@ public class ApiV1ChatController {
 
     // 전체 채팅방 미리보기
     @GetMapping("/my/chatrooms")
-    public ResponseEntity<List<ChatRoomSummaryDto>> getMyChatRooms(@RequestParam Long userId) {
-        return ResponseEntity.ok(chatRoomService.getMyChatRooms(userId));
+    public ResponseEntity<RsData<List<ChatRoomSummaryDto>>> getMyChatRooms(@RequestParam Long userId) {
+        List<ChatRoomSummaryDto> result = chatRoomService.getMyChatRooms(userId);
+        return ResponseEntity.ok(RsData.of("S-200", "내 채팅방 목록 조회 성공", result));
     }
 
     // 채팅방 생성 or 조회
     @PostMapping("/boards/{boardId}/chatrooms")
-    public ResponseEntity<ChatRoomResponseDto> createOrGetChatRoom(
+    public ResponseEntity<RsData<ChatRoomResponseDto>> createOrGetChatRoom(
             @PathVariable Long boardId,
             @RequestBody ChatRoomRequestDto requestDto) {
 
@@ -39,68 +41,58 @@ public class ApiV1ChatController {
                 requestDto.getGuestId()
         );
 
-        return ResponseEntity.ok(ChatRoomResponseDto.fromEntity(chatRoom));
+        ChatRoomResponseDto response = ChatRoomResponseDto.fromEntity(chatRoom);
+        return ResponseEntity.ok(RsData.of("S-200", "채팅방 생성 또는 조회 성공", response));
     }
 
-    //채팅방 내 메시지 조회
+    // 채팅방 내 메시지 조회
     @GetMapping("/chatrooms/{chatRoomId}/messages")
-    public ResponseEntity<List<ChatMessageResponseDto>> getMessagesByChatRoom(
+    public ResponseEntity<RsData<List<ChatMessageResponseDto>>> getMessagesByChatRoom(
             @PathVariable Long chatRoomId) {
 
         List<ChatMessage> messages = chatMessageService.getMessagesByChatRoom(chatRoomId);
-
         List<ChatMessageResponseDto> response = messages.stream()
                 .map(ChatMessageResponseDto::fromEntity)
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(RsData.of("S-200", "채팅 메시지 목록 조회 성공", response));
     }
 
     // 메시지 전송
     @PostMapping("/chatrooms/{chatRoomId}/messages")
-    public ResponseEntity<ChatMessageResponseDto> sendMessage(
+    public ResponseEntity<RsData<ChatMessageResponseDto>> sendMessage(
             @RequestBody ChatMessageRequestDto requestDto) {
 
         ChatMessage saved = chatMessageService.sendMessage(requestDto);
+        ChatMessageResponseDto responseDto = ChatMessageResponseDto.fromEntity(saved);
 
-        return ResponseEntity.ok(ChatMessageResponseDto.fromEntity(saved));
+        return ResponseEntity.ok(RsData.of("S-200", "메시지 전송 성공", responseDto));
     }
 
-    // 메세지 수정
-    @PutMapping("chatrooms/{chatRoomId}/messages/{messageId}")
-    public ResponseEntity<ChatMessageResponseDto> editedMessage(
-            @Valid @PathVariable Long messageId,
-            @RequestBody ChatMessageUpdateRequestDto dto) {
-
-        ChatMessage updated = chatMessageService
-                .updateMessage(messageId, dto.getSenderId(), dto.getMessage());
-        return ResponseEntity.ok(ChatMessageResponseDto.fromEntity(updated));
-    }
-
-    // 메세지 삭제
-    @DeleteMapping("chatrooms/{chatRoomId}/messages/{messageId}")
-    public ResponseEntity<Void> deleteMessage(
+    // 메시지 삭제
+    @DeleteMapping("/chatrooms/{chatRoomId}/messages/{messageId}")
+    public ResponseEntity<RsData<Void>> deleteMessage(
             @PathVariable Long messageId,
             @RequestParam Long senderId) {
 
         chatMessageService.deleteMessage(messageId, senderId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(RsData.of("S-200", "메시지 삭제 성공"));
     }
 
-    //메세지 읽음 안읽음 표시
+    // 메시지 읽음 처리
     @PatchMapping("/chatrooms/{chatRoomId}/messages/{messageId}/read")
-    public ResponseEntity<Void> markAsRead(
+    public ResponseEntity<RsData<Void>> markAsRead(
             @PathVariable Long messageId,
             @RequestParam Long userId) {
 
         chatMessageService.markMessageAsRead(messageId, userId);
-        return ResponseEntity.noContent().build(); // HTTP 204
+        return ResponseEntity.ok(RsData.of("S-200", "메시지 읽음 처리 완료"));
     }
 
-    // 챗룸 삭제
+    // 채팅방 삭제
     @DeleteMapping("/chatrooms/{chatRoomId}")
-    public ResponseEntity<Void> deleteChatRoom(@PathVariable Long chatRoomId) {
+    public ResponseEntity<RsData<Void>> deleteChatRoom(@PathVariable Long chatRoomId) {
         chatRoomService.deleteChatRoom(chatRoomId);
-        return ResponseEntity.noContent().build(); // 204 No Content
+        return ResponseEntity.ok(RsData.of("S-200", "채팅방 삭제 성공"));
     }
 }

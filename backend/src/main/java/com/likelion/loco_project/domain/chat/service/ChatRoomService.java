@@ -59,7 +59,7 @@ public class ChatRoomService {
         return rooms.stream().map(room -> {
                     // 마지막 메시지 조회
                     ChatMessage lastMessage = chatMessageRepository
-                            .findTop1ByChatRoomOrderBySendAtDesc(room);
+                            .findTop1ByChatRoomOrderByCreatedDateDesc(room);
 
                     // 나 아닌 상대방
                     User other = room.getGuest().equals(user)
@@ -75,7 +75,7 @@ public class ChatRoomService {
                             .boardTitle(room.getBoard().getTitle())
                             .otherNickname(other.getName())
                             .lastMessage(lastMessage != null ? lastMessage.getMessage() : "(대화 없음)")
-                            .lastSentAt(lastMessage != null ? lastMessage.getSendAt() : null)
+                            .lastSentAt(lastMessage != null ? lastMessage.getCreatedDate() : null)
                             .unreadCount(unreadCount)
                             .build();
 

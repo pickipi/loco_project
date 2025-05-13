@@ -1,0 +1,45 @@
+package com.likelion.loco_project.domain.space.dto;
+
+import com.likelion.loco_project.domain.space.entity.Space;
+import lombok.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class SpaceResponseDto {
+    private Long id;
+    private Long imageId;
+    private String spaceName;
+    private String description;
+    private LocalDateTime uploadDate;
+    private String spaceType;
+    private Long price;
+    private String address;
+    private BigDecimal latitude;
+    private BigDecimal longitude;
+    private Integer maxCapacity;
+    private Boolean isActive;
+    private BigDecimal spaceRating;
+
+    // Space 엔티티를 DTO로 변환하는 정적 팩토리 메서드
+    public static SpaceResponseDto fromEntity(Space space) {
+        return SpaceResponseDto.builder()
+                .id(space.getId())
+                .imageId(space.getImageId())
+                .spaceName(space.getSpaceName())
+                .description(space.getDescription())
+                .uploadDate(space.getUploadDate())
+                .spaceType(space.getSpaceType())
+                .price(space.getPrice())
+                .address(space.getAddress())
+                .latitude(space.getLatitude())
+                .longitude(space.getLongitude())
+                .maxCapacity(space.getMaxCapacity())
+                .isActive(space.getIsActive())
+                .spaceRating(space.getSpaceRating())
+                .build();
+    }
+}
