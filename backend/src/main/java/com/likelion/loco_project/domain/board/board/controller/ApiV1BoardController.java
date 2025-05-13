@@ -1,5 +1,6 @@
 package com.likelion.loco_project.domain.board.board.controller;
 
+import com.likelion.loco_project.domain.board.board.dto.BoardDetailResponseDto;
 import com.likelion.loco_project.domain.board.board.dto.BoardListResponseDto;
 import com.likelion.loco_project.domain.board.board.dto.BoardRequestDto;
 import com.likelion.loco_project.domain.board.board.dto.BoardResponseDto;
@@ -25,7 +26,7 @@ import java.util.List;
 public class ApiV1BoardController {
     private final BoardService boardService;
 
-    /**
+    /** [SELECT]
      * 모든 게시글 목록을 조회 : GET /api/v1/boards
      * @param pageable 페이징 및 정렬 정보를 담은 객체 (Spring Data JPA Pageable)
      * @return 페이징된 게시글 목록 정보와 함께 HTTP 상태 코드 200 (OK) 반환
@@ -42,7 +43,22 @@ public class ApiV1BoardController {
         return ResponseEntity.ok(boards);
     }
 
-    /**
+    /** [SELECT]
+     * 특정 게시글의 상세 정보를 조회 : GET /api/v1/boards/{id}
+     * @param id 조회할 게시글의 고유 ID (경로 변수)
+     * @return 게시글 상세 정보와 함께 HTTP 상태 코드 200 (OK) 반환
+     * @throws ResourceNotFoundException 게시글을 찾을 수 없을 때 발생
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<BoardDetailResponseDto> getBoardById(@PathVariable Long id) { // @PathVariable로 경로 변수 값을 Long 타입 id로 받음
+        // BoardService의 getBoardById 메소드 호출하여 게시글 상세 조회 비즈니스 로직 수행
+        BoardDetailResponseDto board = boardService.getBoardById(id);
+
+        // 조회된 게시글 상세 정보(DTO)와 함께 HTTP 상태 코드 200 (OK) 반환
+        return ResponseEntity.ok(board);
+    }
+
+    /** [CREATE]
      * 게시글 작성 : POST /api/v1/boards
      * @param boardRequestDto 게시글 생성 요청 데이터 (JSON 형태)
      * @param userDetails 인증된 사용자의 정보 (Spring Security 제공)

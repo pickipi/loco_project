@@ -1,5 +1,6 @@
 package com.likelion.loco_project.domain.board.board.service;
 
+import com.likelion.loco_project.domain.board.board.dto.BoardDetailResponseDto;
 import com.likelion.loco_project.domain.board.board.dto.BoardListResponseDto;
 import com.likelion.loco_project.domain.board.board.dto.BoardRequestDto;
 import com.likelion.loco_project.domain.board.board.dto.BoardResponseDto;
@@ -33,7 +34,6 @@ public class BoardService {
 
     /**
      * 1. 게시글 작성
-     *
      * @param boardRequestDto 게시글 생성 요청 DTO
      * @param userId          게시글 작성자 (User)의 ID
      * @return 생성된 게시글 정보 응답 DTO
@@ -72,8 +72,7 @@ public class BoardService {
         return BoardResponseDto.from(savedBoard, authorUser.getUsername(), space.getSpaceName());
     }
 
-    // 게시글 조회
-    /**
+    /** 2. 게시글 조회
      * 모든 게시글 목록 조회 (페이징 기능)
      * @param pageable 페이징 정보 (페이지 번호, 페이지 크기, 정렬 기준 등)
      * @return 페이징된 게시글 목록 응답 DTO 리스트
@@ -90,5 +89,22 @@ public class BoardService {
                     return BoardListResponseDto.from(board, authorName, spaceName);
                 })
                 .collect(Collectors.toList());
+    }
+
+    /** 2. 게시글 조회
+     * 특정 게시글의 상세 정보를 조회
+     * @param id 조회할 게시글의 ID
+     * @return 게시글 상세 정보 응답 DTO
+     * @throws ResourceNotFoundException 게시글을 찾을 수 없을 때 발생
+     */
+    public BoardDetailResponseDto getBoardById(Long id) {
+        // 1. Repository를 사용하여 ID로 게시글 조회 (존재하지 않으면 예외 발생)
+        Board board = boardRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("게시글을 찾을 수 없습니다 : " + id));
+
+        String authorName = board.getHost() != null && board.getHost().getUser() != null ? board.getHost().getUser().getUsername() : "알 수 없음";
+        String spaceName = board.getSpace() != null ? board.getSpace().getSpaceName() : "알 수 없음";
+
+        return BoardDetailResponseDto.from(board, authorName, spaceName);
     }
 }
