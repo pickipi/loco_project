@@ -4,8 +4,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer; // CSRF 설정 시 필요
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -22,10 +23,26 @@ public class SecurityConfig {
                 // CSRF(Cross-Site Request Forgery) 보호 비활성화
                 .csrf(AbstractHttpConfigurer::disable)
 
+                // H2 콘솔 경로에 대한 CSRF 보호 비활성화
+                .csrf(csrf -> csrf
+                    .ignoringRequestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**"))
+                )
+
                 // HTTP 요청에 대한 인가(Authorization) 설정
                 .authorizeHttpRequests(authorize -> authorize
+                        // H2 콘솔 경로는 모든 사용자에게 접근을 허용
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**")).permitAll()
+
                         // 모든 요청 ("/**")에 대해 인증 없이 접근을 허용
                         .anyRequest().permitAll()
+                )
+
+                // H2 콘솔의 프레임 표시를 허용하도록 설정
+                // Spring Security가 기본적으로 X-Frame-Options 헤더를 DENY로 설정하는 것을 재정의
+                .headers(headers -> headers
+                        .frameOptions(frameOptions -> frameOptions
+                                .sameOrigin()
+                        )
                 )
 
                 // 기본 폼 로그인 비활성화
