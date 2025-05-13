@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SpaceRepository extends JpaRepository<Space, Long> {
-
+    // 공간 ID로 공간 조회
+    Optional<Space> findById(Long id);
 }
