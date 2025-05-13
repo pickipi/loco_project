@@ -46,6 +46,9 @@ dependencies {
 
 	// 타임리프 추가
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+
+	//websocket 추가
+	implementation("org.springframework.boot:spring-boot-starter-websocket")
 }
 
 tasks.withType<Test> {

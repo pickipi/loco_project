@@ -24,5 +24,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
             "OR r.host = :user")
     List<ChatRoom> findAllByUser(@Param("user") User user);
 
-
+    // 개선 버전: board + guest + host 모두 fetch
+    @EntityGraph(attributePaths = {"board", "guest", "host"})
+    @Query("SELECT r FROM ChatRoom r WHERE r.guest = :user OR r.host = :user")
+    List<ChatRoom> findAllByUserWithDetails(@Param("user") User user);
 }

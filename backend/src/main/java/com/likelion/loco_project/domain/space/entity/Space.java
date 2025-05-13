@@ -1,5 +1,6 @@
 package com.likelion.loco_project.domain.space.entity;
 
+import com.likelion.loco_project.domain.host.entity.Host;
 import com.likelion.loco_project.global.jpa.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,7 +18,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Space extends BaseEntity {
 
-    @Column(name = "image_id", nullable = false)
+    @Column(name = "image_id", nullable = true)
     private Long imageId; // 이미지 ID
 
     @Column(name = "space_name", length = 100, nullable = false)
@@ -52,4 +53,8 @@ public class Space extends BaseEntity {
 
     @Column(name = "space_rating", precision = 3, scale = 2)
     private BigDecimal spaceRating; // 평점 (ex: 4.5)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "host_id", nullable = false)
+    private Host host; // 호스트
 }
