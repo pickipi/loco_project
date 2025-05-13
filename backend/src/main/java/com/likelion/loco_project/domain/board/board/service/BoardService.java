@@ -162,22 +162,15 @@ public class BoardService {
     public void deleteBoard(Long id, Long userId) {
         // 1. 삭제할 게시글 조회 (존재하지 않으면 예외 발생)
         Board board = boardRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Board not found with id: " + id)); // ⭐ 게시글 없을 때 예외 발생
+                .orElseThrow(() -> new ResourceNotFoundException("게시글을 찾을 수 없습니다 : " + id));
 
         // 2. 삭제 권한 확인
         // 현재 로그인한 사용자가 게시글 작성자(호스트) 본인이거나 관리자인지 확인
-        // ⭐ board.getHost().getUser().getId()는 해당 게시글 작성자의 User ID입니다.
         if (!board.getHost().getUser().getId().equals(userId)) {
-            // TODO: 관리자 권한 확인 로직 추가 (User 엔티티에 isAdmin() 메소드 등이 있다면 활용)
-            // User requestingUser = userRepository.findById(userId)...
-            // if (!requestingUser.isAdmin()) {
-            throw new AccessDeniedException("You do not have permission to delete this board."); // ⭐ 권한 없음 예외 발생
-            // }
+            throw new AccessDeniedException("게시글 삭제 권한이 없습니다.");
         }
 
         // 3. Repository를 사용하여 게시글 삭제
         boardRepository.delete(board); // ⭐ 조회된 게시글 엔티티 삭제
-        // ⭐ 또는 boardRepository.deleteById(id); 로 ID만 사용해서 삭제 가능
-        // ⭐ @OnDelete(action = OnDeleteAction.CASCADE) 설정에 따라 연관된 댓글, 이미지 등이 함께 삭제될 수 있습니다.
     }
 }
