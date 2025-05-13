@@ -41,6 +41,12 @@ dependencies {
 	runtimeOnly("com.h2database:h2")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	runtimeOnly("com.mysql:mysql-connector-j")
+
+	// Spring Security Core (암호화)
+	implementation("org.springframework.boot:spring-boot-starter-security")
+
+	//Swagger 라이브러리 추가
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
 }
 
 tasks.withType<Test> {
