@@ -21,12 +21,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // CSRF(Cross-Site Request Forgery) 보호 비활성화
-                .csrf(AbstractHttpConfigurer::disable)
-
-                // H2 콘솔 경로에 대한 CSRF 보호 비활성화
                 .csrf(csrf -> csrf
-                    .ignoringRequestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**"))
+                        .ignoringRequestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**")) // H2 콘솔 경로는 CSRF 보호를 무시
+                        // 그 외 모든 경로(=전역)에 대해 CSRF 보호를 비활성화
+                        .disable()
                 )
 
                 // HTTP 요청에 대한 인가(Authorization) 설정
@@ -34,7 +32,7 @@ public class SecurityConfig {
                         // H2 콘솔 경로는 모든 사용자에게 접근을 허용
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**")).permitAll()
 
-                        // ⭐ /api/v1/users 에 대한 POST 요청은 인증 없이도 허용
+                        // /api/v1/users 에 대한 POST 요청은 인증 없이도 허용
                         .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
 
                         // Swagger UI 관련 경로도 인증 없이 접근 가능하도록 설정
