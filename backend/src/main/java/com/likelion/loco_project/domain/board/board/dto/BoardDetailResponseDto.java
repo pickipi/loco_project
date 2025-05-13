@@ -29,7 +29,7 @@ public class BoardDetailResponseDto {
     private String title;
     private String description;
     private Category category; // Category Enum 타입 사용
-    private Boolean isVisible; // 게시판 공개 여부 (Null 허용 -> Boolean타입)
+    private boolean isVisible; // 게시판 공개 여부
     private Boolean report; // 신고 여부 (Null 허용 -> Boolean타입)
 
     // 연관된 엔티티 정보
@@ -52,7 +52,7 @@ public class BoardDetailResponseDto {
                 .title(board.getTitle())
                 .description(board.getDescription())
                 .category(board.getCategory())
-                .isVisible(board.isVisible())
+                .isVisible(board.getIsVisible())
                 .report(board.getReport())
 
                 // 연관 엔티티가 null일 경우를 대비한 null 체크 추가

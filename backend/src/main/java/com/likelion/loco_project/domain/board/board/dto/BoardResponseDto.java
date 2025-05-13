@@ -27,7 +27,7 @@ public class BoardResponseDto {
     // 기본 출력되어야할 엔티티 정보
     private String title;
     private String description;
-    private Boolean isVisible; // 게시판 공개 여부 (Null 허용 -> Boolean타입)
+    private boolean isVisible; // 게시판 공개 여부
     private Boolean report; // 신고 여부 (Null 허용 -> Boolean타입)
 
     // 연관된 엔티티 정보

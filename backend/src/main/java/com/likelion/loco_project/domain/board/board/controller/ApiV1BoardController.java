@@ -80,4 +80,52 @@ public class ApiV1BoardController {
         // 생성된 게시글 정보(DTO)와 함께 HTTP 상태 코드 201 (Created) 반환
         return ResponseEntity.status(HttpStatus.CREATED).body(createdBoard);
     }
+
+    /** [UPDATE]
+     * 특정 게시글을 수정 : PUT /api/v1/boards/{id}
+     * @param id 수정할 게시글의 고유 ID (경로 변수)
+     * @param boardRequestDto 게시글 수정 요청 데이터 (JSON 형태)
+     * @param userDetails 인증된 사용자의 정보
+     * @return 수정된 게시글 정보와 함께 HTTP 상태 코드 200 (OK) 반환
+     * @throws ResourceNotFoundException 게시글 또는 공간을 찾을 수 없을 때 발생
+     * @throws AccessDeniedException 수정 권한이 없을 때 발생
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<BoardResponseDto> updateBoard(
+            @PathVariable Long id, // 수정할 게시글 ID
+            @Valid @RequestBody BoardRequestDto boardRequestDto, // 수정 요청 데이터
+            @AuthenticationPrincipal UserDetails userDetails // 현재 인증된 사용자 정보
+    ) {
+        // userDetails 객체에서 사용자 ID 가져오기
+        Long userId = Long.parseLong(userDetails.getUsername());
+
+        // BoardService의 updateBoard 메소드 호출하여 게시글 수정 비즈니스 로직 수행
+        BoardResponseDto updatedBoard = boardService.updateBoard(id, boardRequestDto, userId);
+
+        // 수정된 게시글 정보(DTO)와 함께 HTTP 상태 코드 200 (OK) 반환
+        return ResponseEntity.ok(updatedBoard);
+    }
+
+    /** [DELETE]
+     * 특정 게시글을 삭제 : DELETE /api/v1/boards/{id}
+     * @param id 삭제할 게시글의 고유 ID (경로 변수)
+     * @param userDetails 인증된 사용자의 정보
+     * @return 성공 시 HTTP 상태 코드 204 (No Content) 반환
+     * @throws ResourceNotFoundException 게시글을 찾을 수 없을 때 발생
+     * @throws AccessDeniedException 삭제 권한이 없을 때 발생
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBoard(
+            @PathVariable Long id, // 삭제할 게시글 ID
+            @AuthenticationPrincipal UserDetails userDetails // 현재 인증된 사용자 정보
+    ) {
+        // userDetails 객체에서 사용자 ID 가져오기
+        Long userId = Long.parseLong(userDetails.getUsername());
+
+        // BoardService의 deleteBoard 메소드 호출하여 게시글 삭제 비즈니스 로직 수행
+        boardService.deleteBoard(id, userId);
+
+        // 삭제 성공 시 응답 본문 없이 HTTP 상태 코드 204 (No Content) 반환
+        return ResponseEntity.noContent().build();
+    }
 }
