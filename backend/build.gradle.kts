@@ -24,8 +24,12 @@ repositories {
 }
 
 dependencies {
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.2") // Swagger UI 관련 어노테이션 추가
+	implementation("org.springframework.boot:spring-boot-starter-security") // Spring Security 관련 어노테이션 추가
+
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa") // JPA 관련 어노테이션 추가
 	implementation("org.springframework.boot:spring-boot-starter-validation") // Validation 관련 어노테이션 추가
+	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")

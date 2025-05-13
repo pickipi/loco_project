@@ -17,7 +17,6 @@ import java.util.Set;
 @Getter
 @ToString
 public class User extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Comment("유저 ID") // 실제 DB에 컬럼 주석 생성 (MySQL에서 보이게)

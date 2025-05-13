@@ -1,6 +1,9 @@
 server:
   port: 8090
 spring:
+  thymeleaf:
+    cache: false    # 개발 환경에서 템플릿 캐시 비활성화 (실시간 변경 반영)
+    prefix: file:src/main/resources/templates/    # 템플릿 파일 위치 지정, file: 접두사로 실시간 반영
   output:
     ansi:
       enabled: ALWAYS
