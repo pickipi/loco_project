@@ -19,6 +19,12 @@ public class UserService {
     //새로운 유저를 생성하고 저장하는 메서드 (회원가입 기능)
     @Transactional
     public UserResponseDto createUser(UserRequestDto dto) {
+
+        // 이메일 중복 체크
+        if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        }
+
         String encodedPassword = passwordEncoder.encode(dto.getPassword());
 
         User user = User.builder()
@@ -45,14 +51,14 @@ public class UserService {
     //주어진 ID로 유저를 조회하는 메서드
     public UserResponseDto getUserById(Long id) {
         return userRepository.findById(id)
+                .filter(user -> !user.isDeleted()) // 논리 삭제된 사용자 제외
                 .map(user -> UserResponseDto.builder()
                         .id(user.getId())
                         .username(user.getUsername())
                         .email(user.getEmail())
                         .phoneNumber(user.getPhoneNumber())
                         .rating(user.getRating())
-                        .build()
-                )
+                        .build())
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
@@ -60,9 +66,9 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserResponseDto login(String email, String rawPassword) {
         User user = userRepository.findByEmail(email)
+                .filter(u -> !u.isDeleted()) // 논리 삭제된 사용자 제외
                 .orElseThrow(() -> new RuntimeException("해당 이메일의 사용자가 없습니다."));
 
-        // 비밀번호 비교 (암호화된 비밀번호와 비교)
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
             throw new RuntimeException("비밀번호가 일치하지 않습니다.");
         }
@@ -74,5 +80,39 @@ public class UserService {
                 .phoneNumber(user.getPhoneNumber())
                 .rating(user.getRating())
                 .build();
+    }
+
+    //유저 정보 수정(Update) 기능
+    @Transactional
+    public UserResponseDto updateUser(Long id, UserRequestDto dto) {
+        User user = userRepository.findById(id)
+                .filter(u -> !u.isDeleted())
+                .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+
+        user.updateUserInfo(dto.getUsername(), dto.getPhoneNumber());
+
+        return UserResponseDto.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .rating(user.getRating())
+                .build();
+    }
+
+    //유저 정보 물리(바로,즉시) 삭제
+    @Transactional
+    public void hardDeleteUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+        userRepository.delete(user);
+    }
+
+    //유저 정보 논리 삭제
+    @Transactional
+    public void deleteUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+        user.delete(); // 논리 삭제 처리
     }
 }

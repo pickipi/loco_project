@@ -46,4 +46,24 @@ public class User extends BaseEntity {
     @Column
     @Comment("평점")
     private Double rating;
+
+    // 유저 삭제를 물리삭제가 아닌 논리삭제로 변경하는데에 필요한 엔티티
+    @Column(name = "is_deleted", nullable = false)
+    @Comment("삭제 여부")
+    private boolean isDeleted = false;
+
+    // 논리 삭제 메서드
+    public void delete() {
+        this.isDeleted = true;
+    }
+
+    public boolean isDeleted() {
+        return isDeleted;
+    }
+
+    //User 수정 메서드
+    public void updateUserInfo(String username, String phoneNumber) {
+        if (username != null) this.username = username;
+        if (phoneNumber != null) this.phoneNumber = phoneNumber;
+    }
 }
