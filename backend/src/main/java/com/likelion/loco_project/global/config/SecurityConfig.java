@@ -23,10 +23,11 @@ public class SecurityConfig {
                 // CSRF(Cross-Site Request Forgery) 보호 비활성화
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // H2 콘솔 경로에 대한 CSRF 보호 비활성화
-                .csrf(csrf -> csrf
-                    .ignoringRequestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**"))
-                )
+                // 이렇게 재설정하면 위에 코드가 비활성화됨
+//                // H2 콘솔 경로에 대한 CSRF 보호 비활성화
+//                .csrf(csrf -> csrf
+//                    .ignoringRequestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**"))
+//                )
 
                 // HTTP 요청에 대한 인가(Authorization) 설정
                 .authorizeHttpRequests(authorize -> authorize
