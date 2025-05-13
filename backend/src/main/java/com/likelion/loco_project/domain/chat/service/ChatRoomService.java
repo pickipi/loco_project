@@ -73,7 +73,7 @@ public class ChatRoomService {
                     return ChatRoomSummaryDto.builder()
                             .chatRoomId(room.getId())
                             .boardTitle(room.getBoard().getTitle())
-                            .otherNickname(other.getName())
+                            .otherNickname(other.getUsername())
                             .lastMessage(lastMessage != null ? lastMessage.getMessage() : "(대화 없음)")
                             .lastSentAt(lastMessage != null ? lastMessage.getCreatedDate() : null)
                             .unreadCount(unreadCount)

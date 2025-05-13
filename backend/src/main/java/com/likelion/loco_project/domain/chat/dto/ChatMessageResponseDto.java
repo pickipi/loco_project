@@ -31,7 +31,7 @@ public class ChatMessageResponseDto {
                 .messageId(message.getId())
                 .chatRoomId(message.getChatRoom().getId())
                 .senderId(message.getSender().getId())
-                .senderName(message.getSender().getName())
+                .senderName(message.getSender().getUsername())
                 .message(message.getMessage())
                 .sentAt(message.getCreatedDate())
                 .build();

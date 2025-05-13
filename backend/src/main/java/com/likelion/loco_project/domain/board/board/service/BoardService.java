@@ -69,7 +69,7 @@ public class BoardService {
         Board savedBoard = boardRepository.save(board);
 
         // 6. 저장된 Entity를 BoardResponseDto로 변환하여 반환
-        return BoardResponseDto.from(savedBoard, authorUser.getName(), space.getSpaceName());
+        return BoardResponseDto.from(savedBoard, authorUser.getUsername(), space.getSpaceName());
     }
 
     // 게시글 조회
@@ -85,7 +85,7 @@ public class BoardService {
         // 2. 조회된 Entity 목록을 BoardListResponseDto 리스트로 변환하여 반환
         return boardPage.getContent().stream()
                 .map(board -> {
-                    String authorName = board.getHost() != null && board.getHost().getUser() != null ? board.getHost().getUser().getName() : "Unknown";
+                    String authorName = board.getHost() != null && board.getHost().getUser() != null ? board.getHost().getUser().getUsername() : "Unknown";
                     String spaceName = board.getSpace() != null ? board.getSpace().getSpaceName() : "Unknown";
                     return BoardListResponseDto.from(board, authorName, spaceName);
                 })
