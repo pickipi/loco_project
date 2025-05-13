@@ -4,10 +4,7 @@ import com.likelion.loco_project.domain.host.entity.Host;
 import com.likelion.loco_project.domain.space.entity.Space;
 import com.likelion.loco_project.global.jpa.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -18,6 +15,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter@ToString
+@Setter
 public class Board extends BaseEntity {
     @Column(nullable = false, length = 100)
     private String title;
@@ -30,7 +28,7 @@ public class Board extends BaseEntity {
     private Category category;
 
     @Column(name = "is_visible")
-    private boolean isVisible; // 게시판 공개 여부
+    private Boolean isVisible; // 게시판 공개 여부, 공개/비공개 중 반드시 하나를 선택해야 하므로 null 허용하지 않음
 
     private Boolean report; // 신고 여부, null 허용이므로 boolean이 아닌 Boolean 사용
 
