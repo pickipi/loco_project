@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.http.HttpMethod;
 
 @Configuration
 @EnableWebSecurity
@@ -33,8 +34,15 @@ public class SecurityConfig {
                         // H2 콘솔 경로는 모든 사용자에게 접근을 허용
                         .requestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**")).permitAll()
 
+                        // ⭐ /api/v1/users 에 대한 POST 요청은 인증 없이도 허용
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
+
+                        // Swagger UI 관련 경로도 인증 없이 접근 가능하도록 설정
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+
                         // 모든 요청 ("/**")에 대해 인증 없이 접근을 허용
                         .anyRequest().permitAll()
+//                        .anyRequest().authenticated() // 허용한 경로 외의 모든 요청은 인증 필요 (기본 설정)
                 )
 
                 // H2 콘솔의 프레임 표시를 허용하도록 설정
@@ -54,7 +62,4 @@ public class SecurityConfig {
         // 설정된 HttpSecurity 객체를 기반으로 SecurityFilterChain 객체 생성 및 반환
         return http.build();
     }
-
-    // TODO: 비밀번호 암호화에 사용할 PasswordEncoder Bean 정의 (로그인/회원가입 기능 구현 시 필요)
-    // TODO: 인증 관리자 AuthenticationManager Bean 정의 (로그인 로직 구현 시 필요)
 }
