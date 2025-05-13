@@ -1,7 +1,14 @@
 package com.likelion.loco_project.domain.reservation.service;
 
+import com.likelion.loco_project.domain.guest.entity.Guest;
+import com.likelion.loco_project.domain.guest.repository.GuestRepository;
+import com.likelion.loco_project.domain.payment.entity.Payment;
+import com.likelion.loco_project.domain.payment.repository.PaymentRepository;
+import com.likelion.loco_project.domain.reservation.dto.ReservationRequestDto;
 import com.likelion.loco_project.domain.reservation.entity.Reservation;
 import com.likelion.loco_project.domain.reservation.repository.ReservationRepository;
+import com.likelion.loco_project.domain.space.entity.Space;
+import com.likelion.loco_project.domain.space.repository.SpaceRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -13,40 +20,52 @@ import java.util.Optional;
 public class ReservationService {
 
     private final ReservationRepository reservationRepository;
+    private final GuestRepository guestRepository;
+    private final PaymentRepository paymentRepository;
+    private final SpaceRepository spaceRepository;
 
-    public ReservationService(ReservationRepository reservationRepository) {
+    public ReservationService(ReservationRepository reservationRepository,
+                              GuestRepository guestRepository,
+                              PaymentRepository paymentRepository,
+                              SpaceRepository spaceRepository) {
         this.reservationRepository = reservationRepository;
+        this.guestRepository = guestRepository;
+        this.paymentRepository = paymentRepository;
+        this.spaceRepository = spaceRepository;
     }
 
-    // 1. 예약 생성
-    public Reservation createReservation(Reservation reservation) {
+    @Transactional
+    public Reservation createReservation(ReservationRequestDto dto) {
+        Guest guest = (Guest) guestRepository.findById(dto.getGuestId())
+                .orElseThrow(() -> new IllegalArgumentException("게스트 정보 없음"));
+
+        Payment payment = paymentRepository.findById(dto.getPaymentId())
+                .orElseThrow(() -> new IllegalArgumentException("결제 정보 없음"));
+
+        Space space = spaceRepository.findById(dto.getSpaceId())
+                .orElseThrow(() -> new IllegalArgumentException("공간 정보 없음"));
+
+        Reservation reservation = new Reservation();
+        reservation.setGuest(guest);
+        reservation.setPayment(payment);
+        reservation.setSpace(space);
         reservation.setReservationDate(LocalDateTime.now());
+        reservation.setBookingCapacity(dto.getBookingCapacity());
+        reservation.setStartTime(LocalDateTime.parse(dto.getStartTime()));
+        reservation.setEndTime(LocalDateTime.parse(dto.getEndTime()));
+
         return reservationRepository.save(reservation);
     }
 
-    // 2. 예약 취소 (Soft Delete 대체 가능)
-    @Transactional
-    public void cancelReservation(Long reservationId) {
-        reservationRepository.deleteById(reservationId);
+    public Optional<Object> getReservation(Long id) {
+        return null;
     }
 
-    // 3. 게스트별 예약 내역
     public List<Reservation> getReservationsByGuestId(Long guestId) {
-        return reservationRepository.findByGuestId(guestId);
+        return null;
     }
 
-    // 4. 공간별 예약 내역
-    public List<Reservation> getReservationsBySpaceId(Long spaceId) {
-        return reservationRepository.findBySpaceId(spaceId);
-    }
-
-    // 5. 다가오는 예약
-    public List<Reservation> getUpcomingReservations() {
-        return reservationRepository.findByReservationDateAfter(LocalDateTime.now());
-    }
-
-    // 6. 예약 상세 조회
-    public Optional<Reservation> getReservation(Long id) {
-        return reservationRepository.findById(id);
+    public Reservation cancelReservation(Long id) {
+        return null;
     }
 }
