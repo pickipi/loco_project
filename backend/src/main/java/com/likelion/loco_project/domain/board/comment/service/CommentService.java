@@ -25,6 +25,13 @@ public class CommentService {
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
 
+    /**
+     * 새로운 댓글을 생성합니다.
+     * @param boardId 댓글이 작성될 게시글의 ID
+     * @param requestDto 댓글 내용을 담은 DTO
+     * @param userId 댓글 작성자의 사용자 ID
+     * @return 생성된 댓글 정보를 담은 DTO
+     */
     @Transactional
     public CommentResponseDto createComment(Long boardId, CommentRequestDto requestDto, Long userId) {
         Board board = boardRepository.findById(boardId)
@@ -40,16 +47,28 @@ public class CommentService {
                 .build();
 
         Comment savedComment = commentRepository.save(comment);
-        return new CommentResponseDto(savedComment);
+        return CommentResponseDto.from(savedComment);
     }
 
+    /**
+     * 특정 게시글의 모든 댓글을 조회합니다.
+     * @param boardId 조회할 게시글의 ID
+     * @return 댓글 목록을 담은 DTO 리스트
+     */
     public List<CommentResponseDto> getCommentsByBoardId(Long boardId) {
-        List<Comment> comments = commentRepository.findAllByBoardId(boardId);
+        List<Comment> comments = commentRepository.findAllByBoardIdAndIsDeletedFalseOrderByCreatedDateDesc(boardId);
         return comments.stream()
-                .map(CommentResponseDto::new)
+                .map(CommentResponseDto::from)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 기존 댓글을 수정합니다.
+     * @param commentId 수정할 댓글의 ID
+     * @param requestDto 수정할 댓글 내용을 담은 DTO
+     * @param userId 수정 요청한 사용자의 ID
+     * @return 수정된 댓글 정보를 담은 DTO
+     */
     @Transactional
     public CommentResponseDto updateComment(Long commentId, CommentRequestDto requestDto, Long userId) {
         Comment comment = commentRepository.findById(commentId)
@@ -60,9 +79,14 @@ public class CommentService {
         }
 
         comment.updateContent(requestDto.getContent());
-        return new CommentResponseDto(comment);
+        return CommentResponseDto.from(comment);
     }
 
+    /**
+     * 댓글을 삭제합니다 (소프트 삭제).
+     * @param commentId 삭제할 댓글의 ID
+     * @param userId 삭제 요청한 사용자의 ID
+     */
     @Transactional
     public void deleteComment(Long commentId, Long userId) {
         Comment comment = commentRepository.findById(commentId)
