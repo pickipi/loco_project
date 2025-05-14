@@ -52,6 +52,10 @@ dependencies {
 
 	//websocket 추가
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
+
+	//Toss Payments 추가
+	implementation("com.fasterxml.jackson.core:jackson-databind")
+
 }
 
 tasks.withType<Test> {
