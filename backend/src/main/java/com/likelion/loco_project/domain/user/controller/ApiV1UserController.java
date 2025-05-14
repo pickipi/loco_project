@@ -3,6 +3,7 @@ package com.likelion.loco_project.domain.user.controller;
 import com.likelion.loco_project.domain.user.dto.UserRequestDto;
 import com.likelion.loco_project.domain.user.dto.UserResponseDto;
 import com.likelion.loco_project.domain.user.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +30,7 @@ public class ApiV1UserController {
 
     // 로그인
     @PostMapping("/login")
-    public ResponseEntity<UserResponseDto> login(@RequestParam String email, @RequestParam String password) {
+    public ResponseEntity<UserResponseDto> login(@Valid @RequestParam String email, @RequestParam String password) {
         UserResponseDto user = userService.login(email, password);
         return ResponseEntity.ok(user);
     }
