@@ -40,8 +40,8 @@ public class User extends BaseEntity {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
-    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
-    private Set<UserType> roles = new HashSet<>();
+    @CollectionTable(name = "user_type", joinColumns = @JoinColumn(name = "user_id"))
+    private Set<UserType> type = new HashSet<>();
 
     @Column
     @Comment("평점")
@@ -57,6 +57,7 @@ public class User extends BaseEntity {
         this.isDeleted = true;
     }
 
+    // 유저가 탈퇴요청을 완료했으면 true
     public boolean isDeleted() {
         return isDeleted;
     }
