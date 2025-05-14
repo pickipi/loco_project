@@ -17,12 +17,12 @@ import java.time.LocalDateTime;
 @Builder
 public class ChatMessageResponseDto {
 
-    private Long messageId;
-    private Long chatRoomId;
-    private Long senderId;
-    private String senderName;
-    private String message;
-    private LocalDateTime sentAt;
+    private Long messageId; // 메시지 아이디
+    private Long chatRoomId; // 채팅룸 아이디
+    private Long senderId; // 보낸 사람의 아이디
+    private String senderName; // 보낸 사람의 이름
+    private String message; // 메시지
+    private LocalDateTime sentAt; //보낸시간
 
 
     //    ChatMessage 엔티티를 DTO로 변환하는 정적 팩토리

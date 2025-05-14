@@ -13,23 +13,25 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class Reservation {
-    @Id @GeneratedValue
+
+    @Id
+    @GeneratedValue
     private Long id;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "payment_id")
-    private Payment payment;                    //결제 정보
+    private Payment payment;                            //결제 정보
 
     @ManyToOne
     @JoinColumn(name = "space_id")
-    private Space space;                        //예약된 공간 정보
+    private Space space;                                //공간 정보
 
     @ManyToOne
     @JoinColumn(name = "guest_id")
-    private Guest guest;                        //예약한 게스트의 정보
+    private Guest guest;                                //게스트 정보
 
-    private LocalDateTime reservationDate;      //예약 일시
-    private LocalDateTime startTime;            //예약 시작시간
-    private LocalDateTime endTime;              //예약 종료시간
-    private int bookingCapacity;                //예약 인원수
+    private LocalDateTime reservationDate;              //예약 일시
+    private int bookingCapacity;                        //예약 인원
+    private LocalDateTime startTime;                    //예약 시작시간
+    private LocalDateTime endTime;                      //예약 끝시간
 }

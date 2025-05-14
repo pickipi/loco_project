@@ -1,5 +1,6 @@
 package com.likelion.loco_project.domain.user.controller;
 
+import com.likelion.loco_project.domain.user.dto.LoginRequestDto;
 import com.likelion.loco_project.domain.user.dto.UserRequestDto;
 import com.likelion.loco_project.domain.user.dto.UserResponseDto;
 import com.likelion.loco_project.domain.user.service.UserService;
@@ -23,15 +24,30 @@ public class ApiV1UserController {
 
     // 유저 단건 조회
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDto> getUser(@PathVariable Long id) {
+    public ResponseEntity<UserResponseDto> getUser(@PathVariable(name = "id") Long id) {
         UserResponseDto user = userService.getUserById(id);
         return ResponseEntity.ok(user);
     }
 
-    // 로그인
+    // 로그인 @RequestParam 방식 -> @RequestBody + DTO 으로 변경(for Swagger Test)
     @PostMapping("/login")
     public ResponseEntity<UserResponseDto> login(@Valid @RequestParam String email, @RequestParam String password) {
         UserResponseDto user = userService.login(email, password);
         return ResponseEntity.ok(user);
+
+    // 유저 정보 수정
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponseDto> updateUser(
+            @PathVariable(name = "id") Long id,
+            @RequestBody UserRequestDto dto) {
+        return ResponseEntity.ok(userService.updateUser(id, dto));
     }
+
+    // 유저 정보 삭제
+    @DeleteMapping("/{id}/hard")
+    public ResponseEntity<Void> hardDeleteUser(@PathVariable(name = "id") Long id) {
+        userService.hardDeleteUser(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.likelion.loco_project.domain.space.dto;
 
 import com.likelion.loco_project.domain.space.entity.Space;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "공간 생성 요청 DTO")
 public class SpaceCreateRequestDto {
 
     private Long imageId;

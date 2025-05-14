@@ -49,6 +49,9 @@ dependencies {
 
 	// AWS S3 관련 라이브러리 추가 (버전 명시 필수)
 	implementation("software.amazon.awssdk:s3:2.20.160") // AWS SDK for S3 v2 의존성 추가
+
+	//websocket 추가
+	implementation("org.springframework.boot:spring-boot-starter-websocket")
 }
 
 tasks.withType<Test> {

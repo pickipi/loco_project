@@ -39,7 +39,7 @@ public class ChatRoom extends BaseEntity {
     @JoinColumn(name = "host_id", nullable = false)
     private User host;
 
-    //챗을 지우기 위해서
+    //채팅룸을 지우기 위해서
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatMessage> messages = new ArrayList<>();
 }

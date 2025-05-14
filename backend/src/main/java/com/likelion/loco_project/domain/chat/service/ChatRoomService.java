@@ -35,6 +35,11 @@ public class ChatRoomService {
         // 게시글 작성자인 Host로부터 연결된 User 엔티티 조회
         User host = board.getHost().getUser();
 
+        // 작성자가 자기와 채팅하는 걸 방지
+        if (guest.getId().equals(host.getId())) {
+            throw new RuntimeException("자기 자신과는 채팅할 수 없습니다.");
+        }
+
         // 해당 board, guest, host 조합의 채팅방이 이미 존재하면 반환
         // 없다면 새로 생성 후 저장하고 반환
         return chatRoomRepository.findByBoardAndGuestAndHost(board, guest, host)
