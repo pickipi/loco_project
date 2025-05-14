@@ -14,4 +14,5 @@ public class ChatRoomSummaryDto {
     private String lastMessage;
     private LocalDateTime lastSentAt;
     private int unreadCount;
+    private boolean otherExited;// 채팅방에 남아 있는 유저
 }

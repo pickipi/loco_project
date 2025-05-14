@@ -18,14 +18,19 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     Optional<ChatRoom> findByBoardAndGuestAndHost(Board board, User guest, User host);
 
     // 내가 속한 채팅방들 + 게시글(post)까지 fetch
-    @Query("SELECT r FROM ChatRoom r " +
-            "LEFT JOIN FETCH r.board " +
-            "WHERE r.guest = :user " +
-            "OR r.host = :user")
+    @Query("""
+        SELECT r FROM ChatRoom r
+        LEFT JOIN FETCH r.board
+        WHERE r.guest = :user
+        OR r.host = :user
+    """)
     List<ChatRoom> findAllByUser(@Param("user") User user);
 
     // 개선 버전: board + guest + host 모두 fetch
     @EntityGraph(attributePaths = {"board", "guest", "host"})
-    @Query("SELECT r FROM ChatRoom r WHERE r.guest = :user OR r.host = :user")
+    @Query("""
+        SELECT r FROM ChatRoom r
+        WHERE r.guest = :user OR r.host = :user
+    """)
     List<ChatRoom> findAllByUserWithDetails(@Param("user") User user);
 }
