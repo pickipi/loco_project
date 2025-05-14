@@ -1,6 +1,5 @@
 package com.likelion.loco_project.domain.user.controller;
 
-import com.likelion.loco_project.domain.user.dto.LoginRequestDto;
 import com.likelion.loco_project.domain.user.dto.UserRequestDto;
 import com.likelion.loco_project.domain.user.dto.UserResponseDto;
 import com.likelion.loco_project.domain.user.service.UserService;
@@ -34,6 +33,7 @@ public class ApiV1UserController {
     public ResponseEntity<UserResponseDto> login(@Valid @RequestParam String email, @RequestParam String password) {
         UserResponseDto user = userService.login(email, password);
         return ResponseEntity.ok(user);
+    }
 
     // 유저 정보 수정
     @PutMapping("/{id}")
@@ -49,5 +49,4 @@ public class ApiV1UserController {
         userService.hardDeleteUser(id);
         return ResponseEntity.noContent().build();
     }
-
 }

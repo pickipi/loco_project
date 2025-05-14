@@ -21,8 +21,11 @@ public class JwtProvider {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    @Value("${jwt.expiration}")
-    private long expirationMillis;
+    @Value("${jwt.access-token-validity-in-seconds}")
+    private long accessTokenValidityInSeconds;
+
+    @Value("${jwt.refresh-token-validity-in-seconds}")
+    private long refreshTokenValidityInSeconds;
 
     private Key key;
 
@@ -56,7 +59,7 @@ public class JwtProvider {
                 .parseClaimsJws(token)
                 .getBody();
 
-        return Long.valueOf(claims.getSubject()); // subject에 userId가 있다고 가정
+        return Long.valueOf(claims.getSubject());
     }
 
     /**
@@ -69,11 +72,25 @@ public class JwtProvider {
     }
 
     /**
-     * 토큰 생성 (선택)
+     * Access 토큰 생성
      */
-    public String createToken(Long userId) {
+    public String createAccessToken(Long userId) {
+        return createToken(userId, accessTokenValidityInSeconds * 1000);
+    }
+
+    /**
+     * Refresh 토큰 생성
+     */
+    public String createRefreshToken(Long userId) {
+        return createToken(userId, refreshTokenValidityInSeconds * 1000);
+    }
+
+    /**
+     * 토큰 생성 (내부 메서드)
+     */
+    private String createToken(Long userId, long validityInMillis) {
         Date now = new Date();
-        Date expiry = new Date(now.getTime() + expirationMillis);
+        Date expiry = new Date(now.getTime() + validityInMillis);
 
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))
