@@ -7,6 +7,7 @@ import com.likelion.loco_project.domain.payment.entity.Payment;
 import com.likelion.loco_project.domain.payment.entity.PaymentStatus;
 import com.likelion.loco_project.domain.payment.repository.PaymentRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -14,22 +15,26 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class PaymentService {
-
     private final PaymentRepository paymentRepository;
     private final GuestRepository guestRepository;
 
-    public PaymentService(PaymentRepository paymentRepository, GuestRepository guestRepository) {
-        this.paymentRepository = paymentRepository;
-        this.guestRepository = guestRepository;
-    }
-
     // 결제 요청
+    @Transactional
     public Payment createPayment(PaymentRequestDto dto) {
-        Guest guest = guestRepository.findById(dto.getGuestId())
-                .orElseThrow(() -> new IllegalArgumentException("게스트를 찾을 수 없습니다."));
+        // dto.getGuestId()가 null인지 먼저 확인
+        if (dto.getGuestId() == null) {
+            throw new IllegalArgumentException("게스트 ID가 누락되었습니다."); // null인 경우 명확한 예외 발생
+        }
 
-        Payment payment = dto.toEntity();
+        // ID에 해당하는 게스트가 없을 때) 예외를 발생
+        Guest guest = guestRepository.findById(dto.getGuestId())
+                .orElseThrow(() -> new IllegalArgumentException("게스트를 찾을 수 없습니다. ID: " + dto.getGuestId())); // 예외 메시지에 ID 포함
+
+        // PaymentRequestDto에 toEntity() 메소드가 있다고 가정합니다.
+        Payment payment = dto.toEntity(); // dto를 Payment 엔티티로 변환
+
         payment.setGuest(guest);
         payment.setPaymentRequestedAt(LocalDateTime.now());
         payment.setPaymentStatus(PaymentStatus.REQUESTED);
@@ -76,6 +81,10 @@ public class PaymentService {
     }
 
     private Payment findPaymentById(Long id) {
+        if (id == null) { // ID가 null인 경우를 대비한 체크
+            throw new IllegalArgumentException("결제 ID가 누락되었습니다.");
+        }
+
         return paymentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("결제 정보가 존재하지 않습니다."));
     }

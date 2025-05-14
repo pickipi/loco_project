@@ -1,9 +1,7 @@
 package com.likelion.loco_project.domain.guest.repository;
 
-import java.util.Optional;
+import com.likelion.loco_project.domain.guest.entity.Guest;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public class GuestRepository {
-    public Optional<Object> findById(Long guestId) {
-        return null;
-    }
+public interface GuestRepository extends JpaRepository<Guest, Long> {
 }

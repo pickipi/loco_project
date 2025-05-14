@@ -4,6 +4,9 @@ import com.likelion.loco_project.domain.payment.dto.PaymentRequestDto;
 import com.likelion.loco_project.domain.payment.dto.PaymentResponseDto;
 import com.likelion.loco_project.domain.payment.entity.Payment;
 import com.likelion.loco_project.domain.payment.service.PaymentService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,40 +15,36 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/payments")
+@RequiredArgsConstructor
 public class ApiV1PaymentController {
-
     private final PaymentService paymentService;
-
-    public ApiV1PaymentController(PaymentService paymentService) {
-        this.paymentService = paymentService;
-    }
 
     // 1. 결제 요청
     @PostMapping
-    public ResponseEntity<PaymentResponseDto> createPayment(@RequestBody PaymentRequestDto dto) {
-        Payment payment = paymentService.createPayment(dto);
-        return ResponseEntity.ok(PaymentResponseDto.from(payment));
+    public ResponseEntity<PaymentResponseDto> createPayment(@Valid @RequestBody PaymentRequestDto paymentRequestDto) {
+        Payment createdPayment = paymentService.createPayment(paymentRequestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(PaymentResponseDto.from(createdPayment));
     }
 
     // 2. 결제 성공
     @PostMapping("/{id}/complete")
     public ResponseEntity<PaymentResponseDto> complete(@PathVariable Long id, @RequestParam String transactionId) {
-        Payment payment = paymentService.completePayment(id, transactionId);
-        return ResponseEntity.ok(PaymentResponseDto.from(payment));
+        Payment completedPayment = paymentService.completePayment(id, transactionId);
+        return ResponseEntity.ok(PaymentResponseDto.from(completedPayment));
     }
 
     // 3. 결제 실패
     @PostMapping("/{id}/fail")
     public ResponseEntity<PaymentResponseDto> fail(@PathVariable Long id, @RequestParam String reason) {
-        Payment payment = paymentService.failPayment(id, reason);
-        return ResponseEntity.ok(PaymentResponseDto.from(payment));
+        Payment failedPayment = paymentService.failPayment(id, reason);
+        return ResponseEntity.ok(PaymentResponseDto.from(failedPayment));
     }
 
     // 4. 환불 처리
     @PostMapping("/{id}/refund")
     public ResponseEntity<PaymentResponseDto> refund(@PathVariable Long id) {
-        Payment payment = paymentService.refundPayment(id);
-        return ResponseEntity.ok(PaymentResponseDto.from(payment));
+        Payment refundedPayment = paymentService.refundPayment(id);
+        return ResponseEntity.ok(PaymentResponseDto.from(refundedPayment));
     }
 
     // 5. 게스트별 결제 내역 조회
