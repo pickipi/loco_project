@@ -7,8 +7,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /*
     * @author : pickipi
@@ -40,4 +42,8 @@ public class BoardRequestDto {
 
     // // 게시판 공개 여부 (클라이언트가 설정 가능) -> 클라이언트가 공개 여부를 반드시 바꿀 필요가 없으므로 Boolean 타입으로 설정 (null 허용)
     private Boolean isVisible;
+
+    // 이미지 관련 필드
+    private MultipartFile thumbnailFile; // 썸네일 이미지 파일 (업로드 시 사용)
+    private List<MultipartFile> otherImageFiles; // 추가 이미지 파일 목록
 }

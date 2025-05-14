@@ -47,13 +47,18 @@ dependencies {
 	// 타임리프 추가
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
 
+	// AWS S3 관련 라이브러리 추가 (버전 명시 필수)
+	implementation("software.amazon.awssdk:s3:2.20.160") // AWS SDK for S3 v2 의존성 추가
+
 	//websocket 추가
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
 
-	//jjwt 추가
 	implementation("io.jsonwebtoken:jjwt-api:0.11.5")
 	implementation("io.jsonwebtoken:jjwt-impl:0.11.5")
 	implementation("io.jsonwebtoken:jjwt-jackson:0.11.5") // jackson serializer 사용
+
+	//Toss Payments 추가
+	implementation("com.fasterxml.jackson.core:jackson-databind")
 }
 
 tasks.withType<Test> {
