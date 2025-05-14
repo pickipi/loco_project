@@ -46,3 +46,8 @@ custom:
     cookieDomain: "${custom.dev.cookieDomain}"
     frontUrl: "${custom.dev.frontUrl}"
     backUrl: "${custom.dev.backUrl}"
+toss:                           # 토스페이먼츠 파트
+  payments:
+    secret-key: test_sk_5OWRapdA8dPMJADlQKyb8o1zEqZK    # 테스트 키
+    success-url: "http://localhost:8080/api/v1/payments/success"
+    fail-url: "http://localhost:8080/api/v1/payments/fail"
