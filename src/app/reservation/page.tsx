@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Calendar from "@/components/Calendar";
+import TimeSelector from "@/components/TimeSelector";
+import SpaceList from "@/components/SpaceList";
 
 interface ReservationState {
   selectedDate: Date | null;
@@ -35,15 +38,30 @@ export default function ReservationPage() {
         {/* 공간 선택 섹션 */}
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-4">공간 선택</h2>
-          <div className="space-y-4">{/* 공간 목록 */}</div>
+          <SpaceList
+            selectedSpace={selectedSpace}
+            onSelect={setSelectedSpace}
+          />
         </div>
 
         {/* 날짜/시간 선택 섹션 */}
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-4">날짜 및 시간 선택</h2>
-          <div className="space-y-4">
-            {/* 달력 컴포넌트 */}
-            {/* 시간 선택 */}
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-medium mb-2">날짜 선택</h3>
+              <Calendar
+                selectedDate={selectedDate}
+                onChange={setSelectedDate}
+              />
+            </div>
+            <div>
+              <h3 className="text-lg font-medium mb-2">시간 선택</h3>
+              <TimeSelector
+                selectedTime={selectedTime}
+                onChange={setSelectedTime}
+              />
+            </div>
           </div>
         </div>
       </div>
