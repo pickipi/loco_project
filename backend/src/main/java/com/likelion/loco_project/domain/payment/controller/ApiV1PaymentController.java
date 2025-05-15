@@ -4,6 +4,7 @@ import com.likelion.loco_project.domain.payment.dto.PaymentRequestDto;
 import com.likelion.loco_project.domain.payment.dto.PaymentResponseDto;
 import com.likelion.loco_project.domain.payment.entity.Payment;
 import com.likelion.loco_project.domain.payment.service.PaymentService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,35 +20,35 @@ import java.util.stream.Collectors;
 public class ApiV1PaymentController {
     private final PaymentService paymentService;
 
-    // 1. 결제 요청
+    @Operation(summary = "결제 요청", description = "새로운 결제를 요청합니다.")
     @PostMapping
     public ResponseEntity<PaymentResponseDto> createPayment(@Valid @RequestBody PaymentRequestDto paymentRequestDto) {
         Payment createdPayment = paymentService.createPayment(paymentRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(PaymentResponseDto.from(createdPayment));
     }
 
-    // 2. 결제 성공
+    @Operation(summary = "결제 완료", description = "결제를 완료 처리합니다.")
     @PostMapping("/{id}/complete")
     public ResponseEntity<PaymentResponseDto> complete(@PathVariable Long id, @RequestParam String transactionId) {
         Payment completedPayment = paymentService.completePayment(id, transactionId);
         return ResponseEntity.ok(PaymentResponseDto.from(completedPayment));
     }
 
-    // 3. 결제 실패
+    @Operation(summary = "결제 실패", description = "결제 실패를 처리합니다.")
     @PostMapping("/{id}/fail")
     public ResponseEntity<PaymentResponseDto> fail(@PathVariable Long id, @RequestParam String reason) {
         Payment failedPayment = paymentService.failPayment(id, reason);
         return ResponseEntity.ok(PaymentResponseDto.from(failedPayment));
     }
 
-    // 4. 환불 처리
+    @Operation(summary = "환불 처리", description = "결제된 금액을 환불 처리합니다.")
     @PostMapping("/{id}/refund")
     public ResponseEntity<PaymentResponseDto> refund(@PathVariable Long id) {
         Payment refundedPayment = paymentService.refundPayment(id);
         return ResponseEntity.ok(PaymentResponseDto.from(refundedPayment));
     }
 
-    // 5. 게스트별 결제 내역 조회
+    @Operation(summary = "게스트별 결제 내역 조회", description = "특정 게스트의 모든 결제 내역을 조회합니다.")
     @GetMapping("/guest/{guestId}")
     public ResponseEntity<List<PaymentResponseDto>> getGuestPayments(@PathVariable Long guestId) {
         List<PaymentResponseDto> list = paymentService.getPaymentsByGuestId(guestId).stream()
@@ -56,7 +57,7 @@ public class ApiV1PaymentController {
         return ResponseEntity.ok(list);
     }
 
-    // 6. 단일 결제 조회
+    @Operation(summary = "결제 상세 조회", description = "결제 ID로 특정 결제의 상세 정보를 조회합니다.")
     @GetMapping("/{id}")
     public ResponseEntity<PaymentResponseDto> getPayment(@PathVariable Long id) {
         return paymentService.getPayment(id)

@@ -4,6 +4,7 @@ import com.likelion.loco_project.domain.user.dto.LoginRequestDto;
 import com.likelion.loco_project.domain.user.dto.UserRequestDto;
 import com.likelion.loco_project.domain.user.dto.UserResponseDto;
 import com.likelion.loco_project.domain.user.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,28 +15,28 @@ import org.springframework.web.bind.annotation.*;
 public class ApiV1UserController {
     private final UserService userService;
 
-    // 회원가입
+    @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다.")
     @PostMapping
     public ResponseEntity<UserResponseDto> registerUser(@RequestBody UserRequestDto dto) {
         UserResponseDto createdUser = userService.createUser(dto);
         return ResponseEntity.ok(createdUser);
     }
 
-    // 유저 단건 조회
+    @Operation(summary = "사용자 정보 조회", description = "사용자 ID로 특정 사용자의 정보를 조회합니다.")
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDto> getUser(@PathVariable(name = "id") Long id) {
         UserResponseDto user = userService.getUserById(id);
         return ResponseEntity.ok(user);
     }
 
-    // 로그인 @RequestParam 방식 -> @RequestBody + DTO 으로 변경(for Swagger Test)
+    @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
     @PostMapping("/login")
     public ResponseEntity<UserResponseDto> login(@RequestBody LoginRequestDto dto) {
         UserResponseDto response = userService.login(dto.getEmail(), dto.getPassword());
         return ResponseEntity.ok(response);
     }
 
-    // 유저 정보 수정
+    @Operation(summary = "사용자 정보 수정", description = "기존 사용자의 정보를 수정합니다.")
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDto> updateUser(
             @PathVariable(name = "id") Long id,
@@ -43,11 +44,10 @@ public class ApiV1UserController {
         return ResponseEntity.ok(userService.updateUser(id, dto));
     }
 
-    // 유저 정보 삭제
+    @Operation(summary = "사용자 삭제", description = "사용자 ID로 특정 사용자를 완전히 삭제합니다.")
     @DeleteMapping("/{id}/hard")
     public ResponseEntity<Void> hardDeleteUser(@PathVariable(name = "id") Long id) {
         userService.hardDeleteUser(id);
         return ResponseEntity.noContent().build();
     }
-
 }
