@@ -52,3 +52,7 @@ toss:                           # 토스페이먼츠 파트
     secret-key: NEED_TO_INPUT    # 테스트 키 필요 시 기재 예정
     success-url: "http://localhost:8090/api/v1/payments/success"
     fail-url: "http://localhost:8090/api/v1/payments/fail"
+#카카오 맵
+kakao:
+  map:
+    javascript-key: ${KAKAO_MAP_JAVASCRIPT_KEY}

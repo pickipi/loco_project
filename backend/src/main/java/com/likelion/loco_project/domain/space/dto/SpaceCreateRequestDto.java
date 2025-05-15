@@ -1,6 +1,7 @@
 package com.likelion.loco_project.domain.space.dto;
 
 import com.likelion.loco_project.domain.space.entity.Space;
+import com.likelion.loco_project.domain.space.entity.SpaceType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
@@ -15,18 +16,19 @@ import java.time.LocalDateTime;
 @Schema(description = "공간 생성 요청 DTO")
 public class SpaceCreateRequestDto {
 
-    private Long imageId;
-    private String spaceName;
-    private String description;
+    private SpaceType spaceType;// 공간 유형
+    private String spaceName; // 공간 이름
+    private String description; // 공간 설명
+    private Long imageId; // 이미지
     private LocalDateTime uploadDate;
-    private String spaceType;
-    private Long price;
-    private String address;
+    private Integer maxCapacity; // 최대 인원
+    private String address; // 주소
     private BigDecimal latitude;
     private BigDecimal longitude;
-    private Integer maxCapacity;
+    private Long price;
     private Boolean isActive;
     private BigDecimal spaceRating;
+
 
     // DTO → Entity 변환 메서드
     public Space toEntity() {

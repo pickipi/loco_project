@@ -1,6 +1,7 @@
 package com.likelion.loco_project.domain.space.dto;
 
 import com.likelion.loco_project.domain.space.entity.Space;
+import com.likelion.loco_project.domain.space.entity.SpaceType;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -15,7 +16,7 @@ public class SpaceResponseDto {
     private String spaceName;
     private String description;
     private LocalDateTime uploadDate;
-    private String spaceType;
+    private SpaceType spaceType;
     private Long price;
     private String address;
     private BigDecimal latitude;

@@ -15,7 +15,7 @@ const initialChatRooms = [
     name: '일반 채팅방',
     lastMessage: '안녕하세요!',
     timestamp: '2025년 5월 13일 오전 10:30',
-    unreadCount: 2,
+    unreadCount: 1,
     participants: ['user1', 'user2', 'user3'],
     leftParticipants: [],
     messages: [
@@ -44,7 +44,7 @@ const initialChatRooms = [
     name: '프로젝트 채팅방',
     lastMessage: '회의 시간이 변경되었습니다.',
     timestamp: '2025년 5월 12일 오전 09:15',
-    unreadCount: 3,
+    unreadCount: 1,
     participants: ['user1', 'user4'],
     leftParticipants: ['user5'],
     messages: [
