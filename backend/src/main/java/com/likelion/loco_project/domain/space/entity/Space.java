@@ -30,8 +30,9 @@ public class Space extends BaseEntity {
     @Column(name = "upload_date", nullable = false)
     private LocalDateTime uploadDate; // 등록 일자
 
-    @Column(name = "space_type", length = 30, nullable = false)
-    private String spaceType; // 공간 종류 (스터디룸, 스튜디오 등)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SpaceType spaceType; // 공간 종류 (스터디룸, 스튜디오 등)
 
     @Column(nullable = false)
     private Long price; // 공간 가격
@@ -57,4 +58,5 @@ public class Space extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "host_id", nullable = false)
     private Host host; // 호스트
+
 }
