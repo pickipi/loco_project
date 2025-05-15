@@ -7,11 +7,17 @@ import com.likelion.loco_project.domain.chat.entity.*;
 import com.likelion.loco_project.domain.chat.repository.*;
 import com.likelion.loco_project.domain.user.entity.User;
 import com.likelion.loco_project.domain.user.repository.UserRepository;
+import com.likelion.loco_project.global.exception.AccessDeniedException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,17 +46,29 @@ public class ChatRoomService {
             throw new RuntimeException("자기 자신과는 채팅할 수 없습니다.");
         }
 
-        // 해당 board, guest, host 조합의 채팅방이 이미 존재하면 반환
-        // 없다면 새로 생성 후 저장하고 반환
-        return chatRoomRepository.findByBoardAndGuestAndHost(board, guest, host)
-                .orElseGet(() -> {
-                    ChatRoom newRoom = ChatRoom.builder()
-                            .board(board)
-                            .guest(guest)
-                            .host(host)
-                            .build();
-                    return chatRoomRepository.save(newRoom);
-                });
+        // 기존 채팅방 존재 여부 확인
+        Optional<ChatRoom> optionalRoom = chatRoomRepository.findByBoardAndGuestAndHost(board, guest, host);
+
+        if (optionalRoom.isPresent()) {
+            ChatRoom room = optionalRoom.get();
+
+            // 재입장 처리: 나간 사용자면 상태 복구
+            if (guest.equals(room.getGuest())) {
+                room.setGuestExited(false);
+            } else {
+                room.setHostExited(false);
+            }
+            return room;
+        }
+
+        // 새로 생성
+        ChatRoom newRoom = ChatRoom.builder()
+                .board(board)
+                .guest(guest)
+                .host(host)
+                .build();
+
+        return chatRoomRepository.save(newRoom);
     }
 
     //채팅 목록 조회
@@ -59,22 +77,35 @@ public class ChatRoomService {
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
         // 내가 참여 중인 채팅방 전체 가져오기
-        List<ChatRoom> rooms = chatRoomRepository.findAllByUser(user);
+        List<ChatRoom> rooms = chatRoomRepository.findAllByUserWithDetails(user);
 
-        return rooms.stream().map(room -> {
-                    // 마지막 메시지 조회
-                    ChatMessage lastMessage = chatMessageRepository
-                            .findTop1ByChatRoomOrderByCreatedDateDesc(room);
+        // 마지막 메시지들을 한 번에 조회
+        List<ChatMessage> lastMessages = chatMessageRepository.findLastMessagesByChatRooms(rooms);
 
-                    // 나 아닌 상대방
-                    User other = room.getGuest().equals(user)
-                            ? room.getHost()
-                            : room.getGuest();
+        // 채팅방 ID를 key로, 마지막 메시지를 value로 매핑 (빠른 참조용)
+        Map<Long, ChatMessage> roomIdToLastMessage = lastMessages.stream()
+                .collect(Collectors.toMap(m -> m.getChatRoom().getId(), Function.identity()));
 
-                    //안읽은 메세지 카운트
-                    int unreadCount = chatMessageRepository
-                            .countByChatRoomAndSenderNotAndIsReadFalse(room, user);
 
+        return rooms.stream()
+                .filter(room -> {
+                    // 나간 채팅방 필터링: 내가 guest 또는 host로 나간 상태면 제외
+                    if (room.getGuest().equals(user)) return !room.isGuestExited();
+                    if (room.getHost().equals(user)) return !room.isHostExited();
+                    return false;
+                })
+                // 각 채팅방을 ChatRoomSummaryDto로 변환
+                .map(room -> {
+                    ChatMessage lastMessage = roomIdToLastMessage.get(room.getId());
+                    // 상대방 구하기 (내가 guest면 상대는 host, 반대도 마찬가지)
+                    User other = room.getGuest().equals(user) ? room.getHost() : room.getGuest();
+                    // 내가 안 읽은 메시지 개수
+                    int unreadCount = chatMessageRepository.countByChatRoomAndSenderNotAndIsReadFalse(room, user);
+                    // 채팅룸에서 누군가 한명있으면 유지
+                    boolean otherExited = room.getGuest().equals(user)
+                            ? room.isHostExited()
+                            : room.isGuestExited();
+                    // 요약 DTO 생성
                     return ChatRoomSummaryDto.builder()
                             .chatRoomId(room.getId())
                             .boardTitle(room.getBoard().getTitle())
@@ -82,19 +113,38 @@ public class ChatRoomService {
                             .lastMessage(lastMessage != null ? lastMessage.getMessage() : "(대화 없음)")
                             .lastSentAt(lastMessage != null ? lastMessage.getCreatedDate() : null)
                             .unreadCount(unreadCount)
+                            .otherExited(otherExited)
                             .build();
-
                 })
+                // 마지막 메시지 시간 기준으로 정렬 (최신 순, null은 맨 뒤)
                 .sorted(Comparator.comparing(ChatRoomSummaryDto::getLastSentAt,
                         Comparator.nullsLast(Comparator.reverseOrder())))
                 .toList();
     }
 
-    // 챗룸 지우기(영구 삭제) 소프트딜리트로도 변경 가능
-    public void deleteChatRoom(Long chatRoomId) {
-        // 채팅창 ID로 조회 (아니면 예외 발생)
-        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
-                .orElseThrow(() -> new RuntimeException("채팅방(ID: " + chatRoomId + ")을 찾을 수 없습니다."));
-        chatRoomRepository.delete(chatRoom);
+
+    // 채팅방 나가기
+    @Transactional
+    public void exitChatRoom(Long chatRoomId, Long userId) {
+        ChatRoom room = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new RuntimeException("채팅방을 찾을 수 없습니다."));
+
+        // 채팅방 멤버 유지
+        boolean isGuest = room.getGuest().getId().equals(userId);
+        boolean isHost = room.getHost().getId().equals(userId);
+
+        // 누가 나갔는지를 알기 위해서 나눔
+        if (isGuest) {
+            room.setGuestExited(true);
+        } else if (isHost) {
+            room.setHostExited(true);
+        } else {
+            throw new AccessDeniedException("해당 채팅방에 속하지 않은 사용자입니다.");
+        }
+
+        // 둘 다 나갔다면 채팅방 하드 삭제
+        if (room.isGuestExited() && room.isHostExited()) {
+            chatRoomRepository.delete(room);
+        }
     }
 }

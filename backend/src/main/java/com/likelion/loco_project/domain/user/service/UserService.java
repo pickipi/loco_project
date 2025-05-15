@@ -32,7 +32,7 @@ public class UserService {
                 .password(encodedPassword)
                 .email(dto.getEmail())
                 .phoneNumber(dto.getPhoneNumber())
-                .roles(dto.getRoles())
+                .type(dto.getType())
                 .rating(0.0)
                 .build();
 

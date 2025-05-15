@@ -39,7 +39,15 @@ public class ChatRoom extends BaseEntity {
     @JoinColumn(name = "host_id", nullable = false)
     private User host;
 
-    //채팅룸을 지우기 위해서
+    //게스트가 채팅방에 남아있으면 유지
+    @Column(name = "guest_exited", nullable = false)
+    private boolean guestExited = false;
+
+    //호스트가 채팅방에 남아있으면 유지
+    @Column(name = "host_exited", nullable = false)
+    private boolean hostExited = false;
+
+    //채팅룸을 지우기 (둘다 채팅방에 나가있으면)
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatMessage> messages = new ArrayList<>();
 }

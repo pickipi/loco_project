@@ -1,10 +1,10 @@
 package com.likelion.loco_project.domain.user.controller;
 
-import com.likelion.loco_project.domain.user.dto.LoginRequestDto;
 import com.likelion.loco_project.domain.user.dto.UserRequestDto;
 import com.likelion.loco_project.domain.user.dto.UserResponseDto;
 import com.likelion.loco_project.domain.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,9 +31,9 @@ public class ApiV1UserController {
 
     @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
     @PostMapping("/login")
-    public ResponseEntity<UserResponseDto> login(@RequestBody LoginRequestDto dto) {
-        UserResponseDto response = userService.login(dto.getEmail(), dto.getPassword());
-        return ResponseEntity.ok(response);
+    public ResponseEntity<UserResponseDto> login(@Valid @RequestParam String email, @RequestParam String password) {
+        UserResponseDto user = userService.login(email, password);
+        return ResponseEntity.ok(user);
     }
 
     @Operation(summary = "사용자 정보 수정", description = "기존 사용자의 정보를 수정합니다.")

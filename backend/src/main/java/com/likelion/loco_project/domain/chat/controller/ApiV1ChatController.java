@@ -9,8 +9,6 @@ import com.likelion.loco_project.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -86,10 +84,11 @@ public class ApiV1ChatController {
             , description = "본인이 보낸 메시지를 삭제합니다.")
     @DeleteMapping("/chatrooms/{chatRoomId}/messages/{messageId}")
     public ResponseEntity<RsData<Void>> deleteMessage(
+            @PathVariable Long chatRoomId,
             @PathVariable Long messageId,
             @RequestParam Long senderId) {
 
-        chatMessageService.deleteMessage(messageId, senderId);
+        chatMessageService.deleteMessage(chatRoomId,messageId, senderId);
         return ResponseEntity.ok(RsData.of("S-200", "메시지 삭제 성공"));
     }
 
@@ -103,24 +102,5 @@ public class ApiV1ChatController {
 
         chatMessageService.markMessageAsRead(messageId, userId);
         return ResponseEntity.ok(RsData.of("S-200", "메시지 읽음 처리 완료"));
-    }
-
-    // 채팅방 삭제
-    @Operation(summary = "채팅방 삭제"
-            , description = "채팅방 전체를 삭제합니다.")
-    @DeleteMapping("/chatrooms/{chatRoomId}")
-    public ResponseEntity<RsData<Void>> deleteChatRoom(@PathVariable Long chatRoomId) {
-        chatRoomService.deleteChatRoom(chatRoomId);
-        return ResponseEntity.ok(RsData.of("S-200", "채팅방 삭제 성공"));
-    }
-
-    // STOMP 메시지 수신 처리 메서드
-    @MessageMapping("/chat.send")
-    public void handleStompMessage(@Payload ChatMessageRequestDto dto) {
-        ChatMessage saved = chatMessageService.sendMessage(dto);
-        ChatMessageStompDto response = ChatMessageStompDto.fromEntity(saved);
-
-        String destination = "/topic/chatroom." + dto.getChatRoomId();
-        messagingTemplate.convertAndSend(destination, response);
     }
 }

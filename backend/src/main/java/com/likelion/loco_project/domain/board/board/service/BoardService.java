@@ -1,13 +1,13 @@
 package com.likelion.loco_project.domain.board.board.service;
 
-import com.likelion.loco_project.domain.board.board.dto.BoardDetailResponseDto;
-import com.likelion.loco_project.domain.board.board.dto.BoardListResponseDto;
-import com.likelion.loco_project.domain.board.board.dto.BoardRequestDto;
-import com.likelion.loco_project.domain.board.board.dto.BoardResponseDto;
+import com.likelion.loco_project.domain.board.board.dto.*;
 import com.likelion.loco_project.domain.board.board.entity.Board;
+import com.likelion.loco_project.domain.board.board.entity.BoardImage;
+import com.likelion.loco_project.domain.board.board.repository.BoardImageRepository;
 import com.likelion.loco_project.domain.board.board.repository.BoardRepository;
 import com.likelion.loco_project.domain.host.entity.Host;
 import com.likelion.loco_project.domain.host.repository.HostRepository;
+import com.likelion.loco_project.domain.s3.S3Service;
 import com.likelion.loco_project.domain.space.entity.Space;
 import com.likelion.loco_project.domain.space.repository.SpaceRepository;
 import com.likelion.loco_project.domain.user.entity.User;
@@ -19,7 +19,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,6 +33,11 @@ public class BoardService {
     private final HostRepository hostRepository; // 호스트 레포지토리
     private final SpaceRepository spaceRepository; // 공간 레포지토리
     private final UserRepository userRepository; // 사용자 레포지토리 (권한 확인에 사용)
+
+    // 이미지 관련
+    private static final int MAX_IMAGE_COUNT = 5; // 최대 이미지 개수
+    private final S3Service s3Service; // S3 서비스 주입 (이미지 업로드 등)
+    private final BoardImageRepository boardImageRepository; // 게시글 이미지 레포지토리 (이미지 저장 등)
 
     /**
      * 1. 게시글 작성
@@ -68,11 +75,50 @@ public class BoardService {
         // 5. 만들어진 엔티티를 Repository를 통해 DB에 저장
         Board savedBoard = boardRepository.save(board);
 
+        // 5-1. 이미지 파일 S3 업로드 및 BoardImage 엔티티 생성/저장
+        List<BoardImageResponseDto> savedImages = new ArrayList<>();
+
+        // 5-2. 썸네일 이미지 처리
+        MultipartFile thumbnailFile = boardRequestDto.getThumbnailFile();
+        if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
+            String s3ObjectKey = s3Service.uploadFile(thumbnailFile);
+            BoardImage thumbnailImage = BoardImage.builder()
+                    .filePath(s3ObjectKey) // 파일 경로 대신 S3 객체 키 저장
+                    .isThumbnail(true) // 썸네일로 설정
+                    .board(savedBoard) // 저장된 게시글과 연결
+                    .build();
+            boardImageRepository.save(thumbnailImage);
+            savedImages.add(BoardImageResponseDto.from(thumbnailImage));
+        }
+
+        // 5-3. 추가 이미지 처리 (최대 MAX_IMAGE_COUNT 장 제한)
+        List<MultipartFile> otherImageFiles = boardRequestDto.getOtherImageFiles();
+        if (otherImageFiles != null && !otherImageFiles.isEmpty()) {
+            int imageCount = 0;
+            for (MultipartFile otherFile : otherImageFiles) {
+                if (imageCount < MAX_IMAGE_COUNT && otherFile != null && !otherFile.isEmpty()) {
+                    String s3ObjectKey = s3Service.uploadFile(otherFile); // S3Service 호출
+                    BoardImage otherImage = BoardImage.builder()
+                            .filePath(s3ObjectKey) // 파일 경로 대신 S3 객체 키 저장
+                            .isThumbnail(false) // 일반 이미지로 설정
+                            .board(savedBoard) // 저장된 게시글과 연결
+                            .build();
+                    boardImageRepository.save(otherImage);
+                    savedImages.add(BoardImageResponseDto.from(otherImage));
+                    imageCount++;
+                } else if (imageCount >= MAX_IMAGE_COUNT) {
+                    break;
+                }
+            }
+        }
+
         // 6. 저장된 Entity를 BoardResponseDto로 변환하여 반환
-        return BoardResponseDto.from(savedBoard, authorUser.getUsername(), space.getSpaceName());
+        String authorName = authorUser.getUsername();
+        String spaceName = space.getSpaceName();
+        return BoardResponseDto.from(savedBoard, authorName, spaceName, savedImages);
     }
 
-    /** 2. 게시글 조회
+    /** 2-1. 모든 게시글 조회
      * 모든 게시글 목록 조회 (페이징 기능)
      * @param pageable 페이징 정보 (페이지 번호, 페이지 크기, 정렬 기준 등)
      * @return 페이징된 게시글 목록 응답 DTO 리스트
@@ -91,8 +137,8 @@ public class BoardService {
                 .collect(Collectors.toList());
     }
 
-    /** 2. 게시글 조회
-     * 특정 게시글의 상세 정보를 조회
+    /** 2-2. 특정 게시글 조회
+     * 특정 게시글의 상세 정보를 조회, 연관된 이미지 목록 조회 로직 (S3 객체 키 사용)
      * @param id 조회할 게시글의 ID
      * @return 게시글 상세 정보 응답 DTO
      * @throws ResourceNotFoundException 게시글을 찾을 수 없을 때 발생
@@ -102,13 +148,23 @@ public class BoardService {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("게시글을 찾을 수 없습니다 : " + id));
 
+        // 2. 연관된 이미지 목록 조회 (BoardImage 엔티티는 S3 객체 키를 저장)
+        List<BoardImage> boardImages = boardImageRepository.findByBoardId(board.getId());
+
+        // 3. 조회된 Entity와 연관 정보를 BoardDetailResponseDto로 변환하여 반환 (이미지 정보 포함)
         String authorName = board.getHost() != null && board.getHost().getUser() != null ? board.getHost().getUser().getUsername() : "알 수 없음";
         String spaceName = board.getSpace() != null ? board.getSpace().getSpaceName() : "알 수 없음";
+
+        // BoardImage 엔티티 리스트를 BoardImageResponseDto 리스트로 변환
+        List<BoardImageResponseDto> imageResponseDtos = boardImages.stream()
+                .map(BoardImageResponseDto::from) // BoardImageResponseDto는 filePath(S3 객체 키)를 가짐
+                .collect(Collectors.toList());
 
         return BoardDetailResponseDto.from(board, authorName, spaceName);
     }
 
     /** 3. 게시글 수정
+     * 이미지 수정 로직 (기존 S3 객체 삭제 후 새로 업로드하는 방식)
      * @param id              수정할 게시글의 ID
      * @param boardRequestDto 게시글 수정 요청 DTO
      * @param userId          수정 요청 사용자 (User)의 ID
@@ -145,14 +201,54 @@ public class BoardService {
         }
         board.setSpace(updatedSpace); // 공간 업데이트
 
+        // 3-1. 기존 S3 객체 삭제 및 BoardImage 엔티티 삭제 후 새로운 이미지 S3 업로드 및 엔티티 생성/저장
+        // (=기존 이미지를 모두 삭제하고 새로 업로드된 이미지만 저장)
+        deleteBoardImages(board.getId()); // 기존 이미지 관련 BoardImage 엔티티 및 S3 객체 삭제
+        List<BoardImageResponseDto> savedImages = new ArrayList<>();
+
+        // 3-2. 썸네일 이미지 처리
+        MultipartFile thumbnailFile = boardRequestDto.getThumbnailFile();
+        if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
+            String s3ObjectKey = s3Service.uploadFile(thumbnailFile);
+            BoardImage thumbnailImage = BoardImage.builder()
+                    .filePath(s3ObjectKey) // 파일 경로 대신 S3 객체 키 저장
+                    .isThumbnail(true)
+                    .board(board)
+                    .build();
+            boardImageRepository.save(thumbnailImage);
+            savedImages.add(BoardImageResponseDto.from(thumbnailImage));
+        }
+
+        // 추가 이미지 처리 (최대 MAX_IMAGE_COUNT 장 제한)
+        List<MultipartFile> otherImageFiles = boardRequestDto.getOtherImageFiles();
+        if (otherImageFiles != null && !otherImageFiles.isEmpty()) {
+            int imageCount = 0;
+            for (MultipartFile otherFile : otherImageFiles) {
+                if (imageCount < MAX_IMAGE_COUNT && otherFile != null && !otherFile.isEmpty()) {
+                    String s3ObjectKey = s3Service.uploadFile(otherFile);
+                    BoardImage otherImage = BoardImage.builder()
+                            .filePath(s3ObjectKey) // 파일 경로 대신 S3 객체 키 저장
+                            .isThumbnail(false)
+                            .board(board)
+                            .build();
+                    boardImageRepository.save(otherImage);
+                    savedImages.add(BoardImageResponseDto.from(otherImage));
+                    imageCount++;
+                } else if (imageCount >= MAX_IMAGE_COUNT) {
+                    break;
+                }
+            }
+        }
+
         // 4. Repository를 사용하여 데이터베이스에 저장
         // 5. 업데이트된 Entity를 BoardResponseDto로 변환하여 반환
         String authorName = board.getHost().getUser().getUsername();
         String spaceName = board.getSpace().getSpaceName();
-        return BoardResponseDto.from(board, authorName, spaceName);
+        return BoardResponseDto.from(board, authorName, spaceName, savedImages);
     }
 
     /** 4. 게시글 삭제
+     * 게시글 삭제 시 연관된 BoardImage 엔티티 및 S3 객체 삭제
      * @param id     삭제할 게시글의 ID
      * @param userId 삭제 요청 사용자 (User)의 ID
      * @throws ResourceNotFoundException 게시글을 찾을 수 없을 때 발생
@@ -170,7 +266,25 @@ public class BoardService {
             throw new AccessDeniedException("게시글 삭제 권한이 없습니다.");
         }
 
-        // 3. Repository를 사용하여 게시글 삭제
-        boardRepository.delete(board); // ⭐ 조회된 게시글 엔티티 삭제
+        // 3.1. 게시글 삭제 전에 연관된 BoardImage 엔티티 및 S3 객체 삭제
+        deleteBoardImages(board.getId());
+
+        // 3.2. Repository를 사용하여 게시글 삭제
+        boardRepository.delete(board); // 조회된 게시글 엔티티 삭제
+    }
+
+    /** 4.1. 특정 게시글 삭제 시 연관된 이미지 삭제
+     * 특정 게시글에 연결된 모든 BoardImage 엔티티 및 해당 S3 객체를 삭제
+     * @param boardId 게시글 ID
+     */
+    @Transactional
+    private void deleteBoardImages(Long boardId) {
+        List<BoardImage> imagesToDelete = boardImageRepository.findByBoardId(boardId);
+
+        // 각 이미지에 대해 S3Service를 사용하여 S3 객체 삭제 및 엔티티 삭제
+        for (BoardImage image : imagesToDelete) {
+            s3Service.deleteFile(image.getFilePath());
+            boardImageRepository.delete(image);
+        }
     }
 }

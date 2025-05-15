@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /*
  * @author : pickipi
@@ -36,9 +37,17 @@ public class BoardResponseDto {
     private Long hostId;
     private String authorName;
 
+    // 이미지 목록 필드 추가
+    private List<BoardImageResponseDto> images;
+
+
     // Entity에서 DTO로 변환하는 static from 메소드 구현
-    public static BoardResponseDto from(Board board, String authorName, String spaceName) {
+    // 1-1. 이미지가 포함된 from 메소드
+    public static BoardResponseDto from(Board board, String authorName, String spaceName, List<BoardImageResponseDto> images) {
         return BoardResponseDto.builder()
+                .id(board.getId()) // BaseEntity 필드 설정
+                .createdDate(board.getCreatedDate()) // BaseEntity 필드 설정
+                .modifiedDate(board.getModifiedDate()) // BaseEntity 필드 설정
                 .title(board.getTitle())
                 .description(board.getDescription())
                 .report(board.getReport())
@@ -47,6 +56,25 @@ public class BoardResponseDto {
                 .spaceName(spaceName) // Service에서 받아온 공간 이름 사용
                 .hostId(board.getHost() != null ? board.getHost().getId() : null) // 연관 엔티티에서 ID 가져옴
                 .authorName(authorName) // Service에서 받아온 작성자 이름 사용
+                .images(images) // ⭐ 이미지 목록 설정
+                .build();
+    }
+
+    // 1-2. 이미지가 없는 from 메소드 = 이미지 없이 Board 엔티티만 받는 경우
+    public static BoardResponseDto from(Board board, String authorName, String spaceName) {
+        return BoardResponseDto.builder()
+                .id(board.getId())
+                .createdDate(board.getCreatedDate())
+                .modifiedDate(board.getModifiedDate())
+                .title(board.getTitle())
+                .description(board.getDescription())
+                .isVisible(board.getIsVisible())
+                .report(board.getReport())
+                .spaceId(board.getSpace() != null ? board.getSpace().getId() : null)
+                .spaceName(spaceName)
+                .hostId(board.getHost() != null ? board.getHost().getId() : null)
+                .authorName(authorName)
+                .images(null) // 이미지 목록은 null 또는 빈 리스트로 설정
                 .build();
     }
 }

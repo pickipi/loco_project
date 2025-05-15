@@ -15,5 +15,5 @@ public class UserRequestDto {
     private String password;
     private String email;
     private String phoneNumber;
-    private Set<UserType> roles;
+    private Set<UserType> type;
 }

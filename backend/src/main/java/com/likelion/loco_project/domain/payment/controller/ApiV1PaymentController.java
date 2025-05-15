@@ -5,6 +5,7 @@ import com.likelion.loco_project.domain.payment.dto.PaymentResponseDto;
 import com.likelion.loco_project.domain.payment.entity.Payment;
 import com.likelion.loco_project.domain.payment.service.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
+import com.likelion.loco_project.domain.payment.service.TossPaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -64,5 +65,20 @@ public class ApiV1PaymentController {
                 .map(PaymentResponseDto::from)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    private final TossPaymentService tossPaymentService;
+
+    @PostMapping("/confirm")
+    public ResponseEntity<String> confirmPayment(
+            @RequestParam String paymentKey,
+            @RequestParam String orderId,
+            @RequestParam int amount) {
+        try {
+            String response = tossPaymentService.approvePayment(paymentKey, orderId, amount);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("결제 실패: " + e.getMessage());
+        }
     }
 }

@@ -2,37 +2,36 @@
 
 import { useState } from 'react';
 import { Box, TextField, Button } from '@mui/material';
+import { Message } from '@/types/chat';
 
 /**
  * ChatEdit 컴포넌트 Props 인터페이스
- * @property {string} messageId - 수정할 메시지의 고유 ID
- * @property {string} initialText - 수정할 메시지의 초기 텍스트
- * @property {function} onSave - 메시지 저장 시 호출될 콜백 함수
- * @property {function} onCancel - 수정 취소 시 호출될 콜백 함수
+ * @property {Message} message - 수정할 메시지 객체
+ * @property {function} onUpdateMessage - 메시지 수정 콜백 함수
+ * @property {function} onCancel - 수정 취소 콜백 함수
  */
 interface ChatEditProps {
-  messageId: string;
-  initialText: string;
-  onSave: (messageId: string, newText: string) => void;
+  message: Message;
+  onUpdateMessage: (messageId: string, newContent: string, editedAt: string) => void;
   onCancel: () => void;
 }
 
 /**
  * 메시지 수정 컴포넌트
- * 메시지 내용을 수정할 수 있는 인라인 편집 컴포넌트입니다.
- * 텍스트 입력창과 저장/취소 버튼을 제공합니다.
+ * 메시지 수정 기능을 제공하는 컴포넌트입니다.
+ * 수정된 메시지를 저장하거나 취소할 수 있습니다.
  */
-export default function ChatEdit({ messageId, initialText, onSave, onCancel }: ChatEditProps) {
-  // 수정 중인 텍스트를 관리하는 상태
-  const [editingText, setEditingText] = useState(initialText);
+export default function ChatEdit({ message, onUpdateMessage, onCancel }: ChatEditProps) {
+  const [editedContent, setEditedContent] = useState(message.content);
 
   /**
-   * 메시지 저장 핸들러
-   * 입력된 텍스트가 비어있지 않은 경우에만 저장을 수행합니다.
+   * 메시지 수정 저장 핸들러
+   * 수정된 메시지가 비어있지 않은 경우에만 저장합니다.
    */
   const handleSave = () => {
-    if (editingText.trim()) {
-      onSave(messageId, editingText);
+    if (editedContent.trim()) {
+      const now = new Date().toISOString();
+      onUpdateMessage(message.id, editedContent, now);
     }
   };
 
@@ -48,34 +47,60 @@ export default function ChatEdit({ messageId, initialText, onSave, onCancel }: C
   };
 
   return (
-    <Box sx={{ p: 2, bgcolor: 'background.paper' }}>
-      <TextField
-        fullWidth
-        multiline
-        maxRows={4}
-        value={editingText}
-        onChange={(e) => setEditingText(e.target.value)}
-        onKeyPress={handleKeyPress}
-        placeholder="수정할 내용을 입력하세요..."
-        variant="outlined"
-        size="small"
-        sx={{ mb: 1 }}
-      />
-      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleSave}
-          disabled={!editingText.trim()}
-        >
-          수정
-        </Button>
-        <Button
+    <Box sx={{ p: 2, backgroundColor: '#fff', borderTop: 1, borderColor: 'divider' }}>
+      <Box sx={{ display: 'flex', gap: 1 }}>
+        <TextField
+          fullWidth
+          multiline
+          maxRows={4}
+          value={editedContent}
+          onChange={(e) => setEditedContent(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder="메시지를 입력하세요..."
           variant="outlined"
-          onClick={onCancel}
-        >
-          취소
-        </Button>
+          size="small"
+          autoFocus
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              '&.Mui-focused fieldset': {
+                borderColor: '#1976d2',
+              },
+            },
+          }}
+        />
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button
+            variant="contained"
+            onClick={handleSave}
+            disabled={!editedContent.trim()}
+            sx={{
+              bgcolor: '#1976d2',
+              '&:hover': {
+                bgcolor: '#1565c0',
+              },
+              '&.Mui-disabled': {
+                bgcolor: '#e0e0e0',
+                color: '#9e9e9e',
+              },
+            }}
+          >
+            저장
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={onCancel}
+            sx={{
+              color: '#757575',
+              borderColor: '#757575',
+              '&:hover': {
+                bgcolor: '#f5f5f5',
+                borderColor: '#616161',
+              },
+            }}
+          >
+            취소
+          </Button>
+        </Box>
       </Box>
     </Box>
   );

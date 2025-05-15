@@ -5,6 +5,8 @@ import com.likelion.loco_project.domain.chat.entity.ChatRoom;
 import com.likelion.loco_project.domain.user.entity.User;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -18,4 +20,16 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
 
     // 내가 아닌 사용자가 보낸 읽지 않은 메시지 수
     int countByChatRoomAndSenderNotAndIsReadFalse(ChatRoom chatRoom, User me);
+
+    @Query("""
+    SELECT m FROM ChatMessage m
+    WHERE m.id IN (
+        SELECT MAX(m2.id)
+        FROM ChatMessage m2
+        WHERE m2.chatRoom IN :chatRooms
+        GROUP BY m2.chatRoom
+    )
+""")
+    @EntityGraph(attributePaths = {"sender", "chatRoom"})
+    List<ChatMessage> findLastMessagesByChatRooms(@Param("chatRooms") List<ChatRoom> chatRooms);
 }

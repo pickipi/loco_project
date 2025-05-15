@@ -3,58 +3,20 @@
 import React, { useState } from 'react';
 import { Box } from '@mui/material';
 import ChatRoomList from './chatroomlist';
-import ChatRoom from './chatroom';
-
-/**
- * 메시지 인터페이스
- * @property {string} id - 메시지 고유 ID
- * @property {string} content - 메시지 내용
- * @property {string} sender - 메시지 발신자 ('me' 또는 'other')
- * @property {string} timestamp - 메시지 전송 시간
- * @property {boolean} isEditing - 메시지 수정 모드 여부
- */
-interface Message {
-  id: string;
-  content: string;
-  sender: string;
-  timestamp: string;
-  isEditing?: boolean;
-}
-
-/**
- * 채팅방 인터페이스
- * @property {string} id - 채팅방 고유 ID
- * @property {string} name - 채팅방 이름
- * @property {string} lastMessage - 마지막 메시지 내용
- * @property {string} timestamp - 마지막 메시지 시간
- * @property {Message[]} messages - 채팅방의 메시지 목록
- */
-interface ChatRoom {
-  id: string;
-  name: string;
-  lastMessage: string;
-  timestamp: string;
-  messages: Message[];
-}
-
-/**
- * Chat 컴포넌트 Props 인터페이스
- * @property {ChatRoom[]} initialChatRooms - 초기 채팅방 데이터
- */
-interface ChatProps {
-  initialChatRooms?: ChatRoom[];
-}
+import ChatRoomComponent from './chatroom';
+import { ChatRoom, ChatRoomData, ChatProps, Message } from '@/types/chat';
+import { formatCurrentTime } from '@/utils/dateUtils';
 
 /**
  * 채팅 메인 컴포넌트
  * 채팅방 목록과 선택된 채팅방의 메시지를 표시하고 관리합니다.
  */
-const Chat: React.FC<ChatProps> = ({ initialChatRooms = [] }) => {
+const Chat: React.FC<ChatProps> = ({ initialChatRooms = [], currentUserId }) => {
   // 선택된 채팅방 ID 상태
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
   
   // 채팅방 목록 상태
-  const [chatRooms, setChatRooms] = useState<ChatRoom[]>(initialChatRooms);
+  const [chatRooms, setChatRooms] = useState<ChatRoomData[]>(initialChatRooms);
 
   /**
    * 채팅방 선택 핸들러
@@ -62,6 +24,14 @@ const Chat: React.FC<ChatProps> = ({ initialChatRooms = [] }) => {
    */
   const handleSelectChat = (chatId: string) => {
     setSelectedRoom(chatId);
+    // 채팅방 선택 시 읽지 않은 메시지 수 초기화
+    setChatRooms(prevRooms =>
+      prevRooms.map(room =>
+        room.id === chatId
+          ? { ...room, unreadCount: 0 }
+          : room
+      )
+    );
   };
 
   /**
@@ -71,14 +41,13 @@ const Chat: React.FC<ChatProps> = ({ initialChatRooms = [] }) => {
   const handleSendMessage = (message: string) => {
     if (!selectedRoom) return;
 
+    const timestamp = formatCurrentTime();
+
     const newMessage: Message = {
       id: Date.now().toString(),
       content: message,
       sender: 'me',
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
+      timestamp,
     };
 
     // 채팅방 목록 업데이트: 새 메시지 추가 및 마지막 메시지 정보 갱신
@@ -89,7 +58,7 @@ const Chat: React.FC<ChatProps> = ({ initialChatRooms = [] }) => {
               ...room,
               messages: [...room.messages, newMessage],
               lastMessage: message,
-              timestamp: newMessage.timestamp,
+              timestamp,
             }
           : room
       )
@@ -100,8 +69,9 @@ const Chat: React.FC<ChatProps> = ({ initialChatRooms = [] }) => {
    * 메시지 수정 핸들러
    * @param messageId - 수정할 메시지 ID
    * @param newContent - 새로운 메시지 내용
+   * @param editedAt - 수정 시간
    */
-  const handleEditMessage = (messageId: string, newContent: string) => {
+  const handleEditMessage = (messageId: string, newContent: string, editedAt: string) => {
     if (!selectedRoom) return;
 
     // 메시지 수정 및 마지막 메시지인 경우 채팅방 정보도 업데이트
@@ -112,7 +82,7 @@ const Chat: React.FC<ChatProps> = ({ initialChatRooms = [] }) => {
               ...room,
               messages: room.messages.map((msg) =>
                 msg.id === messageId
-                  ? { ...msg, content: newContent, isEditing: false }
+                  ? { ...msg, content: newContent, isEditing: false, editedAt }
                   : msg
               ),
               lastMessage:
@@ -128,26 +98,86 @@ const Chat: React.FC<ChatProps> = ({ initialChatRooms = [] }) => {
   /**
    * 메시지 삭제 핸들러
    * @param messageId - 삭제할 메시지 ID
+   * @param deletedAt - 삭제 시간
    */
-  const handleDeleteMessage = (messageId: string) => {
+  const handleSoftDelete = (messageId: string, deletedAt: string) => {
     if (!selectedRoom) return;
 
-    // 메시지 삭제 및 마지막 메시지 정보 업데이트
+    // 메시지 소프트 딜리트 처리
     setChatRooms((prevRooms) =>
       prevRooms.map((room) => {
         if (room.id !== selectedRoom) return room;
 
-        const newMessages = room.messages.filter((msg) => msg.id !== messageId);
-        const lastMessage = newMessages[newMessages.length - 1];
+        const updatedMessages = room.messages.map((msg) =>
+          msg.id === messageId
+            ? { ...msg, isDeleted: true, deletedAt }
+            : msg
+        );
 
+        // 마지막 메시지가 삭제된 경우 채팅방 정보 업데이트
+        const isLastMessageDeleted = room.messages[room.messages.length - 1].id === messageId;
+        
         return {
           ...room,
-          messages: newMessages,
-          lastMessage: lastMessage ? lastMessage.content : '',
-          timestamp: lastMessage ? lastMessage.timestamp : room.timestamp,
+          messages: updatedMessages,
+          lastMessage: isLastMessageDeleted ? '삭제된 메시지입니다.' : room.lastMessage,
+          timestamp: isLastMessageDeleted ? deletedAt : room.timestamp,
         };
       })
     );
+  };
+
+  /**
+   * 메시지 수정 취소 핸들러
+   */
+  const handleCancelEdit = () => {
+    if (!selectedRoom) return;
+
+    setChatRooms((prevRooms) =>
+      prevRooms.map((room) =>
+        room.id === selectedRoom
+          ? {
+              ...room,
+              messages: room.messages.map((msg) =>
+                msg.isEditing ? { ...msg, isEditing: false } : msg
+              ),
+            }
+          : room
+      )
+    );
+  };
+
+  /**
+   * 채팅방 나가기 핸들러
+   * @param roomId - 나갈 채팅방 ID
+   */
+  const handleLeaveRoom = (roomId: string) => {
+    setChatRooms(prevRooms => {
+      const updatedRooms = prevRooms.map(room => {
+        if (room.id !== roomId) return room;
+
+        // 현재 사용자를 participants에서 제거하고 leftParticipants에 추가
+        const updatedRoom = {
+          ...room,
+          participants: room.participants.filter(id => id !== currentUserId),
+          leftParticipants: [...room.leftParticipants, currentUserId]
+        };
+
+        // 모든 참여자가 나갔다면 채팅방 삭제
+        if (updatedRoom.participants.length === 0) {
+          return null;
+        }
+
+        return updatedRoom;
+      }).filter((room): room is ChatRoomData => room !== null);
+
+      // 현재 선택된 채팅방을 나갔다면 선택 해제
+      if (selectedRoom === roomId) {
+        setSelectedRoom(null);
+      }
+
+      return updatedRooms;
+    });
   };
 
   // 현재 선택된 채팅방 데이터
@@ -159,20 +189,28 @@ const Chat: React.FC<ChatProps> = ({ initialChatRooms = [] }) => {
         {/* 채팅방 목록 */}
         <Box sx={{ width: '300px', height: '100%' }}>
           <ChatRoomList
-            chatRooms={chatRooms}
+            chatRooms={chatRooms.filter(room => 
+              room.participants.includes(currentUserId) && 
+              !room.leftParticipants.includes(currentUserId)
+            )}
             onSelectChat={handleSelectChat}
+            onLeaveRoom={handleLeaveRoom}
+            currentUserId={currentUserId}
           />
         </Box>
         {/* 채팅방 메시지 영역 */}
         <Box sx={{ flex: 1, height: '100%' }}>
           {selectedRoomData ? (
-            <ChatRoom
+            <ChatRoomComponent
               roomId={selectedRoomData.id}
               roomName={selectedRoomData.name}
               messages={selectedRoomData.messages}
               onSendMessage={handleSendMessage}
               onEditMessage={handleEditMessage}
-              onDeleteMessage={handleDeleteMessage}
+              onDeleteMessage={handleSoftDelete}
+              onCancelEdit={handleCancelEdit}
+              onLeaveRoom={handleLeaveRoom}
+              currentUserId={currentUserId}
             />
           ) : (
             <Box

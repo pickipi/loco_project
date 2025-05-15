@@ -18,7 +18,7 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     properties:
       hibernate:
         default_batch_fetch_size: 100
@@ -32,6 +32,7 @@ logging:
     org.hibernate.orm.jdbc.bind: TRACE
     org.hibernate.orm.jdbc.extract: TRACE
     org.springframework.transaction.interceptor: TRACE
+#    org.springframework.security: DEBUG
 custom:
   dev: # dev환경에서의 설정
     cookieDomain: localhost
@@ -46,3 +47,8 @@ custom:
     cookieDomain: "${custom.dev.cookieDomain}"
     frontUrl: "${custom.dev.frontUrl}"
     backUrl: "${custom.dev.backUrl}"
+toss:                           # 토스페이먼츠 파트
+  payments:
+    secret-key: NEED_TO_INPUT    # 테스트 키 필요 시 기재 예정
+    success-url: "http://localhost:8090/api/v1/payments/success"
+    fail-url: "http://localhost:8090/api/v1/payments/fail"
