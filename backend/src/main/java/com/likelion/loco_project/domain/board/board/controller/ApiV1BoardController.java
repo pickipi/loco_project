@@ -7,6 +7,7 @@ import com.likelion.loco_project.domain.board.board.dto.BoardResponseDto;
 import com.likelion.loco_project.domain.board.board.service.BoardService;
 import com.likelion.loco_project.global.exception.AccessDeniedException;
 import com.likelion.loco_project.global.exception.ResourceNotFoundException;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +32,7 @@ public class ApiV1BoardController {
      * @param pageable 페이징 및 정렬 정보를 담은 객체 (Spring Data JPA Pageable)
      * @return 페이징된 게시글 목록 정보와 함께 HTTP 상태 코드 200 (OK) 반환
      */
+    @Operation(summary = "게시글 목록 조회", description = "페이징 처리된 게시글 목록을 조회합니다.")
     @GetMapping
     public ResponseEntity<List<BoardListResponseDto>> getAllBoards(
             @PageableDefault(size = 10, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable // 기본 페이징 설정
@@ -49,6 +51,7 @@ public class ApiV1BoardController {
      * @return 게시글 상세 정보와 함께 HTTP 상태 코드 200 (OK) 반환
      * @throws ResourceNotFoundException 게시글을 찾을 수 없을 때 발생
      */
+    @Operation(summary = "게시글 상세 조회", description = "게시글 ID로 특정 게시글의 상세 정보를 조회합니다.")
     @GetMapping("/{id}")
     public ResponseEntity<BoardDetailResponseDto> getBoardById(@PathVariable Long id) { // @PathVariable로 경로 변수 값을 Long 타입 id로 받음
         // BoardService의 getBoardById 메소드 호출하여 게시글 상세 조회 비즈니스 로직 수행
@@ -66,6 +69,7 @@ public class ApiV1BoardController {
      * @throws ResourceNotFoundException Space 또는 Host를 찾을 수 없을 때 발생
      * @throws AccessDeniedException 사용자가 호스트가 아니거나 권한이 없을 때 발생
      */
+    @Operation(summary = "게시글 작성", description = "새로운 게시글을 작성합니다. 호스트 권한이 필요합니다.")
     @PostMapping // HTTP POST 요청 처리
     public ResponseEntity<BoardResponseDto> createBoard(
             @Valid @RequestBody BoardRequestDto boardRequestDto, // 요청 본문을 BoardRequestDto 객체로 매핑하고 유효성 검사 수행
@@ -90,6 +94,7 @@ public class ApiV1BoardController {
      * @throws ResourceNotFoundException 게시글 또는 공간을 찾을 수 없을 때 발생
      * @throws AccessDeniedException 수정 권한이 없을 때 발생
      */
+    @Operation(summary = "게시글 수정", description = "기존 게시글의 내용을 수정합니다. 작성자만 수정 가능합니다.")
     @PutMapping("/{id}")
     public ResponseEntity<BoardResponseDto> updateBoard(
             @PathVariable Long id, // 수정할 게시글 ID
@@ -114,6 +119,7 @@ public class ApiV1BoardController {
      * @throws ResourceNotFoundException 게시글을 찾을 수 없을 때 발생
      * @throws AccessDeniedException 삭제 권한이 없을 때 발생
      */
+    @Operation(summary = "게시글 삭제", description = "게시글을 삭제합니다. 작성자만 삭제 가능합니다.")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBoard(
             @PathVariable Long id, // 삭제할 게시글 ID
