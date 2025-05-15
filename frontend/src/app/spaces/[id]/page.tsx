@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { MapPin, Clock, Users, Star, Share2, Heart, Calendar, ChevronLeft, ChevronRight } from "lucide-react"
 import { ThemeToggle } from "../../components/ThemeToggle"
 
-export default function SpaceDetailPage({ params }: { params: { id: string } }) {
+export default function SpaceDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const [space, setSpace] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
@@ -16,13 +17,13 @@ export default function SpaceDetailPage({ params }: { params: { id: string } }) 
     const fetchSpaceDetail = async () => {
       try {
         // 실제 API 호출
-        // const response = await fetch(`/api/v1/spaces/${params.id}`)
+        // const response = await fetch(`/api/v1/spaces/${id}`)
         // const data = await response.json()
         // setSpace(data)
 
         // 임시 데이터
         setSpace({
-          id: params.id,
+          id: id,
           name: "강남 프리미엄 회의실",
           location: "서울 강남구 테헤란로 123길 45",
           detailLocation: "서울 강남구 테헤란로 123길 45, 7층 702호",
@@ -96,7 +97,7 @@ export default function SpaceDetailPage({ params }: { params: { id: string } }) 
     }
 
     fetchSpaceDetail()
-  }, [params.id])
+  }, [id])
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date)

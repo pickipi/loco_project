@@ -6,17 +6,28 @@ import Image from "next/image"
 import { Users } from "lucide-react"
 import { ThemeToggle } from "../components/ThemeToggle"
 
+interface Space {
+  id: number
+  name: string
+  location: string
+  rating: number
+  reviewCount: number
+  capacity: number
+  price: number
+  imageUrl: string
+  spaceType: string
+}
+
 export default function SpacesPage() {
-  const [spaces, setSpaces] = useState([])
+  const [spaces, setSpaces] = useState<Space[]>([])
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
 
   useEffect(() => {
     const fetchSpaces = async () => {
       try {
-        const response = await fetch("/api/v1/spaces")
-        const data = await response.json()
-        setSpaces(data)
+        // API 호출 대신 mockSpaces 사용
+        setSpaces(mockSpaces)
         setLoading(false)
       } catch (error) {
         console.error("Error fetching spaces:", error)
