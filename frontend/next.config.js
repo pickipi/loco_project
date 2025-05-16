@@ -6,4 +6,5 @@ const nextConfig = {
     domains: ['example.com'],
   },
 }
+
 module.exports = nextConfig
