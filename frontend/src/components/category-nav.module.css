@@ -1,0 +1,76 @@
+.container {
+  margin: 2rem 0;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.filterContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.filterButton {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 9999px;
+  background: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filterButton:hover {
+  background-color: #f3f4f6;
+}
+
+.filterButtonActive {
+  background-color: #fbbf24;
+  border-color: #fbbf24;
+  color: black;
+}
+
+.filterButtonActive:hover {
+  background-color: #f59e0b;
+  border-color: #f59e0b;
+}
+
+.categoryNav {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.categoryList {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.categoryList::-webkit-scrollbar {
+  display: none;
+}
+
+.categoryButton {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  background: none;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.categoryButton:hover {
+  color: #111827;
+}
+
+.categoryButtonActive {
+  color: #111827;
+  border-bottom: 2px solid #111827;
+} 
