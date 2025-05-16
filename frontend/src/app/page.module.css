@@ -1,0 +1,226 @@
+.main {
+  width: 100%;
+  background-color: #ffffff;
+}
+
+/* Hero Slider Section */
+.heroSlider {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  background-color: #4285f4;
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 0 2rem;
+  margin-bottom: 2rem;
+}
+
+.slide {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.slide h1 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.slide p {
+  font-size: 1.25rem;
+  opacity: 0.9;
+}
+
+/* Category Section */
+.categorySection {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.categorySection h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.categoryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 1rem;
+  margin-bottom: 3rem;
+}
+
+.categoryItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #333;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.categoryItem:hover {
+  background-color: #f3f4f6;
+}
+
+.categoryIcon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.categoryName {
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+/* Spaces Section */
+.spacesSection {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.sectionHeader h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.moreLink {
+  color: #666;
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+
+.moreLink:hover {
+  text-decoration: underline;
+}
+
+.spaceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.spaceCard {
+  text-decoration: none;
+  color: inherit;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.spaceCard:hover {
+  transform: translateY(-4px);
+}
+
+.spaceImageContainer {
+  position: relative;
+  width: 100%;
+  padding-bottom: 75%;
+}
+
+.spaceImage {
+  object-fit: cover;
+}
+
+.spaceInfo {
+  padding: 1rem;
+}
+
+.spaceInfo h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.spaceInfo p {
+  color: #666;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.price {
+  color: #111 !important;
+  font-weight: 500;
+}
+
+.rating {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+/* Region Section */
+.regionSection {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.regionSection h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.regionGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.regionButton {
+  padding: 0.5rem 1rem;
+  background-color: #f3f4f6;
+  border-radius: 2rem;
+  color: #333;
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
+}
+
+.regionButton:hover {
+  background-color: #e5e7eb;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .heroSlider {
+    height: 300px;
+    padding: 0 1rem;
+  }
+
+  .slide h1 {
+    font-size: 2rem;
+  }
+
+  .slide p {
+    font-size: 1rem;
+  }
+
+  .categorySection,
+  .spacesSection,
+  .regionSection {
+    padding: 1rem;
+  }
+
+  .spaceGrid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+} 
