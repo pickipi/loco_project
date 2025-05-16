@@ -15,11 +15,11 @@
     "incremental": true,
     "plugins": [
       {
-        "name": "next"        // Next.js 플러그인 추가
+        "name": "next"
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]      // 절대 경로 임포트 설정
+      "@/*": ["./src/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
