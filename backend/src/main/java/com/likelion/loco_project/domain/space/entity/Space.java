@@ -65,4 +65,11 @@ public class Space extends BaseEntity {
     @JoinColumn(name = "host_id", nullable = false)
     private Host host; // 호스트
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SpaceStatus status; // 공간 승인 상태
+
+    @Column(name = "rejection_reason")
+    private String rejectionReason; // 반려 사유
+
 }

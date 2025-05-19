@@ -2,6 +2,7 @@ package com.likelion.loco_project.domain.space.dto;
 
 import com.likelion.loco_project.domain.host.entity.Host;
 import com.likelion.loco_project.domain.space.entity.Space;
+import com.likelion.loco_project.domain.space.entity.SpaceStatus;
 import com.likelion.loco_project.domain.space.entity.SpaceType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
@@ -76,6 +77,8 @@ public class SpaceCreateRequestDto {
                 .maxCapacity(maxCapacity)
                 .isActive(isActive != null ? isActive : true)
                 .imageId(imageId)
+                .spaceRating(spaceRating)
+                .status(SpaceStatus.PENDING)
                 .build();
     }
 }

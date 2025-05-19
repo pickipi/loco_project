@@ -59,4 +59,23 @@ public class SpaceService {
         }
         spaceRepository.deleteById(id);
     }
+
+    // # 관리자 기능 부분
+    
+    // 공간 승인
+    @Transactional
+    public void approveSpace(Long id) {
+        Space space = spaceRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공간입니다."));
+        space.setStatus(com.likelion.loco_project.domain.space.entity.SpaceStatus.APPROVED);
+    }
+
+    // 공간 반려
+    @Transactional
+    public void rejectSpace(Long id, String rejectionReason) {
+        Space space = spaceRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공간입니다."));
+        space.setStatus(com.likelion.loco_project.domain.space.entity.SpaceStatus.REJECTED);
+        space.setRejectionReason(rejectionReason); // 반려 사유 저장
+    }
 }
