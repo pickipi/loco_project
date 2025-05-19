@@ -9,14 +9,17 @@ import com.likelion.loco_project.domain.reservation.entity.Reservation;
 import com.likelion.loco_project.domain.reservation.repository.ReservationRepository;
 import com.likelion.loco_project.domain.space.entity.Space;
 import com.likelion.loco_project.domain.space.repository.SpaceRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class ReservationService {
 
     private final ReservationRepository reservationRepository;
@@ -55,6 +58,59 @@ public class ReservationService {
         reservation.setEndTime(LocalDateTime.parse(dto.getEndTime()));
 
         return reservationRepository.save(reservation);
+    }
+
+    //예약 가능시간 확인
+    public void validateReservationTime(ReservationRequestDto request) {
+        // 시작 시간이 종료 시간보다 나중이면 예외 발생
+        if (!request.getStartTime().isBefore(request.getEndTime())) {
+            throw new IllegalArgumentException("시작 시간은 종료 시간보다 빨라야 합니다.");
+        }
+
+        // 중복 예약 검사
+        boolean isOverlapping = reservationRepository.existsByStartTimeLessThanAndEndTimeGreaterThan(
+                request.getEndTime(), request.getStartTime());
+
+        if (isOverlapping) {
+            throw new IllegalStateException("해당 시간대에 이미 예약이 존재합니다.");
+        }
+    }
+    //예약 로그
+    @Transactional
+    public Reservation createReservation(ReservationRequestDto request) {
+        try {
+            log.info("예약 생성 시도: 사용자={}, 시작={}, 종료={}", request.getUsername(), request.getStartTime(), request.getEndTime());
+
+            if (!request.getStartTime().isBefore(request.getEndTime())) {
+                log.warn("예약 유효성 실패: 시작 시간이 종료 시간보다 같거나 늦습니다. 시작={}, 종료={}",
+                        request.getStartTime(), request.getEndTime());
+                throw new IllegalArgumentException("시작 시간은 종료 시간보다 빨라야 합니다.");
+            }
+
+            boolean isOverlapping = reservationRepository.existsByStartTimeLessThanAndEndTimeGreaterThan(
+                    request.getEndTime(), request.getStartTime());
+
+            if (isOverlapping) {
+                log.warn("예약 중복 감지: 사용자={}, 시작={}, 종료={}", request.getUsername(), request.getStartTime(), request.getEndTime());
+                throw new IllegalStateException("해당 시간대에 이미 예약이 존재합니다.");
+            }
+
+            Reservation reservation = Reservation.builder()
+                    .username(request.getUsername())
+                    .startTime(request.getStartTime())
+                    .endTime(request.getEndTime())
+                    .build();
+
+            Reservation saved = reservationRepository.save(reservation);
+
+            log.info("예약 성공: reservationId={}, 사용자={}", saved.getId(), saved.getUsername());
+
+            return saved;
+
+        } catch (Exception e) {
+            log.error("예약 처리 중 예외 발생: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     public Optional<Object> getReservation(Long id) {
