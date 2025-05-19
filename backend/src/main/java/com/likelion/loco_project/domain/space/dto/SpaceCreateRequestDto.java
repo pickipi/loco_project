@@ -2,6 +2,7 @@ package com.likelion.loco_project.domain.space.dto;
 
 import com.likelion.loco_project.domain.space.entity.Space;
 import com.likelion.loco_project.domain.space.entity.SpaceType;
+import com.likelion.loco_project.domain.space.entity.SpaceStatus.PENDING
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
@@ -28,6 +29,7 @@ public class SpaceCreateRequestDto {
     private Long price;
     private Boolean isActive;
     private BigDecimal spaceRating;
+    private SpaceStatus spaceStatus
 
 
     // DTO → Entity 변환 메서드
@@ -45,6 +47,7 @@ public class SpaceCreateRequestDto {
                 .maxCapacity(maxCapacity)
                 .isActive(isActive)
                 .spaceRating(spaceRating)
+                .status(spaceStatus)
                 .build();
     }
 }
