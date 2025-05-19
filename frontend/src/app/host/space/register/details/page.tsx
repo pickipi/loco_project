@@ -6,12 +6,13 @@ import dynamic from 'next/dynamic'
 import ImageUploader from '@/components/space/ImageUploader'
 import TagInput from '@/components/space/TagInput'
 import type { SpaceType } from '@/components/space/SpaceTypeSelector'
+import styles from './page.module.css'
 
 // 카카오맵 컴포넌트를 동적으로 import (SSR 비활성화)
 const KakaoMap = dynamic(() => import('@/components/map/KakaoMap'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[300px] flex items-center justify-center bg-gray-100 rounded-lg">
+    <div className={styles.mapContainer}>
       지도를 불러오는 중...
     </div>
   ),
@@ -126,24 +127,24 @@ export default function SpaceDetailsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 pb-20">
+    <main className={styles.container}>
       {/* 페이지 헤더 */}
-      <div className="bg-white border-b">
-        <div className="max-w-5xl mx-auto px-4 py-4">
-          <h1 className="text-xl font-semibold">공간 정보를 입력해주세요</h1>
-          <p className="text-sm text-red-500 mt-1">* 필수입력</p>
+      <div className={styles.header}>
+        <div className={styles.headerContent}>
+          <h1 className={styles.headerTitle}>공간 정보를 입력해주세요</h1>
+          <p className={styles.requiredText}>* 필수입력</p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-5xl mx-auto px-4 py-8 space-y-8">
+      <form onSubmit={handleSubmit} className={styles.form}>
         {/* 선택된 공간 유형 표시 */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-gray-700">선택된 공간 유형</h3>
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h3 className={styles.sectionTitle}>선택된 공간 유형</h3>
             <button
               type="button"
               onClick={() => router.push('/host/space/register')}
-              className="text-sm text-[#7047EB] hover:text-[#5835B0] flex items-center"
+              className={styles.editButton}
             >
               <svg 
                 className="w-4 h-4 mr-1" 
@@ -161,57 +162,54 @@ export default function SpaceDetailsPage() {
               수정
             </button>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className={styles.tagContainer}>
             {form.spaceTypes.map((type) => (
-              <div
-                key={type}
-                className="px-3 py-1 bg-[#7047EB]/5 text-[#7047EB] rounded-full text-sm border border-[#7047EB]"
-              >
+              <div key={type} className={styles.tag}>
                 {getSpaceTypeName(type)}
               </div>
             ))}
           </div>
         </div>
 
-        {/* 공간명 입력 필드 (필수) */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            공간명 <span className="text-red-500">*</span>
+        {/* 공간명 입력 필드 */}
+        <div className={styles.section}>
+          <label className={styles.label}>
+            공간명 <span className={styles.required}>*</span>
           </label>
           <input
             type="text"
             value={form.spaceName}
             onChange={(e) => setForm(prev => ({ ...prev, spaceName: e.target.value }))}
-            className="w-full p-2 border rounded-md"
+            className={styles.input}
             placeholder="(예시) 인디레코즈 하이브 회의실"
             maxLength={18}
             required
           />
         </div>
 
-        {/* 공간 상세 소개 입력 필드 (필수) */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            공간 소개 <span className="text-red-500">*</span>
+        {/* 공간 상세 소개 */}
+        <div className={styles.section}>
+          <label className={styles.label}>
+            공간 소개 <span className={styles.required}>*</span>
           </label>
           <textarea
             value={form.detailedDescription}
             onChange={(e) => setForm(prev => ({ ...prev, detailedDescription: e.target.value }))}
-            className="w-full p-2 border rounded-md min-h-[150px]"
+            className={styles.textarea}
             placeholder="게스트들에게 필요한 공간 정보를 상세하게 소개해주세요."
             minLength={20}
             maxLength={500}
             required
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className={styles.charCount}>
             ({form.detailedDescription.length}/500자) 최소 20자 이상 입력해주세요.
           </p>
         </div>
 
-        {/* 최대 수용 인원 입력 필드 (필수) */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            최대 수용 인원 <span className="text-red-500">*</span>
+        {/* 최대 수용 인원 */}
+        <div className={styles.section}>
+          <label className={styles.label}>
+            최대 수용 인원 <span className={styles.required}>*</span>
           </label>
           <div className="flex items-center">
             <input
@@ -221,23 +219,21 @@ export default function SpaceDetailsPage() {
                 ...prev, 
                 maxCapacity: Math.max(1, Math.min(1000, parseInt(e.target.value) || 1))
               }))}
-              className="w-32 p-2 border rounded-md"
+              className={styles.numberInput}
               min="1"
               max="1000"
               required
             />
-            <span className="ml-2 text-gray-600">명</span>
+            <span className={styles.unit}>명</span>
           </div>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className={styles.helpText}>
             최소 1명부터 최대 1,000명까지 설정 가능합니다.
           </p>
         </div>
 
-        {/* 공간 태그 입력 컴포넌트 (선택) */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            공간 태그
-          </label>
+        {/* 공간 태그 */}
+        <div className={styles.section}>
+          <label className={styles.label}>공간 태그</label>
           <TagInput
             tags={form.customTags}
             maxTags={5}
@@ -253,11 +249,9 @@ export default function SpaceDetailsPage() {
           />
         </div>
 
-        {/* 시설 안내 입력 컴포넌트 (선택) */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            시설 안내
-          </label>
+        {/* 시설 안내 */}
+        <div className={styles.section}>
+          <label className={styles.label}>시설 안내</label>
           <TagInput
             tags={form.facilities}
             maxTags={10}
@@ -273,11 +267,9 @@ export default function SpaceDetailsPage() {
           />
         </div>
 
-        {/* 예약 시 주의사항 입력 컴포넌트 (선택) */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            예약 시 주의사항
-          </label>
+        {/* 예약 시 주의사항 */}
+        <div className={styles.section}>
+          <label className={styles.label}>예약 시 주의사항</label>
           <TagInput
             tags={form.precautions}
             maxTags={10}
@@ -293,12 +285,10 @@ export default function SpaceDetailsPage() {
           />
         </div>
 
-        {/* 이미지 업로드 컴포넌트 (선택) */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            공간 이미지
-          </label>
-          <p className="text-xs text-gray-500 mb-4">2048 * 1158 권장, 최대 3MB</p>
+        {/* 이미지 업로드 */}
+        <div className={styles.section}>
+          <label className={styles.label}>공간 이미지</label>
+          <p className={styles.helpText}>2048 * 1158 권장, 최대 3MB</p>
           <ImageUploader
             mainImage={form.mainImage}
             additionalImages={form.additionalImages}
@@ -315,19 +305,18 @@ export default function SpaceDetailsPage() {
           />
         </div>
 
-        {/* 주소 입력 섹션 (필수) */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            주소 <span className="text-red-500">*</span>
+        {/* 주소 입력 */}
+        <div className={styles.section}>
+          <label className={styles.label}>
+            주소 <span className={styles.required}>*</span>
           </label>
           <div className="space-y-4">
-            {/* 기본 주소 입력 */}
-            <div className="flex gap-2">
+            <div className={styles.addressContainer}>
               <input
                 type="text"
                 value={form.address}
                 onChange={(e) => setForm(prev => ({ ...prev, address: e.target.value }))}
-                className="flex-1 p-2 border rounded-md"
+                className={styles.input}
                 placeholder="주소를 입력해주세요"
                 required
               />
@@ -338,38 +327,33 @@ export default function SpaceDetailsPage() {
                     setMapCenter(prev => ({ ...prev }))
                   }
                 }}
-                className="px-4 py-2 bg-[#7047EB] text-white rounded-md"
+                className={styles.searchButton}
               >
                 주소 검색
               </button>
             </div>
-            {/* 상세 주소 입력 */}
-            <div>
-              <input
-                type="text"
-                value={form.detailedAddress}
-                onChange={(e) => setForm(prev => ({ ...prev, detailedAddress: e.target.value }))}
-                className="w-full p-2 border rounded-md"
-                placeholder="상세 주소를 입력해주세요"
-              />
-            </div>
-            {/* 위치 정보 입력 */}
+            <input
+              type="text"
+              value={form.detailedAddress}
+              onChange={(e) => setForm(prev => ({ ...prev, detailedAddress: e.target.value }))}
+              className={styles.input}
+              placeholder="상세 주소를 입력해주세요"
+            />
             <div>
               <input
                 type="text"
                 value={form.locationInfo}
                 onChange={(e) => setForm(prev => ({ ...prev, locationInfo: e.target.value }))}
-                className="w-full p-2 border rounded-md"
+                className={styles.input}
                 placeholder="위치 정보를 입력해주세요 (예: 강남역 3번 출구 도보 5분)"
                 maxLength={20}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className={styles.charCount}>
                 ({form.locationInfo.length}/20자)
               </p>
             </div>
 
-            {/* 카카오맵 표시 */}
-            <div className="w-full h-[300px] rounded-lg overflow-hidden border border-gray-200">
+            <div className={styles.mapContainer}>
               <KakaoMap
                 address={form.address}
                 center={mapCenter}
@@ -386,19 +370,27 @@ export default function SpaceDetailsPage() {
           </div>
         </div>
 
-        {/* 하단 네비게이션 버튼 */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
-          <div className="max-w-5xl mx-auto flex gap-4">
+        {/* 하단 네비게이션 */}
+        <div className={styles.footer}>
+          <div className={styles.footerContent}>
             <button
               type="button"
               onClick={() => router.back()}
-              className="flex-1 py-3 px-4 rounded-lg border border-gray-300 text-gray-700 font-medium"
+              className={styles.buttonSecondary}
             >
               이전
             </button>
             <button
               type="submit"
-              className="flex-1 py-3 px-4 rounded-lg bg-[#7047EB] text-white font-medium disabled:bg-gray-300"
+              className={
+                !form.spaceName ||
+                !form.detailedDescription ||
+                form.detailedDescription.length < 20 ||
+                !form.address ||
+                form.spaceTypes.length === 0
+                  ? styles.buttonDisabled
+                  : styles.buttonPrimary
+              }
               disabled={
                 !form.spaceName ||
                 !form.detailedDescription ||

@@ -36,7 +36,7 @@ public class CommentService {
     public CommentResponseDto createComment(Long boardId, CommentRequestDto requestDto, Long userId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new ResourceNotFoundException("게시글을 찾을 수 없습니다: " + boardId));
-        
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다: " + userId));
 

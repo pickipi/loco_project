@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import styles from './page.module.css'
 
 interface SignupData {
   username: string;
@@ -67,19 +68,19 @@ export default function HostRegisterPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-center mb-8">회원가입</h1>
+    <main className={styles.container}>
+      <div className={styles.formContainer}>
+        <h1 className={styles.title}>회원가입</h1>
         
         {error && (
-          <div className="mb-6 p-3 text-sm text-red-500 bg-red-50 rounded-md">
+          <div className={styles.errorMessage}>
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.inputGroup}>
+            <label htmlFor="username" className={styles.label}>
               이름
             </label>
             <input
@@ -88,13 +89,13 @@ export default function HostRegisterPage() {
               name="username"
               value={formData.username}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#7047EB] focus:outline-none focus:ring-1 focus:ring-[#7047EB]"
+              className={styles.input}
               required
             />
           </div>
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+          <div className={styles.inputGroup}>
+            <label htmlFor="email" className={styles.label}>
               이메일
             </label>
             <input
@@ -103,13 +104,13 @@ export default function HostRegisterPage() {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#7047EB] focus:outline-none focus:ring-1 focus:ring-[#7047EB]"
+              className={styles.input}
               required
             />
           </div>
 
-          <div>
-            <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
+          <div className={styles.inputGroup}>
+            <label htmlFor="phoneNumber" className={styles.label}>
               전화번호
             </label>
             <input
@@ -120,16 +121,16 @@ export default function HostRegisterPage() {
               onChange={handleChange}
               placeholder="010-0000-0000"
               pattern="[0-9]{3}-[0-9]{4}-[0-9]{4}"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#7047EB] focus:outline-none focus:ring-1 focus:ring-[#7047EB]"
+              className={styles.input}
               required
             />
-            <p className="mt-1 text-sm text-gray-500">
+            <p className={styles.helpText}>
               하이픈(-)을 포함하여 입력해주세요
             </p>
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+          <div className={styles.inputGroup}>
+            <label htmlFor="password" className={styles.label}>
               비밀번호
             </label>
             <input
@@ -138,16 +139,16 @@ export default function HostRegisterPage() {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#7047EB] focus:outline-none focus:ring-1 focus:ring-[#7047EB]"
+              className={styles.input}
               required
             />
-            <p className="mt-1 text-sm text-gray-500">
+            <p className={styles.helpText}>
               8자 이상의 영문, 숫자, 특수문자를 조합해주세요
             </p>
           </div>
 
-          <div>
-            <label htmlFor="passwordConfirm" className="block text-sm font-medium text-gray-700">
+          <div className={styles.inputGroup}>
+            <label htmlFor="passwordConfirm" className={styles.label}>
               비밀번호 확인
             </label>
             <input
@@ -156,30 +157,30 @@ export default function HostRegisterPage() {
               name="passwordConfirm"
               value={passwordConfirm}
               onChange={(e) => setPasswordConfirm(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-[#7047EB] focus:outline-none focus:ring-1 focus:ring-[#7047EB]"
+              className={styles.input}
               required
             />
           </div>
 
-          <div className="flex items-center justify-between pt-6">
+          <div className={styles.buttonContainer}>
             <Link
               href="/host"
-              className="text-sm text-gray-600 hover:text-gray-800"
+              className={styles.backButton}
             >
               뒤로가기
             </Link>
             <button
               type="submit"
               disabled={isLoading}
-              className="bg-[#7047EB] text-white px-6 py-2 rounded-md hover:bg-[#8561ED] focus:outline-none focus:ring-2 focus:ring-[#7047EB] focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className={styles.submitButton}
             >
               {isLoading ? '처리중...' : '가입하기'}
             </button>
           </div>
 
-          <div className="mt-4 text-center text-sm text-gray-600">
+          <div className={styles.loginText}>
             이미 계정이 있으신가요?{' '}
-            <Link href="/host/login" className="text-[#7047EB] hover:text-[#8561ED]">
+            <Link href="/host/login" className={styles.loginLink}>
               로그인하기
             </Link>
           </div>
