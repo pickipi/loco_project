@@ -1,5 +1,7 @@
 package com.likelion.loco_project.domain.host.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,8 +17,10 @@ public class ApiV1HostController {
     private final HostService hostService;
 
     // 호스트 등록 API (POST /api/v1/hosts/{userId})
+    @Operation(summary = "호스트 등록", description = "특정 유저 ID로 호스트를 등록합니다.")
     @PostMapping("/{userId}")
-    public ResponseEntity<HostResponseDto> register(@PathVariable Long userId,
+    public ResponseEntity<HostResponseDto> register(@Parameter(description = "등록할 유저 ID", example = "1")
+    @PathVariable("userId") Long userId,
                                                     @RequestBody HostRequestDto requestDto) {
         return ResponseEntity.ok(hostService.registerHost(userId, requestDto));
     }

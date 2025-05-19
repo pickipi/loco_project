@@ -40,6 +40,12 @@ public class Space extends BaseEntity {
     @Column(length = 300, nullable = false)
     private String address; // 주소
 
+    @Column(length = 300, nullable = true)
+    private String address2; // 상세 주소
+
+    @Column(length = 300, nullable = true)
+    private String address3; // 주변 주소
+
     @Column(nullable = false, precision = 10, scale = 6)
     private BigDecimal latitude; // 위도
 
@@ -49,7 +55,7 @@ public class Space extends BaseEntity {
     @Column(name = "max_capacity", nullable = false)
     private Integer maxCapacity; // 최대 인원
 
-    @Column(name = "is_active", nullable = false)
+    @Column(name = "is_active", nullable = true)
     private Boolean isActive; // 활성화 여부
 
     @Column(name = "space_rating", precision = 3, scale = 2)
