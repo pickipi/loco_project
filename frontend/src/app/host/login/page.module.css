@@ -1,0 +1,200 @@
+.container {
+  min-height: 100vh;
+  background-color: #f9fafb;
+  padding: 3rem 1rem;
+  padding-top: 7rem;
+}
+
+.formContainer {
+  max-width: 28rem;
+  margin: 0 auto;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #1a1a1a;
+}
+
+.errorMessage {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  font-size: 0.875rem;
+  color: #ef4444;
+  background-color: #fef2f2;
+  border-radius: 0.375rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+}
+
+.input:focus {
+  border-color: #7047EB;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(112, 71, 235, 0.2);
+}
+
+.rememberMeContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkboxInput {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  border-color: #d1d5db;
+  color: #7047EB;
+}
+
+.checkboxInput:focus {
+  box-shadow: 0 0 0 2px rgba(112, 71, 235, 0.2);
+}
+
+.checkboxLabel {
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.forgotPassword {
+  font-size: 0.875rem;
+  color: #7047EB;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.forgotPassword:hover {
+  color: #8561ED;
+}
+
+.button {
+  width: 100%;
+  background-color: #7047EB;
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.button:hover:not(:disabled) {
+  background-color: #8561ED;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.signupText {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.signupLink {
+  color: #7047EB;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.signupLink:hover {
+  color: #8561ED;
+}
+
+.divider {
+  margin: 2rem 0;
+  position: relative;
+  text-align: center;
+}
+
+.dividerLine {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.dividerText {
+  position: relative;
+  display: inline-block;
+  padding: 0 0.5rem;
+  background-color: white;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.socialButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.socialButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background-color: white;
+  color: #374151;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.socialButton:hover:not(:disabled) {
+  background-color: #f9fafb;
+}
+
+.socialButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.socialIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+} 
