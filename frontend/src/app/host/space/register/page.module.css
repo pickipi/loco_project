@@ -1,19 +1,17 @@
 .container {
-  min-height: 100vh;
-  background-color: white;
-  padding-top: 4rem;
 }
 
 .header {
   background-color: #7047EB;
   color: white;
-  padding: 1rem 1.5rem;
+  padding: 0.5rem;
   display: flex;
   align-items: center;
+  margin-bottom: 0;
 }
 
 .backButton {
-  margin-right: 1rem;
+  margin-right: 0.5rem;
 }
 
 .headerTitle {
@@ -24,11 +22,13 @@
 }
 
 .spacer {
-  width: 2rem;
+  width: 0.5rem;
 }
 
 .content {
-  padding: 1.5rem;
+  background-color: white;
+  padding: 0.5rem;
+  margin-top: 0;
 }
 
 .footer {

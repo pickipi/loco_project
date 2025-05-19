@@ -17,9 +17,10 @@ interface KakaoMapProps {
   }
   onLocationChange: (lat: number, lng: number) => void
   placeName?: string
+  shouldSearch?: boolean
 }
 
-export default function KakaoMap({ address, center, onLocationChange, placeName = '선택한 위치' }: KakaoMapProps) {
+export default function KakaoMap({ address, center, onLocationChange, placeName = '선택한 위치', shouldSearch = false }: KakaoMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<any>(null)
   const markerRef = useRef<any>(null)
@@ -80,11 +81,11 @@ export default function KakaoMap({ address, center, onLocationChange, placeName 
     if (!window.kakao?.maps) return
     window.kakao.maps.load(() => {
       initializeMap()
-      if (address) {
+      if (address && shouldSearch) {
         searchAddress(address)
       }
     })
-  }, [address])
+  }, [address, shouldSearch])
 
   return (
     <>

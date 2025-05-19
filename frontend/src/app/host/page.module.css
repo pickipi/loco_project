@@ -1,20 +1,19 @@
 .container {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  padding-top: 4rem;
 }
 
 .heroSection {
   background-color: #7047EB;
   color: white;
   text-align: center;
-  padding: 8rem 1rem;
+  padding: 4rem 1rem;
+  margin-top: 0;
   min-height: calc(100vh - 4rem); /* 헤더 높이를 제외한 전체 높이 */
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .heroTitle {
@@ -48,6 +47,8 @@
 
 .section {
   padding: 4rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f9fafb;
 }
 
 .sectionTitle {
@@ -142,6 +143,7 @@
   color: white;
   text-align: center;
   padding: 6rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .ctaTitle {

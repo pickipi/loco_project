@@ -15,9 +15,9 @@ export default function HostLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className={`${inter.className} min-h-screen bg-white`}>
+    <div className={`${inter.className} min-h-screen`}>
       <HostHeader />
-      <div className="pt-16">
+      <div className="pt-16" style={{ backgroundColor: '#2563EB' }}>
         {children}
       </div>
     </div>

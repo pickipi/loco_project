@@ -2,12 +2,13 @@
   min-height: 100vh;
   background-color: #f9fafb;
   padding-bottom: 5rem;
-  padding-top: 4rem;
+  padding-top: 0;
 }
 
 .header {
   background-color: white;
   border-bottom: 1px solid #e5e7eb;
+  margin-top: 0;
 }
 
 .headerContent {
@@ -133,14 +134,56 @@
 
 .addressContainer {
   display: flex;
-  gap: 0.5rem;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+.addressInput {
+  flex: 1;
+  height: 40px;
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.addressInput:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
 }
 
 .searchButton {
-  padding: 0.5rem 1rem;
-  background-color: #7047EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background-color: #6366f1;
   color: white;
-  border-radius: 0.375rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  min-width: 100px;
+  height: 40px;
+}
+
+.searchButton:hover {
+  background-color: #4f46e5;
+  transform: translateY(-1px);
+}
+
+.searchButton:active {
+  transform: translateY(0);
+}
+
+.searchButton:disabled {
+  background-color: #e5e7eb;
+  cursor: not-allowed;
 }
 
 .mapContainer {

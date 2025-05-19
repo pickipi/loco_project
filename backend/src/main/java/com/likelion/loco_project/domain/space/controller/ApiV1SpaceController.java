@@ -6,6 +6,7 @@ import com.likelion.loco_project.domain.space.dto.SpaceUpdateRequestDto;
 import com.likelion.loco_project.domain.space.service.SpaceService;
 import com.likelion.loco_project.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,12 +21,12 @@ public class ApiV1SpaceController {
     private final SpaceService spaceService;
 
     // 공간 생성
-    @Operation(summary = "공간 생성"
-            , description = "새로운 공간을 등록합니다.")
-    @PostMapping
-    public ResponseEntity<SpaceResponseDto> createSpace(@RequestBody SpaceCreateRequestDto dto) {
-        SpaceResponseDto response = spaceService.createSpace(dto);
-        return ResponseEntity.ok(response);
+    @Operation(summary = "공간 생성", description = "새로운 공간을 등록합니다.")
+    @PostMapping("/{hostId}/register")
+    public ResponseEntity<SpaceResponseDto> createSpace(
+            @PathVariable("hostId") Long hostId,
+            @RequestBody SpaceCreateRequestDto dto) {
+        return ResponseEntity.ok(spaceService.createSpace(hostId, dto));
     }
 
     // 공간 단건 조회(지도)
@@ -59,8 +60,9 @@ public class ApiV1SpaceController {
     // 공간 삭제
     @Operation(summary = "공간 삭제"
             , description = "공간 ID에 해당하는 공간을 삭제합니다.")
+    @ApiResponse(responseCode = "200", description = "삭제 성공")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSpace(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteSpace(@PathVariable("id") Long id) {
         spaceService.deleteSpace(id);
         return ResponseEntity.noContent().build();
     }

@@ -10,8 +10,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Getter
 public class SpaceResponseDto {
     private Long id;
+    private Long hostId;
     private Long imageId;
     private String spaceName;
     private String description;
@@ -30,6 +32,7 @@ public class SpaceResponseDto {
         return SpaceResponseDto.builder()
                 .id(space.getId())
                 .imageId(space.getImageId())
+                .hostId(space.getHost().getId())
                 .spaceName(space.getSpaceName())
                 .description(space.getDescription())
                 .uploadDate(space.getUploadDate())

@@ -1,5 +1,7 @@
 package com.likelion.loco_project.domain.space.service;
 
+import com.likelion.loco_project.domain.host.entity.Host;
+import com.likelion.loco_project.domain.host.repository.HostRepository;
 import com.likelion.loco_project.domain.space.dto.SpaceCreateRequestDto;
 import com.likelion.loco_project.domain.space.dto.SpaceResponseDto;
 import com.likelion.loco_project.domain.space.dto.SpaceUpdateRequestDto;
@@ -17,11 +19,14 @@ import java.util.stream.Collectors;
 public class SpaceService {
 
     private final SpaceRepository spaceRepository;
+    private final HostRepository hostRepository;
 
     // 공간 생성
-    public SpaceResponseDto createSpace(SpaceCreateRequestDto dto) {
-        Space saved = spaceRepository.save(dto.toEntity());
-        return SpaceResponseDto.fromEntity(saved);
+    public SpaceResponseDto createSpace(Long hostId, SpaceCreateRequestDto dto) {
+        Host host = hostRepository.findById(hostId)
+                .orElseThrow(() -> new IllegalArgumentException("호스트를 찾을 수 없습니다."));
+        Space space = spaceRepository.save(dto.toEntity(host));
+        return SpaceResponseDto.fromEntity(space);
     }
 
     // 공간 단일 조회
