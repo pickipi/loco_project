@@ -29,7 +29,6 @@ public class SpaceCreateRequestDto {
     private Long price;
     private Boolean isActive;
     private BigDecimal spaceRating;
-    private SpaceStatus spaceStatus;
 
 
     // DTO → Entity 변환 메서드
@@ -47,7 +46,7 @@ public class SpaceCreateRequestDto {
                 .maxCapacity(maxCapacity)
                 .isActive(isActive)
                 .spaceRating(spaceRating)
-                .status(spaceStatus)
+                .status(SpaceStatus.PENDING)
                 .build();
     }
 }
