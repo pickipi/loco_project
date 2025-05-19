@@ -4,6 +4,7 @@ import com.likelion.loco_project.domain.reservation.entity.Reservation;
 import lombok.Getter;
 import lombok.Setter;
 
+import jakarta.validation.constraints.Future;
 import java.time.LocalDateTime;
 
 @Getter
@@ -25,6 +26,12 @@ public class ReservationRequestDto {    //예약 요청
         // space, guest는 Service에서 조회 후 주입
         return reservation;
     }
+
+    @Future
+    private LocalDateTime startTime;
+
+    @Future
+    private LocalDateTime endTime;
 
     public Long getPaymentId() {
         return null;
