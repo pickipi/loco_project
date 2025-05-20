@@ -16,4 +16,7 @@ public class UserRequestDto {
     private String email;
     private String phoneNumber;
     private Set<UserType> type;
+
+    //호스트 페이지에서 바로 회원가입
+    private UserType typeHost;
 }

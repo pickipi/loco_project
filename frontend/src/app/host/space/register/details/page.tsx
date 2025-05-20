@@ -26,8 +26,6 @@ interface SpaceForm {
   spaceType: SpaceType;        // 공간 유형 (단일 선택)
   spaceName: string;           // 공간 이름
   description: string;         // 공간 설명
-  imageId: number | null;      // 이미지 ID
-  uploadDate: Date;            // 업로드 날짜
   maxCapacity: number;         // 최대 수용 인원
   address: string;            // 주소
   address2: string;           // 상세 주소
@@ -49,8 +47,6 @@ export default function SpaceDetailsPage() {
     spaceType: 'MEETING',      // 기본 공간 유형
     spaceName: '',             // 공간 이름 (빈 문자열)
     description: '',           // 설명 (빈 문자열)
-    imageId: null,             // 이미지 ID (초기값 null)
-    uploadDate: new Date(),    // 현재 날짜/시간
     maxCapacity: 1,            // 최소 수용 인원
     address: '',               // 주소 (빈 문자열)
     address2: '',              // 상세 주소 (빈 문자열)
@@ -109,13 +105,11 @@ export default function SpaceDetailsPage() {
       const apiUrl = `${API_BASE_URL}/api/v1/spaces/${form.hostId}/register`;
       console.log('API 요청 URL:', apiUrl);
 
-      // API 요청 데이터 준비
+      // API 요청 데이터 준비 (status 필드 제외)
       const requestData = {
         spaceType: form.spaceType,
         spaceName: form.spaceName,
         description: form.description,
-        imageId: form.imageId,
-        uploadDate: form.uploadDate,
         maxCapacity: form.maxCapacity,
         address: form.address,
         address2: form.address2,
@@ -305,7 +299,7 @@ export default function SpaceDetailsPage() {
           </div>
         </div>
 
-        {/* 주소 입력 */}
+        {/* 가격 입력 다음에 바로 주소 입력으로 이동 */}
         <div className={styles.section}>
           <label className={styles.label}>
             주소 <span className={styles.required}>*</span>
@@ -317,7 +311,7 @@ export default function SpaceDetailsPage() {
                 value={form.address}
                 onChange={(e) => {
                   setForm(prev => ({ ...prev, address: e.target.value }));
-                  setIsAddressVerified(false); // 주소 입력값이 변경되면 검증 상태 초기화
+                  setIsAddressVerified(false);
                 }}
                 className={styles.addressInput}
                 placeholder="주소를 입력해주세요"
@@ -328,7 +322,7 @@ export default function SpaceDetailsPage() {
                 onClick={() => {
                   if (form.address) {
                     setShouldSearch(true);
-                    setIsAddressVerified(true); // 주소 검색 버튼 클릭 시 검증 완료
+                    setIsAddressVerified(true);
                   }
                 }}
                 className={styles.searchButton}
@@ -404,7 +398,7 @@ export default function SpaceDetailsPage() {
                 !form.description ||
                 form.description.length < 20 ||
                 !form.address ||
-                !isAddressVerified || // 주소 검증 상태 확인 추가
+                !isAddressVerified ||
                 form.price <= 0
                   ? styles.buttonDisabled
                   : styles.buttonPrimary
@@ -414,7 +408,7 @@ export default function SpaceDetailsPage() {
                 !form.description ||
                 form.description.length < 20 ||
                 !form.address ||
-                !isAddressVerified || // 주소 검증 상태 확인 추가
+                !isAddressVerified ||
                 form.price <= 0
               }
             >

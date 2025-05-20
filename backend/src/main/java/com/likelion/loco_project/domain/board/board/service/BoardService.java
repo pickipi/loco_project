@@ -48,7 +48,7 @@ public class BoardService {
      * @throws AccessDeniedException    사용자가 호스트가 아닐 때 발생
      */
     @Transactional
-    public BoardResponseDto createBoard(BoardRequestDto boardRequestDto, Long userId){
+    public BoardResponseDto createBoard(CreateBoardRequestDto boardRequestDto, Long userId){
         // 1. 게시글 작성자 (User) 확인 및 호스트 정보 조회
         User authorUser = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("유저ID를 찾을 수 없습니다 : " + userId));
