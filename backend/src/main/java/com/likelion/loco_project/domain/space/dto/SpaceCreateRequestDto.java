@@ -60,6 +60,9 @@ public class SpaceCreateRequestDto {
     @Schema(description = "공개 여부", example = "true")
     private Boolean isActive;
 
+    @Schema(description = "평점", example = "4.5")
+    private BigDecimal spaceRating;
+
     // ✅ DTO → Entity (Host 주입)
     public Space toEntity(Host host) {
         return Space.builder()

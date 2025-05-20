@@ -14,24 +14,20 @@ public class ReservationRequestDto {    //예약 요청
     private Long spaceId;               //공간 ID
     private String reservationDate;     //예약일
     private int bookingCapacity;        //예약 인원
-    private String startTime;           //예약한 시작시간
-    private String endTime;             //예약한 종료시간
+    @Future
+    private LocalDateTime startTime;    //예약한 시작시간
+    @Future
+    private LocalDateTime endTime;      //예약한 종료시간
 
     public Reservation toEntity() {
         Reservation reservation = new Reservation();
         reservation.setReservationDate(LocalDateTime.parse(reservationDate));
         reservation.setBookingCapacity(bookingCapacity);
-        reservation.setStartTime(LocalDateTime.parse(startTime));
-        reservation.setEndTime(LocalDateTime.parse(endTime));
+        reservation.setStartTime(startTime);
+        reservation.setEndTime(endTime);
         // space, guest는 Service에서 조회 후 주입
         return reservation;
     }
-
-    @Future
-    private LocalDateTime startTime;
-
-    @Future
-    private LocalDateTime endTime;
 
     public Long getPaymentId() {
         return null;
