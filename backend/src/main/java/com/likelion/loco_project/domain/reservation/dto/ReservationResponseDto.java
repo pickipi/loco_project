@@ -26,4 +26,13 @@ public class ReservationResponseDto {       //예약 응답
         this.startTime = String.valueOf(reservation.getStartTime());
         this.endTime = String.valueOf(reservation.getEndTime());
     }
+
+    public static ReservationResponseDto from(Reservation reservation) {
+        return ReservationResponseDto.builder()
+                .id(reservation.getId())
+                .guestId(reservation.getGuest().getId())
+                .startTime(String.valueOf(reservation.getStartTime()))
+                .endTime(String.valueOf(reservation.getEndTime()))
+                .build();
+    }
 }

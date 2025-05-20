@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Builder
 public class PaymentResponseDto {
     private Long id;
+    private Long guestId;                               //게스트 ID
     private String paymentMethod;                       //결제 방법
     private int paymentAmount;                          //결제 금액
     private PaymentStatus paymentStatus;                //결제 상태
@@ -22,6 +23,7 @@ public class PaymentResponseDto {
     public static PaymentResponseDto from(Payment payment) {
         return PaymentResponseDto.builder()
                 .id(payment.getId())
+                .guestId(payment.getGuest().getId())
                 .paymentMethod(payment.getPaymentMethod())
                 .paymentAmount(payment.getPaymentAmount())
                 .paymentStatus(payment.getPaymentStatus())
