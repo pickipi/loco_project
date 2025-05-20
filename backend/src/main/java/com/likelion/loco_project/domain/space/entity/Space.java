@@ -66,7 +66,7 @@ public class Space extends BaseEntity {
     private Host host; // 호스트
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = true)
     private SpaceStatus status; // 공간 승인 상태
 
     @Column(name = "rejection_reason")

@@ -1,5 +1,6 @@
 package com.likelion.loco_project.domain.host.controller;
 
+import com.likelion.loco_project.domain.user.dto.UserRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
@@ -31,4 +32,10 @@ public class ApiV1HostController {
         return ResponseEntity.ok(hostService.getHostInfo(userId));
     }
 
+    //호스트 페이지에서 바로 회원가입
+    @PostMapping("/signup")
+    public ResponseEntity<?> signup(@RequestBody UserRequestDto dto) {
+        hostService.registerHost(dto);
+        return ResponseEntity.ok("호스트 회원가입 완료");
+    }
 }

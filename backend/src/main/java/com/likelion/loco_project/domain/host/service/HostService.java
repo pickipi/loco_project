@@ -4,10 +4,13 @@ import com.likelion.loco_project.domain.host.dto.HostRequestDto;
 import com.likelion.loco_project.domain.host.dto.HostResponseDto;
 import com.likelion.loco_project.domain.host.entity.Host;
 import com.likelion.loco_project.domain.host.repository.HostRepository;
+import com.likelion.loco_project.domain.user.dto.UserRequestDto;
 import com.likelion.loco_project.domain.user.entity.User;
+import com.likelion.loco_project.domain.user.entity.UserType;
 import com.likelion.loco_project.domain.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +21,7 @@ public class HostService {
 
     private final HostRepository hostRepository;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     // 호스트 등록 기능
     @Transactional
@@ -54,5 +58,30 @@ public class HostService {
                 .orElseThrow(() -> new EntityNotFoundException("호스트 정보를 찾을 수 없습니다."));
         // 조회된 Host 정보를 DTO로 변환하여 반환
         return new HostResponseDto(host);
+    }
+
+    // 호스트에서 정보
+    @Transactional
+    public void registerHost(UserRequestDto dto) {
+        User user = userRepository.save(
+                User.builder()
+                        .username(dto.getUsername())
+                        .password(passwordEncoder.encode(dto.getPassword()))
+                        .email(dto.getEmail())
+                        .phoneNumber(dto.getPhoneNumber())
+                        .typeHost(UserType.HOST)
+                        .build()
+        );
+
+        Host host = Host.builder()
+                .user(user)
+                .bankName("")
+                .accountNumber("")
+                .accountUser("")
+                .isHost(true)
+                .verified(true)// verified true로 할껀지 아니면 false로 할껀지
+                .build();
+
+        hostRepository.save(host);
     }
 }

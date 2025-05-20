@@ -1,6 +1,7 @@
 package com.likelion.loco_project.domain.board.board.dto;
 
 import com.likelion.loco_project.domain.board.board.entity.Category;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -44,6 +45,8 @@ public class BoardRequestDto {
     private Boolean isVisible;
 
     // 이미지 관련 필드
+    @Schema(description = "썸네일 파일", type = "string", format = "binary")
     private MultipartFile thumbnailFile; // 썸네일 이미지 파일 (업로드 시 사용)
+    @Schema(description = "추가 이미지들", type = "array", implementation = MultipartFile.class)
     private List<MultipartFile> otherImageFiles; // 추가 이미지 파일 목록
 }
