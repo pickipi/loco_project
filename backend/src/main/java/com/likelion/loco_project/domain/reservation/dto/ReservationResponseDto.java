@@ -31,8 +31,8 @@ public class ReservationResponseDto {       //예약 응답
         return ReservationResponseDto.builder()
                 .id(reservation.getId())
                 .guestId(reservation.getGuest().getId())
-                .startTime(reservation.getStartTime())
-                .endTime(reservation.getEndTime())
+                .startTime(String.valueOf(reservation.getStartTime()))
+                .endTime(String.valueOf(reservation.getEndTime()))
                 .build();
     }
 }
