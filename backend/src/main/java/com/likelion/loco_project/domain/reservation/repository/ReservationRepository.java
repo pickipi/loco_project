@@ -19,7 +19,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     // 특정 시간 이후 예약 조회 (예: 다가오는 예약들)
     List<Reservation> findByReservationDateAfter(LocalDateTime now);
 
-
     // 특정 공간의 예약 가능 여부 확인 (시간 겹침 여부 체크)
     @Query("""
     SELECT r FROM Reservation r
