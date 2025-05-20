@@ -41,14 +41,14 @@ public class BoardService {
 
     /**
      * 1. 게시글 작성
-     * @param boardRequestDto 게시글 생성 요청 DTO
+     * @param createBoardRequestDto 게시글 생성 요청 DTO
      * @param userId          게시글 작성자 (User)의 ID
      * @return 생성된 게시글 정보 응답 DTO
      * @throws ResourceNotFoundException Space 또는 Host를 찾을 수 없을 때 발생
      * @throws AccessDeniedException    사용자가 호스트가 아닐 때 발생
      */
     @Transactional
-    public BoardResponseDto createBoard(CreateBoardRequestDto boardRequestDto, Long userId){
+    public BoardResponseDto createBoard(CreateBoardRequestDto createBoardRequestDto, Long userId){
         // 1. 게시글 작성자 (User) 확인 및 호스트 정보 조회
         User authorUser = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("유저ID를 찾을 수 없습니다 : " + userId));
@@ -58,15 +58,15 @@ public class BoardService {
                 .orElseThrow(() -> new ResourceNotFoundException("이 유저ID에 대한 호스트 정보가 존재하지 않습니다 : " + userId + ", 호스트만이 게시글을 작성할 수 있습니다."));
 
         // 3. 게시글이 등록될 공간 정보 조회
-        Space space = spaceRepository.findById(boardRequestDto.getSpaceId())
-                .orElseThrow(() -> new ResourceNotFoundException("ID에 해당하는 공간을 찾을 수 없습니다 : " + boardRequestDto.getSpaceId()));
+        Space space = spaceRepository.findById(createBoardRequestDto.getSpaceId())
+                .orElseThrow(() -> new ResourceNotFoundException("ID에 해당하는 공간을 찾을 수 없습니다 : " + createBoardRequestDto.getSpaceId()));
 
         // 4. 조회된 엔티티를 사용하여 Board 엔티티 객체 생성 (빌더패턴 사용)
         Board board = Board.builder()
-                .title(boardRequestDto.getTitle())
-                .description(boardRequestDto.getDescription())
-                .category(boardRequestDto.getCategory())
-                .isVisible(boardRequestDto.getIsVisible() != null ? boardRequestDto.getIsVisible() : true) // isVisible이 null이면 기본값 true 설정
+                .title(createBoardRequestDto.getTitle())
+                .description(createBoardRequestDto.getDescription())
+                .category(createBoardRequestDto.getCategory())
+                .isVisible(createBoardRequestDto.getIsVisible() != null ? createBoardRequestDto.getIsVisible() : true) // isVisible이 null이면 기본값 true 설정
                 .report(false) // 신고 여부는 기본값 false
                 .host(authorHost) // 연관관계 설정
                 .space(space) // 연관관계 설정
@@ -79,7 +79,7 @@ public class BoardService {
         List<BoardImageResponseDto> savedImages = new ArrayList<>();
 
         // 5-2. 썸네일 이미지 처리
-        MultipartFile thumbnailFile = boardRequestDto.getThumbnailFile();
+        MultipartFile thumbnailFile = createBoardRequestDto.getThumbnailFile();
         if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
             String s3ObjectKey = s3Service.uploadFile(thumbnailFile);
             BoardImage thumbnailImage = BoardImage.builder()
@@ -92,7 +92,7 @@ public class BoardService {
         }
 
         // 5-3. 추가 이미지 처리 (최대 MAX_IMAGE_COUNT 장 제한)
-        List<MultipartFile> otherImageFiles = boardRequestDto.getOtherImageFiles();
+        List<MultipartFile> otherImageFiles = createBoardRequestDto.getOtherImageFiles();
         if (otherImageFiles != null && !otherImageFiles.isEmpty()) {
             int imageCount = 0;
             for (MultipartFile otherFile : otherImageFiles) {
@@ -166,14 +166,14 @@ public class BoardService {
     /** 3. 게시글 수정
      * 이미지 수정 로직 (기존 S3 객체 삭제 후 새로 업로드하는 방식)
      * @param id              수정할 게시글의 ID
-     * @param boardRequestDto 게시글 수정 요청 DTO
+     * @param createBoardRequestDto 게시글 수정 요청 DTO
      * @param userId          수정 요청 사용자 (User)의 ID
      * @return 수정된 게시글 정보 응답 DTO
      * @throws ResourceNotFoundException 게시글 또는 공간을 찾을 수 없을 때 발생
      * @throws AccessDeniedException    수정 권한이 없을 때 발생
      */
     @Transactional // 데이터 변경이 있으므로 쓰기 트랜잭션 설정
-    public BoardResponseDto updateBoard(Long id, BoardRequestDto boardRequestDto, Long userId) {
+    public BoardResponseDto updateBoard(Long id, CreateBoardRequestDto createBoardRequestDto, Long userId) {
         // 1. 수정할 게시글 조회 (존재하지 않으면 예외 발생)
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("게시글을 찾을 수 없습니다 : " + id)); // ⭐ 게시글 없을 때 예외 발생
@@ -186,18 +186,18 @@ public class BoardService {
 
         // 3. DTO의 데이터로 Entity 업데이트
         Space updatedSpace = board.getSpace(); // 기본값은 현재 게시글에 연결된 공간
-        if (!board.getSpace().getId().equals(boardRequestDto.getSpaceId())) {
-            updatedSpace = spaceRepository.findById(boardRequestDto.getSpaceId())
-                    .orElseThrow(() -> new ResourceNotFoundException("공간을 찾을 수 없습니다 : " + boardRequestDto.getSpaceId()));
+        if (!board.getSpace().getId().equals(createBoardRequestDto.getSpaceId())) {
+            updatedSpace = spaceRepository.findById(createBoardRequestDto.getSpaceId())
+                    .orElseThrow(() -> new ResourceNotFoundException("공간을 찾을 수 없습니다 : " + createBoardRequestDto.getSpaceId()));
         }
 
-        board.setTitle(boardRequestDto.getTitle()); // 제목 업데이트
-        board.setDescription(boardRequestDto.getDescription()); // 내용 업데이트
-        board.setCategory(boardRequestDto.getCategory()); // 카테고리 업데이트
+        board.setTitle(createBoardRequestDto.getTitle()); // 제목 업데이트
+        board.setDescription(createBoardRequestDto.getDescription()); // 내용 업데이트
+        board.setCategory(createBoardRequestDto.getCategory()); // 카테고리 업데이트
 
         // isVisible은 DTO에서 값이 넘어왔을 경우에만 업데이트, 아니면 기존 값 유지
-        if (boardRequestDto.getIsVisible() != null) {
-            board.setIsVisible(boardRequestDto.getIsVisible());
+        if (createBoardRequestDto.getIsVisible() != null) {
+            board.setIsVisible(createBoardRequestDto.getIsVisible());
         }
         board.setSpace(updatedSpace); // 공간 업데이트
 
@@ -207,7 +207,7 @@ public class BoardService {
         List<BoardImageResponseDto> savedImages = new ArrayList<>();
 
         // 3-2. 썸네일 이미지 처리
-        MultipartFile thumbnailFile = boardRequestDto.getThumbnailFile();
+        MultipartFile thumbnailFile = createBoardRequestDto.getThumbnailFile();
         if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
             String s3ObjectKey = s3Service.uploadFile(thumbnailFile);
             BoardImage thumbnailImage = BoardImage.builder()
@@ -220,7 +220,7 @@ public class BoardService {
         }
 
         // 추가 이미지 처리 (최대 MAX_IMAGE_COUNT 장 제한)
-        List<MultipartFile> otherImageFiles = boardRequestDto.getOtherImageFiles();
+        List<MultipartFile> otherImageFiles = createBoardRequestDto.getOtherImageFiles();
         if (otherImageFiles != null && !otherImageFiles.isEmpty()) {
             int imageCount = 0;
             for (MultipartFile otherFile : otherImageFiles) {
