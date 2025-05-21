@@ -34,4 +34,8 @@ public class Reservation {
     private int bookingCapacity;                        //예약 인원
     private LocalDateTime startTime;                    //예약 시작시간
     private LocalDateTime endTime;                      //예약 끝시간
+
+    @Enumerated(EnumType.STRING)
+    private ReservationStatus status;                   //에약 상황
+
 }

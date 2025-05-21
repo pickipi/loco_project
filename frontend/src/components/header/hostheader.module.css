@@ -159,4 +159,81 @@
 
 .mobileLoginButton:hover {
   background-color: #f3f4f6;
+}
+
+.notificationContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.notificationButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 50%;
+  color: white;
+  transition: background-color 0.2s;
+  position: relative;
+}
+
+.notificationButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.notificationBadge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #EF4444;
+  color: white;
+  font-size: 0.75rem;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.25rem;
+}
+
+.notificationPanel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 50;
+  min-width: 320px;
+  max-width: 400px;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+.mobileNotificationItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.mobileMenuText {
+  flex: 1;
+  text-align: left;
+  margin-left: 0.5rem;
+}
+
+.mobileNotificationBadge {
+  background-color: #EF4444;
+  color: white;
+  font-size: 0.75rem;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.25rem;
 } 
