@@ -30,8 +30,7 @@ public class ApiV1SpaceController {
     }
 
     // 공간 단건 조회(지도)
-    @Operation(summary = "공간 단건 조회"
-            , description = "공간 ID로 단일 공간 정보를 조회합니다. (지도에서 사용)")
+    @Operation(summary = "공간 단건 조회", description = "공간 ID로 단일 공간 정보를 조회합니다. (지도에서 사용)")
     @GetMapping("/{id}")
     public ResponseEntity<RsData<SpaceResponseDto>> getSpace(@PathVariable Long id) {
         SpaceResponseDto dto = spaceService.getSpace(id);
@@ -39,8 +38,7 @@ public class ApiV1SpaceController {
     }
 
     // 공간 전체 조회(지도)
-    @Operation(summary = "전체 공간 목록 조회"
-            , description = "등록된 모든 공간 리스트를 조회합니다. (지도에서 사용)")
+    @Operation(summary = "전체 공간 목록 조회", description = "등록된 모든 공간 리스트를 조회합니다. (지도에서 사용)")
     @GetMapping
     public ResponseEntity<List<SpaceResponseDto>> getAllSpaces() {
         List<SpaceResponseDto> response = spaceService.getAllSpaces();
@@ -48,8 +46,7 @@ public class ApiV1SpaceController {
     }
 
     // 공간 수정
-    @Operation(summary = "공간 정보 수정"
-            , description = "공간 ID에 해당하는 공간의 정보를 수정합니다.")
+    @Operation(summary = "공간 정보 수정", description = "공간 ID에 해당하는 공간의 정보를 수정합니다.")
     @PutMapping("/{id}/edit")
     public ResponseEntity<SpaceResponseDto> updateSpace(@PathVariable Long id,
                                                         @RequestBody SpaceUpdateRequestDto dto) {
@@ -58,9 +55,8 @@ public class ApiV1SpaceController {
     }
 
     // 공간 삭제
-    @Operation(summary = "공간 삭제"
-            , description = "공간 ID에 해당하는 공간을 삭제합니다.")
-    @ApiResponse(responseCode = "200", description = "삭제 성공")
+    @Operation(summary = "공간 삭제", description = "공간 ID에 해당하는 공간을 삭제합니다.")
+    @ApiResponse(responseCode = "204", description = "삭제 성공")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSpace(@PathVariable("id") Long id) {
         spaceService.deleteSpace(id);
