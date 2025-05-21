@@ -8,6 +8,7 @@ import com.likelion.loco_project.domain.user.entity.User;
 import com.likelion.loco_project.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -18,6 +19,7 @@ public class GuestService {
     private final UserRepository userRepository;
 
     // 게스트 등록 기능
+    @Transactional
     public GuestResponseDto createGuest(GuestRequestDto dto) {
         // 유저 조회
         User user = userRepository.findById(dto.getUserId())
@@ -35,6 +37,7 @@ public class GuestService {
     }
 
     // 특정 게스트 정보 조회 기능
+    @Transactional(readOnly = true)
     public GuestResponseDto getGuest(Long id) {
         // 게스트 조회
         Guest guest = guestRepository.findById(id)
