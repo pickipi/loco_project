@@ -1,4 +1,6 @@
+
 <div align="center">
+  <img src="https://github.com/user-attachments/assets/6c2f9885-eef7-48e6-8d70-060a0e57303c" width="250" height="250">
   <h1> 로코 (LoCo)</h1> 
 <!--   <img src="https://github.com/user-attachments/assets/65746376-3b86-40a4-b538-761e83be8261">
   <img src="https://github.com/user-attachments/assets/803a61ca-4793-4d3c-9a70-bacae60910af"> -->
@@ -14,6 +16,7 @@
 <!--   <h4> 사이트 URL: https://www.momentree.site/ </h4> -->
 </div>
 
+![LoCo_Template](https://github.com/user-attachments/assets/12cb4f67-9df1-4527-b7f7-cf26287a19d1)
 
 <br/>
 <br/>

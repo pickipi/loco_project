@@ -36,4 +36,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     //게스트 + 공간 기준으로 예약 확인 (중복 예약 방지)
     Optional<Reservation> findByGuestIdAndSpaceId(Long guestId, Long spaceId);
 
+    // 최근 예약 5건 (최신순)
+    List<Reservation> findTop5ByOrderByIdDesc();
+
 }
