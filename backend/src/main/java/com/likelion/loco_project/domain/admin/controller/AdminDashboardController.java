@@ -7,10 +7,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/v1/admin/dashboard")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminDashboardController {
     private final AdminDashboardService dashboardService;
 
