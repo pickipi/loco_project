@@ -75,19 +75,13 @@ public class BoardService {
         // 5. 만들어진 엔티티를 Repository를 통해 DB에 저장
         Board savedBoard = boardRepository.save(board);
 
-        // 5-1. 이미지 파일 S3 업로드 및 BoardImage 엔티티 생성/저장
+        // 5-1. 이미지 파일 S3 업로드 및 BoardImage 엔티티 생성/저장 (개선된 부분)
         List<BoardImageResponseDto> savedImages = new ArrayList<>();
 
         // 5-2. 썸네일 이미지 처리
         MultipartFile thumbnailFile = createBoardRequestDto.getThumbnailFile();
         if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
-            String s3ObjectKey = s3Service.uploadFile(thumbnailFile);
-            BoardImage thumbnailImage = BoardImage.builder()
-                    .filePath(s3ObjectKey) // 파일 경로 대신 S3 객체 키 저장
-                    .isThumbnail(true) // 썸네일로 설정
-                    .board(savedBoard) // 저장된 게시글과 연결
-                    .build();
-            boardImageRepository.save(thumbnailImage);
+            BoardImage thumbnailImage = saveBoardImage(savedBoard, thumbnailFile, true); // 분리된 메서드 호출
             savedImages.add(BoardImageResponseDto.from(thumbnailImage));
         }
 
@@ -97,13 +91,7 @@ public class BoardService {
             int imageCount = 0;
             for (MultipartFile otherFile : otherImageFiles) {
                 if (imageCount < MAX_IMAGE_COUNT && otherFile != null && !otherFile.isEmpty()) {
-                    String s3ObjectKey = s3Service.uploadFile(otherFile); // S3Service 호출
-                    BoardImage otherImage = BoardImage.builder()
-                            .filePath(s3ObjectKey) // 파일 경로 대신 S3 객체 키 저장
-                            .isThumbnail(false) // 일반 이미지로 설정
-                            .board(savedBoard) // 저장된 게시글과 연결
-                            .build();
-                    boardImageRepository.save(otherImage);
+                    BoardImage otherImage = saveBoardImage(savedBoard, otherFile, false); // 분리된 메서드 호출
                     savedImages.add(BoardImageResponseDto.from(otherImage));
                     imageCount++;
                 } else if (imageCount >= MAX_IMAGE_COUNT) {
@@ -116,6 +104,17 @@ public class BoardService {
         String authorName = authorUser.getUsername();
         String spaceName = space.getSpaceName();
         return BoardResponseDto.from(savedBoard, authorName, spaceName, savedImages);
+    }
+
+    // 이미지 저장 중복 코드를 분리한 private 메서드
+    private BoardImage saveBoardImage(Board board, MultipartFile file, boolean isThumbnail) {
+        String s3ObjectKey = s3Service.uploadFile(file);
+        BoardImage boardImage = BoardImage.builder()
+                .filePath(s3ObjectKey)
+                .isThumbnail(isThumbnail)
+                .board(board)
+                .build();
+        return boardImageRepository.save(boardImage);
     }
 
     /** 2-1. 모든 게시글 조회
@@ -203,19 +202,13 @@ public class BoardService {
 
         // 3-1. 기존 S3 객체 삭제 및 BoardImage 엔티티 삭제 후 새로운 이미지 S3 업로드 및 엔티티 생성/저장
         // (=기존 이미지를 모두 삭제하고 새로 업로드된 이미지만 저장)
-        deleteBoardImages(board.getId()); // 기존 이미지 관련 BoardImage 엔티티 및 S3 객체 삭제
+        deleteBoardImages(board.getId()); // 기졸 이미지 관련 BoardImage 엔티티 및 S3 객체 삭제
         List<BoardImageResponseDto> savedImages = new ArrayList<>();
 
         // 3-2. 썸네일 이미지 처리
         MultipartFile thumbnailFile = createBoardRequestDto.getThumbnailFile();
         if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
-            String s3ObjectKey = s3Service.uploadFile(thumbnailFile);
-            BoardImage thumbnailImage = BoardImage.builder()
-                    .filePath(s3ObjectKey) // 파일 경로 대신 S3 객체 키 저장
-                    .isThumbnail(true)
-                    .board(board)
-                    .build();
-            boardImageRepository.save(thumbnailImage);
+            BoardImage thumbnailImage = saveBoardImage(board, thumbnailFile, true); // 분리된 메서드 호출
             savedImages.add(BoardImageResponseDto.from(thumbnailImage));
         }
 
@@ -225,13 +218,7 @@ public class BoardService {
             int imageCount = 0;
             for (MultipartFile otherFile : otherImageFiles) {
                 if (imageCount < MAX_IMAGE_COUNT && otherFile != null && !otherFile.isEmpty()) {
-                    String s3ObjectKey = s3Service.uploadFile(otherFile);
-                    BoardImage otherImage = BoardImage.builder()
-                            .filePath(s3ObjectKey) // 파일 경로 대신 S3 객체 키 저장
-                            .isThumbnail(false)
-                            .board(board)
-                            .build();
-                    boardImageRepository.save(otherImage);
+                    BoardImage otherImage = saveBoardImage(board, otherFile, false); // 분리된 메서드 호출
                     savedImages.add(BoardImageResponseDto.from(otherImage));
                     imageCount++;
                 } else if (imageCount >= MAX_IMAGE_COUNT) {
