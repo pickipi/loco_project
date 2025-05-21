@@ -37,4 +37,9 @@ public class AdminDashboardController {
     public DashboardReservationChartDto getReservationStats() {
         return dashboardService.getReservationStats();
     }
+
+    @GetMapping("/space-type-distribution")
+    public DashboardSpaceTypeDistributionDto getSpaceTypeDistribution() {
+        return dashboardService.getSpaceTypeDistribution();
+    }
 }

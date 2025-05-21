@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -71,5 +72,12 @@ public class AdminDashboardService {
         List<String> labels = List.of("1월", "2월", "3월", "4월", "5월", "6월");
         List<Long> data = List.of(50L, 80L, 60L, 120L, 150L, 130L); // 실제 쿼리로 대체 필요
         return DashboardReservationChartDto.builder().labels(labels).data(data).build();
+    }
+
+    public DashboardSpaceTypeDistributionDto getSpaceTypeDistribution() {
+        Map<String, Long> distribution = spaceRepository.countSpacesByType();
+        return DashboardSpaceTypeDistributionDto.builder()
+                .distribution(distribution)
+                .build();
     }
 }

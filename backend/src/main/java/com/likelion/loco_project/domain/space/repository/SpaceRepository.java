@@ -14,6 +14,7 @@ import com.likelion.loco_project.domain.host.entity.Host;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public interface SpaceRepository extends JpaRepository<Space, Long> {
@@ -50,4 +51,7 @@ public interface SpaceRepository extends JpaRepository<Space, Long> {
 
     // 승인대기 공간 5건 (최신순)
     List<Space> findTop5ByStatusOrderByIdDesc(com.likelion.loco_project.domain.space.entity.SpaceStatus status);
+
+    @Query("SELECT s.spaceType, COUNT(s) FROM Space s GROUP BY s.spaceType")
+    Map<String, Long> countSpacesByType();
 }
