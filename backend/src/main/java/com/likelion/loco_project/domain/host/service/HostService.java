@@ -25,13 +25,24 @@ public class HostService {
     // 호스트 등록 기능
     @Transactional
     public HostResponseDto registerHost(Long userId, HostRequestDto requestDto) {
+        // 유저 조회 및 Host 엔티티 생성
+        Host host = createHostEntity(userId, requestDto);
 
+        // DB에 저장
+        hostRepository.save(host);
+
+        // 등록된 Host 정보를 DTO로 반환
+        return new HostResponseDto(host);
+    }
+
+    // 유저 조회 및 Host 엔티티를 생성하는 private 메서드
+    private Host createHostEntity(Long userId, HostRequestDto requestDto) {
         // 유저 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
 
         // Host 엔티티 생성 및 정보 세팅
-        Host host = Host.builder()
+        return Host.builder()
                 .user(user)
                 .isHost(true)
                 .verified(requestDto.isVerified())
@@ -41,12 +52,6 @@ public class HostService {
                 .accountUser(requestDto.getAccountUser())
                 .registration(requestDto.getRegistration())
                 .build();
-
-        // DB에 저장
-        hostRepository.save(host);
-
-        // 등록된 Host 정보를 DTO로 반환
-        return new HostResponseDto(host);
     }
 
     // 호스트 정보 조회 기능
