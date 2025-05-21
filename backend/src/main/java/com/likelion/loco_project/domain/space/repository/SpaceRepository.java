@@ -47,4 +47,7 @@ public interface SpaceRepository extends JpaRepository<Space, Long> {
             @Param("lngMin") BigDecimal lngMin,
             @Param("lngMax") BigDecimal lngMax
     );
+
+    // 승인대기 공간 5건 (최신순)
+    List<Space> findTop5ByStatusOrderByIdDesc(com.likelion.loco_project.domain.space.entity.SpaceStatus status);
 }
