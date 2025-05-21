@@ -2,6 +2,8 @@ package com.likelion.loco_project.domain.payment.repository;
 
 import com.likelion.loco_project.domain.payment.entity.Payment;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -14,4 +16,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     // 결제 실패 사유가 있는 경우만 조회
     List<Payment> findByPaymentFailedReasonIsNotNull();
+
+    @Query("SELECT SUM(p.paymentAmount) FROM Payment p WHERE p.paymentStatus = :status")
+    Long sumAllPayments(@Param("status") com.likelion.loco_project.domain.payment.entity.PaymentStatus status);
 }
