@@ -39,10 +39,9 @@ public class User extends BaseEntity {
     @Comment("전화번호")
     private String phoneNumber;
 
-    @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
-    @CollectionTable(name = "user_type", joinColumns = @JoinColumn(name = "user_id"))
-    private Set<UserType> type = new HashSet<>();
+    @Column(nullable = false)
+    private UserType userType;  //UserType typeHost 썼던것 userType으로 변경하기
 
     @Column
     @Comment("평점")
@@ -68,10 +67,6 @@ public class User extends BaseEntity {
         if (username != null) this.username = username;
         if (phoneNumber != null) this.phoneNumber = phoneNumber;
     }
-
-    //호스트 페이지에서 바로 회원가입 할떄 사용됨
-    @Enumerated(EnumType.STRING)
-    private UserType typeHost;  // Set이 아닌 단일 UserType
 
     // 알림 수신 여부 (기본값: true)
     @Column(nullable = false)
