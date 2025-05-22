@@ -3,6 +3,7 @@ package com.likelion.loco_project.domain.user.service;
 import com.likelion.loco_project.domain.user.dto.UserRequestDto;
 import com.likelion.loco_project.domain.user.dto.UserResponseDto;
 import com.likelion.loco_project.domain.user.entity.User;
+import com.likelion.loco_project.domain.user.entity.UserType;
 import com.likelion.loco_project.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -48,7 +49,7 @@ public class UserService {
                 .password(encodedPassword)
                 .email(dto.getEmail())
                 .phoneNumber(dto.getPhoneNumber())
-                .type(dto.getType())
+                .userType(UserType.valueOf(dto.getUserType().toUpperCase())) // 문자열 → enum
                 .rating(0.0)
                 .build();
     }
@@ -68,23 +69,34 @@ public class UserService {
     }
 
     //로그인 기능: 이메일과 비밀번호로 사용자 인증
-    @Transactional(readOnly = true)
-    public UserResponseDto login(String email, String rawPassword) {
+//    @Transactional(readOnly = true)
+//    public UserResponseDto login(String email, String rawPassword) {
+//        User user = userRepository.findByEmail(email)
+//                .filter(u -> !u.isDeleted()) // 논리 삭제된 사용자 제외
+//                .orElseThrow(() -> new RuntimeException("해당 이메일의 사용자가 없습니다."));
+//
+//        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+//            throw new RuntimeException("비밀번호가 일치하지 않습니다.");
+//        }
+//
+//        return UserResponseDto.builder()
+//                .id(user.getId())
+//                .username(user.getUsername())
+//                .email(user.getEmail())
+//                .phoneNumber(user.getPhoneNumber())
+//                .rating(user.getRating())
+//                .build();
+//    }
+    public User loginAndValidate(String email, String rawPassword) {
         User user = userRepository.findByEmail(email)
-                .filter(u -> !u.isDeleted()) // 논리 삭제된 사용자 제외
+                .filter(u -> !u.isDeleted())
                 .orElseThrow(() -> new RuntimeException("해당 이메일의 사용자가 없습니다."));
 
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
             throw new RuntimeException("비밀번호가 일치하지 않습니다.");
         }
 
-        return UserResponseDto.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .phoneNumber(user.getPhoneNumber())
-                .rating(user.getRating())
-                .build();
+        return user;
     }
 
     //유저 정보 수정(Update) 기능

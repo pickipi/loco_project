@@ -2,18 +2,43 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import styles from './hostheader.module.css'
 
-interface HostHeaderProps {
-  isLoggedIn?: boolean
-}
-
-export default function HostHeader({ isLoggedIn = false }: HostHeaderProps) {
+export default function HostHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
+  useEffect(() => {
+    // 로컬 스토리지에서 토큰 확인
+    const token = localStorage.getItem('token')
+    if (token) {
+      try {
+        // JWT 토큰 디코딩
+        const base64Url = token.split('.')[1]
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        }).join(''))
+        const payload = JSON.parse(jsonPayload)
+        // 이메일에서 @ 앞부분만 추출해서 사용자이름 보이게
+        const emailPrefix = payload.sub.split('@')[0]
+        setUserEmail(emailPrefix)
+      } catch (error) {
+        console.error('Token parsing error:', error)
+      }
+    }
+    setIsLoading(false)
+  }, [])
+
+  // 공간관리 클릭 핸들러
+  const handleSpaceManagement = () => {
+    if (isLoading) return // 로딩 중이면 아무것도 하지 않음
+
+    if (!userEmail) {
   // 보호된 경로 접근 핸들러
   const handleProtectedRoute = (path: string) => {
     if (!isLoggedIn) {
@@ -22,6 +47,18 @@ export default function HostHeader({ isLoggedIn = false }: HostHeaderProps) {
       return
     }
     router.push(path)
+  }
+
+  // 로그아웃 핸들러
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    setUserEmail(null)
+    router.push('/host/login')
+  }
+
+  // 로딩 중이면 아무것도 렌더링하지 않음
+  if (isLoading) {
+    return null
   }
 
   return (
@@ -44,13 +81,13 @@ export default function HostHeader({ isLoggedIn = false }: HostHeaderProps) {
             >
               공간관리
             </button>
-            <button 
+            <button
               onClick={() => handleProtectedRoute('/host/bookings')}
               className={styles.navLink}
             >
               예약관리
             </button>
-            <button 
+            <button
               onClick={() => handleProtectedRoute('/host/revenue')}
               className={styles.navLink}
             >
@@ -62,17 +99,25 @@ export default function HostHeader({ isLoggedIn = false }: HostHeaderProps) {
           <div className={styles.authContainer}>
             {isLoggedIn ? (
               <div className={styles.authContainer}>
-                <button 
+                <button
                   onClick={() => handleProtectedRoute('/host/notifications')}
                   className={styles.navLink}
                 >
                   알림
                 </button>
-                <button 
+                <button
                   onClick={() => handleProtectedRoute('/host/profile')}
                   className={styles.navLink}
                 >
                   프로필
+                </button>
+                  {userEmail}님
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className={styles.logoutButton}
+                >
+                  로그아웃
                 </button>
               </div>
             ) : (
@@ -133,6 +178,8 @@ export default function HostHeader({ isLoggedIn = false }: HostHeaderProps) {
               정산관리
             </button>
             {isLoggedIn ? (
+            </Link>
+            {userEmail ? (
               <>
                 <button
                   onClick={() => handleProtectedRoute('/host/notifications')}
@@ -146,6 +193,14 @@ export default function HostHeader({ isLoggedIn = false }: HostHeaderProps) {
                 >
                   프로필
                 </button>
+                  {userEmail}님
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className={styles.mobileMenuItem}
+                >
+                  로그아웃
+                </button>
               </>
             ) : (
               <Link
@@ -156,7 +211,7 @@ export default function HostHeader({ isLoggedIn = false }: HostHeaderProps) {
               </Link>
             )}
           </div>
-        </div>
+        )}
       </div>
     </header>
   )

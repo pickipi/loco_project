@@ -148,7 +148,7 @@ export default function Home() {
                       이미지
                     </div>
                     {space.isHot && (
-                      <span className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded">
+                      <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded">
                         HOT
                       </span>
                     )}

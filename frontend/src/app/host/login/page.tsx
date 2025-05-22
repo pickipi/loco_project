@@ -3,8 +3,10 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import styles from './page.module.css'
+import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -16,10 +18,30 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      // TODO: 실제 로그인 로직 구현
-      console.log('Login attempt:', { email, password })
+      const response = await fetch('http://localhost:8090/api/v1/hosts/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // 토큰을 로컬 스토리지에 저장
+        localStorage.setItem('token', data.token);
+        alert('로그인 성공!');
+        router.push('/host/dashboard'); // 호스트 대시보드로 이동
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || '로그인에 실패했습니다.');
+      }
     } catch (error) {
-      setError('로그인 중 오류가 발생했습니다.')
+      console.error('로그인 오류:', error);
+      setError('로그인 처리 중 오류가 발생했습니다.');
     } finally {
       setIsLoading(false)
     }
@@ -28,7 +50,7 @@ export default function LoginPage() {
   return (
     <main className={styles.container}>
       <div className={styles.formContainer}>
-        <h1 className={styles.title}>로그인</h1>
+        <h1 className={styles.title}>호스트 로그인</h1>
         
         {error && (
           <div className={styles.errorMessage}>

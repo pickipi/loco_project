@@ -39,10 +39,9 @@ public class User extends BaseEntity {
     @Comment("전화번호")
     private String phoneNumber;
 
-    @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
-    @CollectionTable(name = "user_type", joinColumns = @JoinColumn(name = "user_id"))
-    private Set<UserType> type = new HashSet<>();
+    @Column(nullable = false)
+    private UserType userType;  //UserType typeHost 썼던것 userType으로 변경하기
 
     @Column
     @Comment("평점")

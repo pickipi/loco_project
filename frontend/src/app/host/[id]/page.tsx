@@ -5,6 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Users, Star } from "lucide-react"
 import { ThemeToggle } from "../../components/ThemeToggle"
+import { use } from "react"
 
 interface Space {
   id: number
@@ -18,7 +19,8 @@ interface Space {
   spaceType: string
 }
 
-export default function HostSpacesPage({ params }: { params: { id: string } }) {
+export default function HostSpacesPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params)
   const [hostData, setHostData] = useState<any>(null)
   const [spaces, setSpaces] = useState<Space[]>([])
   const [loading, setLoading] = useState(true)
@@ -27,13 +29,13 @@ export default function HostSpacesPage({ params }: { params: { id: string } }) {
     // 실제 구현에서는 호스트 ID를 기반으로 API 호출
     const fetchHostData = async () => {
       try {
-        // const response = await fetch(`/api/v1/hosts/${params.id}`)
+        // const response = await fetch(`/api/v1/hosts/${resolvedParams.id}`)
         // const data = await response.json()
         // setHostData(data)
 
         // 임시 데이터
         setHostData({
-          id: params.id,
+          id: resolvedParams.id,
           name: "김호스트",
           profileImage: "/placeholder.svg?height=100&width=100",
           description:
@@ -52,7 +54,7 @@ export default function HostSpacesPage({ params }: { params: { id: string } }) {
     const fetchHostSpaces = async () => {
       try {
         // 실제 API 호출
-        // const response = await fetch(`/api/v1/hosts/${params.id}/spaces`)
+        // const response = await fetch(`/api/v1/hosts/${resolvedParams.id}/spaces`)
         // const data = await response.json()
         // setSpaces(data)
 
@@ -121,7 +123,7 @@ export default function HostSpacesPage({ params }: { params: { id: string } }) {
 
     fetchHostData()
     fetchHostSpaces()
-  }, [params.id])
+  }, [resolvedParams.id])
 
   if (loading) {
     return <div className="flex justify-center items-center min-h-screen">로딩 중...</div>
