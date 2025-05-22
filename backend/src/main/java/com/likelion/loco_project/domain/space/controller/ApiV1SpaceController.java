@@ -2,12 +2,14 @@ package com.likelion.loco_project.domain.space.controller;
 
 import com.likelion.loco_project.domain.space.dto.SpaceCreateRequestDto;
 import com.likelion.loco_project.domain.space.dto.SpaceResponseDto;
+import com.likelion.loco_project.domain.space.dto.SpaceSearchDto;
 import com.likelion.loco_project.domain.space.dto.SpaceUpdateRequestDto;
 import com.likelion.loco_project.domain.space.service.SpaceService;
 import com.likelion.loco_project.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,5 +63,12 @@ public class ApiV1SpaceController {
     public ResponseEntity<Void> deleteSpace(@PathVariable("id") Long id) {
         spaceService.deleteSpace(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // 공간 검색
+    @GetMapping("/search")
+    @Operation(summary = "공간 검색", description = "조건에 맞는 공간을 검색합니다.")
+    public ResponseEntity<Page<SpaceResponseDto>> searchSpaces(SpaceSearchDto searchDto) {
+        return ResponseEntity.ok(spaceService.searchSpaces(searchDto));
     }
 }

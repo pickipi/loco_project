@@ -3,6 +3,7 @@ package com.likelion.loco_project.domain.space.repository;
 import com.likelion.loco_project.domain.host.entity.Host;
 import com.likelion.loco_project.domain.space.entity.Space;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -12,7 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 @Repository
-public interface SpaceRepository extends JpaRepository<Space, Long> {
+public interface SpaceRepository extends JpaRepository<Space, Long>, JpaSpecificationExecutor<Space> {
+    // JpaSpecificationExecutor<Space>는 동적 쿼리 생성을 위한 인터페이스, Specification을 사용하여 복잡한 쿼리를 작성할 수 있음
 
     // 특정 호스트가 등록한 공간 조회
     List<Space> findByHost(Host host);
