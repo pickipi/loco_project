@@ -7,6 +7,7 @@ import ImageUploader from '@/components/space/ImageUploader'
 import TagInput from '@/components/space/TagInput'
 import type { SpaceType } from '@/components/space/SpaceTypeSelector'
 import styles from './page.module.css'
+import api from '@/lib/axios'
 
 // 카카오맵 컴포넌트를 동적으로 import (SSR 비활성화)
 const KakaoMap = dynamic(() => import('@/components/map/KakaoMap'), {
@@ -35,7 +36,7 @@ interface SpaceForm {
   price: number;              // 가격
   isActive: boolean;          // 공개 여부
   spaceRating: number;        // 공간 평점
-  hostId?: number;            // 임시 호스트 ID (테스트용)
+  hostId: number;            // 호스트 ID
 }
 
 export default function SpaceDetailsPage() {
@@ -56,7 +57,7 @@ export default function SpaceDetailsPage() {
     price: 0,                  // 가격 (0원)
     isActive: true,            // 공개 여부 (기본값 true)
     spaceRating: 0,            // 평점 (초기값 0)
-    hostId: undefined,         // 임시 호스트 ID (테스트용)
+    hostId: 0,                // 호스트 ID 초기값
   })
 
   // 주소 검색 완료 상태 추가
@@ -71,18 +72,43 @@ export default function SpaceDetailsPage() {
   // 주소 검색 상태 관리
   const [shouldSearch, setShouldSearch] = useState(false)
 
-  // 컴포넌트 마운트 시 localStorage에서 이전에 선택한 공간 유형 불러오기
+  // 컴포넌트 마운트 시 localStorage에서 이전에 선택한 공간 유형과 토큰에서 호스트 ID 불러오기
   useEffect(() => {
-    const savedType = localStorage.getItem('selectedSpaceTypes')
-    if (savedType) {
-      try {
-        const types = JSON.parse(savedType) as SpaceType[]
-        setForm(prev => ({ ...prev, spaceType: types[0] }))
-      } catch (error) {
-        console.error('공간 유형 데이터 파싱 오류:', error)
-      }
+    // 토큰 확인 및 호스트 ID 추출
+    const token = localStorage.getItem('token')
+    if (!token) {
+      alert('로그인이 필요한 서비스입니다.')
+      router.push('/host/login')
+      return
     }
-  }, [])
+
+    try {
+      const base64Url = token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+      }).join(''))
+      const payload = JSON.parse(jsonPayload)
+      const hostId = payload.userId // JWT 토큰에서 userId를 호스트 ID로 사용
+
+      setForm(prev => ({ ...prev, hostId }))
+
+      // 공간 유형 불러오기
+      const savedType = localStorage.getItem('selectedSpaceTypes')
+      if (savedType) {
+        try {
+          const types = JSON.parse(savedType) as SpaceType[]
+          setForm(prev => ({ ...prev, spaceType: types[0] }))
+        } catch (error) {
+          console.error('공간 유형 데이터 파싱 오류:', error)
+        }
+      }
+    } catch (error) {
+      console.error('토큰 파싱 오류:', error)
+      alert('인증 정보가 올바르지 않습니다.')
+      router.push('/host/login')
+    }
+  }, [router])
 
   // 공간 유형 이름 변환 함수
   const getSpaceTypeName = (type: SpaceType): string => {
@@ -102,10 +128,10 @@ export default function SpaceDetailsPage() {
     e.preventDefault()
     try {
       // API 엔드포인트 확인
-      const apiUrl = `${API_BASE_URL}/api/v1/spaces/${form.hostId}/register`;
+      const apiUrl = `${API_BASE_URL}/api/v1/spaces/me/register`;
       console.log('API 요청 URL:', apiUrl);
 
-      // API 요청 데이터 준비 (status 필드 제외)
+      // API 요청 데이터 준비
       const requestData = {
         spaceType: form.spaceType,
         spaceName: form.spaceName,
@@ -119,41 +145,38 @@ export default function SpaceDetailsPage() {
         price: form.price,
         isActive: form.isActive,
         spaceRating: form.spaceRating,
-        hostId: form.hostId, // 임시 호스트 ID 포함 (테스트용)
       };
       console.log('요청 데이터:', requestData);
 
       // API 호출
-      const response = await fetch(apiUrl, {
+      await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // CORS 관련 헤더 추가
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Accept': 'application/json',
         },
-        credentials: 'include', // 쿠키 포함
+        credentials: 'include',
         body: JSON.stringify(requestData),
-      })
-
-      // 응답 확인
-      console.log('응답 상태:', response.status);
-      
-      if (!response.ok) {
-        // 응답 본문 확인
-        const errorData = await response.text();
-        console.error('API 오류 응답:', errorData);
-        throw new Error(`공간 등록 실패: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log('공간 등록 성공:', data);
-      
-      // 성공 시 완료 페이지로 이동
-      router.push('/host/space/register/complete');
+      }).then(async (response) => {
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error('API 오류 응답:', errorData);
+          throw new Error(`공간 등록 실패: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+      }).then((data) => {
+        console.log('공간 등록 성공:', data);
+        // 성공 시 완료 페이지로 이동
+        router.push('/host/spaces/register/complete');
+      });
     } catch (error) {
       console.error('공간 등록 중 오류 발생:', error);
-      // TODO: 사용자에게 에러 메시지 표시
-      alert('공간 등록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      if (error instanceof Error && error.message === 'Failed to fetch') {
+        alert('서버와의 연결이 원활하지 않습니다. 잠시 후 다시 시도해주세요.');
+      } else {
+        alert('공간 등록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      }
     }
   }
 
@@ -174,7 +197,7 @@ export default function SpaceDetailsPage() {
             <h3 className={styles.sectionTitle}>선택된 공간 유형</h3>
             <button
               type="button"
-              onClick={() => router.push('/host/space/register')}
+              onClick={() => router.push('/host/spaces/register')}
               className={styles.editButton}
             >
               <svg 
@@ -215,18 +238,6 @@ export default function SpaceDetailsPage() {
             placeholder="(예시) 인디레코즈 하이브 회의실"
             maxLength={18}
             required
-          />
-        </div>
-
-        {/* 호스트 ID (테스트용) */}
-        <div className={styles.section}>
-          <label className={styles.label}>호스트 ID (테스트용)</label>
-          <input
-            type="number"
-            value={form.hostId ?? ''}
-            onChange={e => setForm(prev => ({ ...prev, hostId: e.target.value === '' ? undefined : Number(e.target.value) }))}
-            className={styles.input}
-            placeholder="호스트 ID를 입력하세요"
           />
         </div>
 
@@ -299,7 +310,7 @@ export default function SpaceDetailsPage() {
           </div>
         </div>
 
-        {/* 가격 입력 다음에 바로 주소 입력으로 이동 */}
+        {/* 주소 입력 */}
         <div className={styles.section}>
           <label className={styles.label}>
             주소 <span className={styles.required}>*</span>
