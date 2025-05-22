@@ -25,14 +25,6 @@ export interface SignupResponse {
   rating: number;
 }
 
-export interface HostRequestDto {
-  verified: boolean;
-  bankName: string;
-  accountNumber: string;
-  accountUser: string;
-  registration?: Date;
-}
-
 export const userApi = {
   signup: async (data: SignupRequest): Promise<SignupResponse> => {
     const response = await api.post<SignupResponse>('/users', data);
