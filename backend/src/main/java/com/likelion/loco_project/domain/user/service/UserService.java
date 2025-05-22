@@ -19,22 +19,8 @@ public class UserService {
     //새로운 유저를 생성하고 저장하는 메서드 (회원가입 기능)
     @Transactional
     public UserResponseDto createUser(UserRequestDto dto) {
-
-        // 이메일 중복 체크
-        if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
-        }
-
-        String encodedPassword = passwordEncoder.encode(dto.getPassword());
-
-        User user = User.builder()
-                .username(dto.getUsername())
-                .password(encodedPassword)
-                .email(dto.getEmail())
-                .phoneNumber(dto.getPhoneNumber())
-                .type(dto.getType())
-                .rating(0.0)
-                .build();
+        // 이메일 중복 체크 및 User 엔티티 생성
+        User user = createUserEntity(dto);
 
         User saved = userRepository.save(user); // DB에 저장
 
@@ -45,6 +31,25 @@ public class UserService {
                 .email(saved.getEmail())
                 .phoneNumber(saved.getPhoneNumber())
                 .rating(saved.getRating())
+                .build();
+    }
+
+    // 이메일 중복 체크 및 User 엔티티를 생성하는 private 메서드
+    private User createUserEntity(UserRequestDto dto) {
+        // 이메일 중복 체크
+        if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        }
+
+        String encodedPassword = passwordEncoder.encode(dto.getPassword());
+
+        return User.builder()
+                .username(dto.getUsername())
+                .password(encodedPassword)
+                .email(dto.getEmail())
+                .phoneNumber(dto.getPhoneNumber())
+                .type(dto.getType())
+                .rating(0.0)
                 .build();
     }
 
@@ -114,5 +119,23 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
         user.delete(); // 논리 삭제 처리
+    }
+
+    //알림 수신 설정을 ON/OFF 토글
+    @Transactional
+    public boolean toggleNotification(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        user.setNotificationEnabled(!user.isNotificationEnabled());
+        return user.isNotificationEnabled(); // 변경된 상태 반환
+    }
+
+    //알림 수신 여부 조회
+    @Transactional(readOnly = true)
+    public boolean isNotificationEnabled(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        return user.isNotificationEnabled();
     }
 }

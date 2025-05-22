@@ -2,11 +2,14 @@ package com.likelion.loco_project.domain.user.controller;
 
 import com.likelion.loco_project.domain.user.dto.UserRequestDto;
 import com.likelion.loco_project.domain.user.dto.UserResponseDto;
+import com.likelion.loco_project.domain.user.entity.User;
 import com.likelion.loco_project.domain.user.service.UserService;
+import com.likelion.loco_project.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -49,5 +52,19 @@ public class ApiV1UserController {
     public ResponseEntity<Void> hardDeleteUser(@PathVariable(name = "id") Long id) {
         userService.hardDeleteUser(id);
         return ResponseEntity.noContent().build();
+    }
+
+    //유저 알림 기능 끄기(채팅, 예약상태 선택가능)
+    @PutMapping("/me/notifications/toggle")
+    public ResponseEntity<RsData<Boolean>> toggleNotification(@AuthenticationPrincipal User user) {
+        boolean updated = userService.toggleNotification(user.getId());
+        return ResponseEntity.ok(RsData.of("S-1", "알림 설정이 변경되었습니다.", updated));
+    }
+
+    // 유저 알림 상태 조회
+    @GetMapping("/me/notifications/enabled")
+    public ResponseEntity<RsData<Boolean>> isNotificationEnabled(@AuthenticationPrincipal User user) {
+        boolean enabled = userService.isNotificationEnabled(user.getId());
+        return ResponseEntity.ok(RsData.of("S-1", "알림 설정 상태 조회 성공", enabled));
     }
 }

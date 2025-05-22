@@ -15,6 +15,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA를 위한 protected 기본 생성자
 @Getter
+@Setter
 @ToString
 public class User extends BaseEntity {
     @Id
@@ -71,4 +72,8 @@ public class User extends BaseEntity {
     //호스트 페이지에서 바로 회원가입 할떄 사용됨
     @Enumerated(EnumType.STRING)
     private UserType typeHost;  // Set이 아닌 단일 UserType
+
+    // 알림 수신 여부 (기본값: true)
+    @Column(nullable = false)
+    private boolean notificationEnabled = true;
 }

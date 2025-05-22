@@ -4,9 +4,11 @@ import com.likelion.loco_project.domain.payment.entity.Payment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+@Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
     // 게스트 ID로 결제 목록 조회
     List<Payment> findByGuestId(Long guestId);
