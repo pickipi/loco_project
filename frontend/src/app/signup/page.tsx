@@ -70,55 +70,46 @@ export default function SignupPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 클라이언트 측 유효성 검사 (예시)
+    // 클라이언트 측 유효성 검사
     if (formData.password !== formData.confirmPassword) {
       alert('비밀번호와 비밀번호 확인이 일치하지 않습니다.');
       return;
     }
 
     if (!agreements.terms || !agreements.privacy || !agreements.age) {
-        alert('필수 약관에 동의해야 합니다.');
-        return;
+      alert('필수 약관에 동의해야 합니다.');
+      return;
     }
     
     console.log('회원가입 시도:', { formData, agreements });
 
     try {
-        // TODO: 실제 백엔드 회원가입 API 엔드포인트로 변경 (수정됨: /api/v1/users)
-        const response = await fetch('/api/v1/users', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                username: formData.name,
-                email: formData.email,
-                password: formData.password,
-                phoneNumber: formData.phoneNumber,
-                // 약관 동의 정보 필요 시 추가
-                agreements: {
-                    sms: agreements.sms,
-                    email: agreements.email,
-                }
-            }),
-        });
+      const response = await fetch('http://localhost:8090/api/v1/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.name,
+          email: formData.email,
+          password: formData.password,
+          phoneNumber: formData.phoneNumber,
+          userType: 'GUEST'
+        }),
+      });
 
-        if (response.ok) {
-            // 회원가입 성공 시 처리 (예: 성공 메시지 표시 또는 로그인 페이지로 이동)
-            alert('회원가입 성공!');
-            // TODO: 로그인 페이지 또는 메인 페이지로 리다이렉트
-            // router.push('/login'); 
-        } else {
-            // 회원가입 실패 시 처리 (예: 에러 메시지 표시)
-            const errorData = await response.json();
-            alert(`회원가입 실패: ${errorData.message || response.statusText}`);
-        }
+      if (response.ok) {
+        alert('회원가입 성공!');
+        router.push('/login');
+      } else {
+        const errorData = await response.json();
+        alert(`회원가입 실패: ${errorData.message || response.statusText}`);
+      }
     } catch (error) {
-        console.error('회원가입 중 오류 발생:', error);
-        alert('회원가입 중 오류가 발생했습니다.');
+      console.error('회원가입 중 오류 발생:', error);
+      alert('회원가입 중 오류가 발생했습니다.');
     }
   };
 

@@ -13,7 +13,7 @@ interface SignupData {
   email: string;
   password: string;
   phoneNumber: string;
-  type: string[];
+  userType: string;
 }
 
 export default function HostRegisterPage() {
@@ -23,7 +23,7 @@ export default function HostRegisterPage() {
     email: '',
     password: '',
     phoneNumber: '',
-    type: ['HOST']
+    userType: 'HOST'
   });
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +56,10 @@ export default function HostRegisterPage() {
           'Accept': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          ...formData,
+          userType: 'HOST'
+        })
       });
 
       if (!response.ok) {
