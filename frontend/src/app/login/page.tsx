@@ -5,16 +5,49 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { FaApple } from 'react-icons/fa';
 import { SiNaver, SiKakaotalk } from 'react-icons/si';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // 로그인 처리 로직
-    console.log({ email, password, rememberMe });
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:8090/api/v1/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password
+        }),
+      });
+
+      if (response.ok) {
+        // 로그인 성공 시 처리
+        const data = await response.json();
+        // TODO: 토큰 저장 로직 추가
+        alert('로그인 성공!');
+        router.push('/'); // 메인 페이지로 이동
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || '로그인에 실패했습니다.');
+      }
+    } catch (err) {
+      console.error('로그인 오류:', err);
+      setError('로그인 처리 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -32,6 +65,12 @@ export default function LoginPage() {
       <main className="flex-1 flex items-center justify-center py-10">
         <div className="w-full max-w-md px-6">
           <h1 className="text-2xl md:text-3xl font-bold text-center mb-8">게스트 로그인</h1>
+          
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">
+              {error}
+            </div>
+          )}
           
           {/* Social Login Buttons */}
           <div className="space-y-3 mb-6">
@@ -103,9 +142,10 @@ export default function LoginPage() {
               <div>
                 <button
                   type="submit"
-                  className="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  disabled={isLoading}
+                  className="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-blue-400 disabled:cursor-not-allowed"
                 >
-                  로그인
+                  {isLoading ? '로그인 중...' : '로그인'}
                 </button>
               </div>
             </div>

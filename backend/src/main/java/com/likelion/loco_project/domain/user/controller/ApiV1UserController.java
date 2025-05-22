@@ -1,9 +1,12 @@
 package com.likelion.loco_project.domain.user.controller;
 
+import com.likelion.loco_project.domain.user.dto.LoginRequestDto;
+import com.likelion.loco_project.domain.user.dto.LoginResponseDto;
 import com.likelion.loco_project.domain.user.dto.UserRequestDto;
 import com.likelion.loco_project.domain.user.dto.UserResponseDto;
 import com.likelion.loco_project.domain.user.entity.User;
 import com.likelion.loco_project.domain.user.service.UserService;
+import com.likelion.loco_project.global.jwt.JwtUtil;
 import com.likelion.loco_project.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ApiV1UserController {
     private final UserService userService;
+    private final JwtUtil jwtUtil;
 
     @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다.")
     @PostMapping
@@ -32,11 +36,18 @@ public class ApiV1UserController {
         return ResponseEntity.ok(user);
     }
 
+//    @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
+//    @PostMapping("/login")
+//    public ResponseEntity<UserResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
+//        UserResponseDto user = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
+//        return ResponseEntity.ok(user);
+//    }
     @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
     @PostMapping("/login")
-    public ResponseEntity<UserResponseDto> login(@Valid @RequestParam String email, @RequestParam String password) {
-        UserResponseDto user = userService.login(email, password);
-        return ResponseEntity.ok(user);
+    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
+        User user = userService.loginAndValidate(loginRequest.getEmail(), loginRequest.getPassword());
+        String token = jwtUtil.generateToken(user.getEmail());
+        return ResponseEntity.ok(new LoginResponseDto(token));
     }
 
     @Operation(summary = "사용자 정보 수정", description = "기존 사용자의 정보를 수정합니다.")

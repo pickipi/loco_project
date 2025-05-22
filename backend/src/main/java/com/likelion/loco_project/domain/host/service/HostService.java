@@ -73,7 +73,7 @@ public class HostService {
                         .password(passwordEncoder.encode(dto.getPassword()))
                         .email(dto.getEmail())
                         .phoneNumber(dto.getPhoneNumber())
-                        .typeHost(UserType.HOST)
+                        .userType(UserType.HOST) // typeHost -> userType으로 교체
                         .build()
         );
 
@@ -87,5 +87,10 @@ public class HostService {
                 .build();
 
         hostRepository.save(host);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isHost(Long userId) {
+        return hostRepository.findByUserId(userId).isPresent();
     }
 }

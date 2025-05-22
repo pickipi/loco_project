@@ -63,3 +63,8 @@ toss:                           # 토스페이먼츠 파트
 kakao:
   map:
     javascript-key: ${KAKAO_MAP_JAVASCRIPT_KEY}
+
+# JWT 설정
+jwt:
+  secret: ${JWT_SECRET:your-256-bit-secret-key-here-must-be-at-least-32-characters}
+  expiration: 86400000  # 24시간 (밀리초 단위)
