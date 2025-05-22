@@ -36,12 +36,12 @@ export default function SearchForm() {
   };
 
   const inputClasses =
-    "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#EDE7D4] focus:border-transparent";
+    "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#EDE7D4] focus:border-transparent bg-white";
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-full max-w-4xl mx-auto p-6 bg-white/80 backdrop-blur-sm rounded-lg shadow-lg"
+      className="w-full max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg"
     >
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="relative">

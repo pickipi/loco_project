@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-interface SpaceCardProps {
+export interface SpaceCardProps {
   id: string;
   title: string;
   location: string;
@@ -28,6 +28,9 @@ export default function SpaceCard({
             src={imageUrl || "/default-space.jpg"}
             alt={title}
             fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority={true}
+            quality={85}
             style={{ objectFit: "cover" }}
             className="transition-transform duration-200 hover:scale-105"
           />
@@ -49,10 +52,7 @@ export default function SpaceCard({
             <p className="text-blue-600 font-semibold">
               ₩{price.toLocaleString()}
               <span className="text-sm text-gray-600">/시간</span>
-            </p>{" "}
-            <button className="px-4 py-1 bg-[#40322F] text-white rounded hover:bg-[#594a47] transition-colors">
-              예약하기
-            </button>
+            </p>
           </div>
         </div>
       </div>

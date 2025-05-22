@@ -1,177 +1,178 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+
+interface Filters {
+  location: string;
+  purpose: string;
+  capacity: string;
+  minPrice: string;
+  maxPrice: string;
+}
 
 export default function SpaceFilter() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("query");
 
-  const [priceRange, setPriceRange] = useState("50000");
-  const [filters, setFilters] = useState({
-    spaceTypes: new Set<string>(),
-    amenities: new Set<string>(),
-    capacity: "",
+  const [filters, setFilters] = useState<Filters>({
+    location: searchParams.get("location") || "",
+    purpose: searchParams.get("purpose") || "",
+    capacity: searchParams.get("capacity") || "",
+    minPrice: searchParams.get("minPrice") || "10000",
+    maxPrice: searchParams.get("maxPrice") || "100000",
   });
 
-  const updateFilters = (
-    category: "spaceTypes" | "amenities",
-    value: string
-  ) => {
-    setFilters((prev) => {
-      const newSet = new Set(prev[category]);
-      if (newSet.has(value)) {
-        newSet.delete(value);
-      } else {
-        newSet.add(value);
-      }
-      return {
-        ...prev,
-        [category]: newSet,
-      };
-    });
+  const handleFilterChange = (key: keyof Filters, value: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
   };
 
   const applyFilters = () => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams();
 
-    // Update price range
-    params.set("maxPrice", priceRange);
-
-    // Update space types
-    if (filters.spaceTypes.size > 0) {
-      params.set("types", Array.from(filters.spaceTypes).join(","));
-    } else {
-      params.delete("types");
+    // 기존 검색어 유지
+    if (searchQuery) {
+      params.set("query", searchQuery);
     }
 
-    // Update amenities
-    if (filters.amenities.size > 0) {
-      params.set("amenities", Array.from(filters.amenities).join(","));
-    } else {
-      params.delete("amenities");
-    }
-
-    // Update capacity
-    if (filters.capacity) {
-      params.set("capacity", filters.capacity);
-    } else {
-      params.delete("capacity");
-    }
+    // 필터 값 설정
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) {
+        params.set(key, value);
+      }
+    });
 
     router.push(`/spaces/search?${params.toString()}`);
   };
 
   const resetFilters = () => {
-    setPriceRange("50000");
     setFilters({
-      spaceTypes: new Set(),
-      amenities: new Set(),
+      location: "",
+      purpose: "",
       capacity: "",
+      minPrice: "10000",
+      maxPrice: "100000",
     });
-    router.push("/spaces/search");
+
+    // 검색어만 유지
+    if (searchQuery) {
+      router.push(`/spaces/search?query=${searchQuery}`);
+    } else {
+      router.push("/spaces/search");
+    }
   };
+
+  useEffect(() => {
+    // URL 파라미터가 변경될 때 필터 상태 업데이트
+    setFilters((prev) => ({
+      ...prev,
+      location: searchParams.get("location") || prev.location,
+      purpose: searchParams.get("purpose") || prev.purpose,
+      capacity: searchParams.get("capacity") || prev.capacity,
+      minPrice: searchParams.get("minPrice") || prev.minPrice,
+      maxPrice: searchParams.get("maxPrice") || prev.maxPrice,
+    }));
+  }, [searchParams]);
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
       <h2 className="font-semibold mb-4">상세 필터</h2>
 
+      {/* 지역 필터 */}
       <div className="mb-6">
-        <h3 className="text-sm font-medium mb-2">가격 범위</h3>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-gray-500">₩10,000</span>
-          <span className="text-xs text-gray-500">
-            ₩{parseInt(priceRange).toLocaleString()}
-          </span>
-        </div>
-        <input
-          type="range"
-          min="10000"
-          max="100000"
-          step="1000"
-          value={priceRange}
-          onChange={(e) => setPriceRange(e.target.value)}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-        />
+        <h3 className="text-sm font-medium mb-2">지역</h3>
+        <select
+          value={filters.location}
+          onChange={(e) => handleFilterChange("location", e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#EDE7D4] focus:border-transparent"
+        >
+          <option value="">전체</option>
+          <option value="강남구">강남구</option>
+          <option value="마포구">마포구</option>
+          <option value="용산구">용산구</option>
+        </select>
       </div>
 
+      {/* 공간 용도 필터 */}
+      <div className="mb-6">
+        <h3 className="text-sm font-medium mb-2">공간 용도</h3>
+        <select
+          value={filters.purpose}
+          onChange={(e) => handleFilterChange("purpose", e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#EDE7D4] focus:border-transparent"
+        >
+          <option value="">전체</option>
+          <option value="meeting">회의실</option>
+          <option value="studio">스튜디오</option>
+          <option value="party">파티룸</option>
+          <option value="office">사무실</option>
+        </select>
+      </div>
+
+      {/* 수용 인원 필터 */}
       <div className="mb-6">
         <h3 className="text-sm font-medium mb-2">수용 인원</h3>
-        <div className="flex gap-2 flex-wrap">
-          {["1-5명", "6-10명", "11-20명", "21명+"].map((range) => (
-            <button
-              key={range}
-              onClick={() =>
-                setFilters((prev) => ({ ...prev, capacity: range }))
-              }
-              className={`px-3 py-1 text-xs border rounded-full transition-colors ${
-                filters.capacity === range
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "border-gray-300 hover:bg-gray-100"
-              }`}
-            >
-              {range}
-            </button>
-          ))}
-        </div>
+        <select
+          value={filters.capacity}
+          onChange={(e) => handleFilterChange("capacity", e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#EDE7D4] focus:border-transparent"
+        >
+          <option value="">전체</option>
+          <option value="1-5">1-5명</option>
+          <option value="6-10">6-10명</option>
+          <option value="11-20">11-20명</option>
+          <option value="20+">20명 이상</option>
+        </select>
       </div>
 
+      {/* 가격 범위 필터 */}
       <div className="mb-6">
-        <h3 className="text-sm font-medium mb-2">공간 유형</h3>
-        <div className="space-y-2">
-          {[
-            ["meeting", "회의실"],
-            ["studio", "스튜디오"],
-            ["party", "파티룸"],
-            ["cafe", "카페"],
-            ["lecture", "강의실"],
-          ].map(([value, label]) => (
-            <label key={value} className="flex items-center">
-              <input
-                type="checkbox"
-                checked={filters.spaceTypes.has(value)}
-                onChange={() => updateFilters("spaceTypes", value)}
-                className="form-checkbox h-4 w-4 text-blue-600"
-              />
-              <span className="ml-2 text-sm">{label}</span>
-            </label>
-          ))}
+        <h3 className="text-sm font-medium mb-2">시간당 가격</h3>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs text-gray-500">
+            ₩{parseInt(filters.minPrice).toLocaleString()}
+          </span>
+          <span className="text-xs text-gray-500">
+            ₩{parseInt(filters.maxPrice).toLocaleString()}
+          </span>
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="range"
+            min="10000"
+            max="50000"
+            step="5000"
+            value={filters.minPrice}
+            onChange={(e) => handleFilterChange("minPrice", e.target.value)}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+          />
+          <input
+            type="range"
+            min="50000"
+            max="100000"
+            step="5000"
+            value={filters.maxPrice}
+            onChange={(e) => handleFilterChange("maxPrice", e.target.value)}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+          />
         </div>
       </div>
 
-      <div className="mb-6">
-        <h3 className="text-sm font-medium mb-2">편의시설</h3>
-        <div className="space-y-2">
-          {[
-            ["wifi", "와이파이"],
-            ["projector", "프로젝터"],
-            ["parking", "주차장"],
-            ["kitchen", "취사시설"],
-            ["sound", "음향시설"],
-          ].map(([value, label]) => (
-            <label key={value} className="flex items-center">
-              <input
-                type="checkbox"
-                checked={filters.amenities.has(value)}
-                onChange={() => updateFilters("amenities", value)}
-                className="form-checkbox h-4 w-4 text-blue-600"
-              />
-              <span className="ml-2 text-sm">{label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
+      {/* 필터 적용/초기화 버튼 */}
       <div className="flex gap-2">
         <button
           onClick={applyFilters}
-          className="flex-1 py-2 bg-[#40322F] text-white rounded-md hover:bg-[#594a47] transition"
+          className="flex-1 py-2 bg-[#40322F] text-white rounded-lg hover:bg-[#594a47] transition-colors"
         >
           필터 적용
         </button>
         <button
           onClick={resetFilters}
-          className="py-2 px-4 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+          className="flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
         >
           초기화
         </button>

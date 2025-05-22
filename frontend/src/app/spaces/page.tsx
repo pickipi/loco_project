@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import SearchForm from "@/components/space/SearchForm";
 import SpaceCard from "@/components/space/SpaceCard";
+import MainHeader from "@/components/header/MainHeader";
 
 interface FeaturedSpace {
   id: string;
@@ -17,7 +19,11 @@ interface FeaturedSpace {
 }
 
 export default function SpacesPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Mock data
   const featuredSpaces: FeaturedSpace[] = [
     {
       id: "1",
@@ -48,33 +54,36 @@ export default function SpacesPage() {
     },
   ];
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/spaces/search?query=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero Section with Search */}
-      <div className="relative py-16 bg-[#40322F]">
-        <div className="absolute top-8 left-8 z-10">
-          <Link href="/">
-            <Image
-              src="/logo.png"
-              alt="Logo"
-              width={150}
-              height={50}
-              priority
-              className="object-contain"
-            />
-          </Link>
-        </div>
+    <main className="min-h-screen bg-white">
+      <MainHeader
+        onSearch={(query) => {
+          if (query.trim()) {
+            router.push(`/spaces/search?query=${encodeURIComponent(query)}`);
+          }
+        }}
+      />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-white mb-4">
-              당신에게 딱 맞는 공간을 찾아보세요
-            </h1>
-            <p className="text-xl text-gray-200">
-              회의실, 스튜디오, 파티룸 등 다양한 공간을 간편하게 예약하세요
-            </p>
-          </div>
-
+      {/* Hero Section */}
+      <div className="bg-[#40322F] py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-4xl font-bold text-white mb-4">
+            당신에게 딱 맞는 공간을 찾아보세요
+          </h1>
+          <p className="text-xl text-gray-200 mb-8">
+            회의실, 스튜디오, 파티룸 등 다양한 공간을 간편하게 예약하세요
+          </p>
           <SearchForm />
         </div>
       </div>
@@ -137,7 +146,7 @@ export default function SpacesPage() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
