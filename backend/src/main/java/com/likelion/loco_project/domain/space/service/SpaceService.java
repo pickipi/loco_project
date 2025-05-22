@@ -4,11 +4,16 @@ import com.likelion.loco_project.domain.host.entity.Host;
 import com.likelion.loco_project.domain.host.repository.HostRepository;
 import com.likelion.loco_project.domain.space.dto.SpaceCreateRequestDto;
 import com.likelion.loco_project.domain.space.dto.SpaceResponseDto;
+import com.likelion.loco_project.domain.space.dto.SpaceSearchDto;
 import com.likelion.loco_project.domain.space.dto.SpaceUpdateRequestDto;
 import com.likelion.loco_project.domain.space.entity.Space;
 import com.likelion.loco_project.domain.space.entity.SpaceStatus;
 import com.likelion.loco_project.domain.space.repository.SpaceRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,6 +64,41 @@ public class SpaceService {
             throw new IllegalArgumentException("존재하지 않는 공간입니다.");
         }
         spaceRepository.deleteById(id);
+    }
+
+    // 공간 검색 기능
+    public Page<SpaceResponseDto> searchSpaces(SpaceSearchDto searchDto) {
+        // Specification 생성
+        Specification<Space> spec = Specification.where(null);
+
+        if (searchDto.getLocation() != null) {
+            spec = spec.and((root, query, cb) ->
+                    cb.like(root.get("address"), "%" + searchDto.getLocation() + "%"));
+        }
+
+        if (searchDto.getMinPrice() != null) {
+            spec = spec.and((root, query, cb) ->
+                    cb.greaterThanOrEqualTo(root.get("pricePerHour"), searchDto.getMinPrice()));
+        }
+
+        // 나머지 검색 조건들에 대한 Specification 추가...
+
+        // 정렬 조건 설정
+        Sort sort = Sort.by(
+                searchDto.getSortDirection().equals("ASC") ? Sort.Direction.ASC : Sort.Direction.DESC,
+                searchDto.getSortBy()
+        );
+
+        // 페이지네이션 설정
+        PageRequest pageRequest = PageRequest.of(
+                searchDto.getPage(),
+                searchDto.getSize(),
+                sort
+        );
+
+        // 검색 결과 반환
+        return spaceRepository.findAll(spec, pageRequest)
+                .map(SpaceResponseDto::fromEntity); // 이미 구현되어있는 fromEntity 메서드 사용하여 DTO로 변환
     }
 
     // # 관리자 기능 부분
