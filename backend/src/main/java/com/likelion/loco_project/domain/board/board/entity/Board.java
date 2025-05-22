@@ -27,8 +27,8 @@ public class Board extends BaseEntity {
     @Column(nullable = false)
     private Category category;
 
-    @Column(name = "is_visible")
-    private Boolean isVisible; // 게시판 공개 여부, 공개/비공개 중 반드시 하나를 선택해야 하므로 null 허용하지 않음
+    @Column(name = "is_visible", nullable = false)
+    private Boolean isVisible; // 게시판 공개 여부, 공개/비공개 중 반드시 하나를 선택
 
     private Boolean report; // 신고 여부, null 허용이므로 boolean이 아닌 Boolean 사용
 

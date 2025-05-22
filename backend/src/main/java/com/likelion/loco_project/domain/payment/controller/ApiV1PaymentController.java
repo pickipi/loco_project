@@ -69,6 +69,7 @@ public class ApiV1PaymentController {
 
     private final TossPaymentService tossPaymentService;
 
+    @Operation(summary = "결제 승인 (토스페이먼츠)", description = "토스페이먼츠 결제를 승인합니다.")
     @PostMapping("/confirm")
     public ResponseEntity<String> confirmPayment(
             @RequestParam String paymentKey,

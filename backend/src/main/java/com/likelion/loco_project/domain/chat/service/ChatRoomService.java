@@ -30,16 +30,11 @@ public class ChatRoomService {
     //챗룸 만들기
     public ChatRoom createOrGetChatRoom(Long boardId, Long guestId) {
 
-        // Board ID로 조회 (아니면 예외 발생)
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new RuntimeException("게시판을 찾을 수 없습니다"));
-
-        // 게스트 ID로 조회 (아니면 예외 발생)
-        User guest = userRepository.findById(guestId)
-                .orElseThrow(() -> new RuntimeException("게스트를 찾을 수 없습니다"));
-
-        // 게시글 작성자인 Host로부터 연결된 User 엔티티 조회
-        User host = board.getHost().getUser();
+        // 필요한 엔티티들을 조회
+        ChatRoomEntities entities = getChatRoomEntities(boardId, guestId);
+        Board board = entities.board;
+        User guest = entities.guest;
+        User host = entities.host;
 
         // 작성자가 자기와 채팅하는 걸 방지
         if (guest.getId().equals(host.getId())) {
@@ -69,6 +64,34 @@ public class ChatRoomService {
                 .build();
 
         return chatRoomRepository.save(newRoom);
+    }
+
+    // 채팅방 생성에 필요한 엔티티들을 조회하고 반환하는 내부 클래스 및 메서드
+    private static class ChatRoomEntities {
+        Board board;
+        User guest;
+        User host;
+
+        ChatRoomEntities(Board board, User guest, User host) {
+            this.board = board;
+            this.guest = guest;
+            this.host = host;
+        }
+    }
+
+    private ChatRoomEntities getChatRoomEntities(Long boardId, Long guestId) {
+        // Board ID로 조회 (아니면 예외 발생)
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new RuntimeException("게시판을 찾을 수 없습니다"));
+
+        // 게스트 ID로 조회 (아니면 예외 발생)
+        User guest = userRepository.findById(guestId)
+                .orElseThrow(() -> new RuntimeException("게스트를 찾을 수 없습니다"));
+
+        // 게시글 작성자인 Host로부터 연결된 User 엔티티 조회
+        User host = board.getHost().getUser();
+
+        return new ChatRoomEntities(board, guest, host);
     }
 
     //채팅 목록 조회

@@ -6,6 +6,7 @@ import com.likelion.loco_project.domain.space.dto.SpaceCreateRequestDto;
 import com.likelion.loco_project.domain.space.dto.SpaceResponseDto;
 import com.likelion.loco_project.domain.space.dto.SpaceUpdateRequestDto;
 import com.likelion.loco_project.domain.space.entity.Space;
+import com.likelion.loco_project.domain.space.entity.SpaceStatus;
 import com.likelion.loco_project.domain.space.repository.SpaceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -66,16 +67,26 @@ public class SpaceService {
     @Transactional
     public void approveSpace(Long id) {
         Space space = spaceRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공간입니다."));
-        space.setStatus(com.likelion.loco_project.domain.space.entity.SpaceStatus.APPROVED);
+                .orElseThrow(() -> new IllegalArgumentException("ID " + id + "에 해당하는 공간을 찾을 수 없습니다."));
+
+        if (space.getStatus() != SpaceStatus.PENDING) {
+            throw new IllegalArgumentException("ID " + id + " 공간은 승인 대기 상태가 아닙니다. (현재 상태: " + space.getStatus() + ")");
+        }
+
+        space.setStatus(SpaceStatus.APPROVED);
     }
 
     // 공간 반려
     @Transactional
     public void rejectSpace(Long id, String rejectionReason) {
         Space space = spaceRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공간입니다."));
-        space.setStatus(com.likelion.loco_project.domain.space.entity.SpaceStatus.REJECTED);
+                .orElseThrow(() -> new IllegalArgumentException("ID " + id + "에 해당하는 공간을 찾을 수 없습니다."));
+
+        if (space.getStatus() != SpaceStatus.PENDING) {
+            throw new IllegalArgumentException("ID " + id + " 공간은 승인 대기 상태가 아닙니다. (현재 상태: " + space.getStatus() + ")");
+        }
+
+        space.setStatus(SpaceStatus.REJECTED);
         space.setRejectionReason(rejectionReason); // 반려 사유 저장
     }
 }

@@ -27,12 +27,14 @@ public class ApiV1HostController {
     }
 
     // 호스트 정보 조회 API (GET /api/v1/hosts/{userId})
+    @Operation(summary = "호스트 정보 조회", description = "특정 유저 ID로 호스트 정보를 조회합니다.")
     @GetMapping("/{userId}")
     public ResponseEntity<HostResponseDto> getHost(@PathVariable Long userId) {
         return ResponseEntity.ok(hostService.getHostInfo(userId));
     }
 
     //호스트 페이지에서 바로 회원가입
+    @Operation(summary = "호스트 회원가입", description = "호스트 페이지에서 직접 회원가입을 진행합니다.")
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody UserRequestDto dto) {
         hostService.registerHost(dto);

@@ -33,19 +33,10 @@ public class ChatMessageService {
 
     // 메시지 전송
     public ChatMessage sendMessage(ChatMessageRequestDto dto) {
-        // 채팅방 ID로 채팅방 조회 (없으면 예외 발생)
-        ChatRoom chatRoom = chatRoomRepository.findById(dto.getChatRoomId())
-                .orElseThrow(() -> new RuntimeException("채팅방을 찾을 수 없습니다."));
-
-        // 보낸 사람 ID로 사용자 조회 (없으면 예외 발생)
-        User sender = userRepository.findById(dto.getSenderId())
-                .orElseThrow(() -> new RuntimeException("보낸 사용자를 찾을 수 없습니다."));
-
-        // 채팅방 참여자인지 확인
-        if (!chatRoom.getGuest().getId().equals(sender.getId()) &&
-                !chatRoom.getHost().getId().equals(sender.getId())) {
-            throw new AccessDeniedException("이 채팅방에 접근할 수 없습니다.");
-        }
+        // 채팅방과 보낸 사용자 엔티티 조회 및 참여자 확인
+        ChatMessageEntities entities = getChatMessageEntitiesAndCheckParticipant(dto.getChatRoomId(), dto.getSenderId());
+        ChatRoom chatRoom = entities.chatRoom;
+        User sender = entities.sender;
 
         // 새로운 채팅 메시지 엔티티 생성
         ChatMessage message = ChatMessage.builder()
@@ -56,6 +47,35 @@ public class ChatMessageService {
                 .build();
 
         return chatMessageRepository.save(message);
+    }
+
+    // 메시지 전송에 필요한 엔티티들을 조회하고 참여자인지 확인하는 내부 클래스 및 메서드
+    private static class ChatMessageEntities {
+        ChatRoom chatRoom;
+        User sender;
+
+        ChatMessageEntities(ChatRoom chatRoom, User sender) {
+            this.chatRoom = chatRoom;
+            this.sender = sender;
+        }
+    }
+
+    private ChatMessageEntities getChatMessageEntitiesAndCheckParticipant(Long chatRoomId, Long senderId) {
+        // 채팅방 ID로 채팅방 조회 (없으면 예외 발생)
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new RuntimeException("채팅방을 찾을 수 없습니다."));
+
+        // 보낸 사람 ID로 사용자 조회 (없으면 예외 발생)
+        User sender = userRepository.findById(senderId)
+                .orElseThrow(() -> new RuntimeException("보낸 사용자를 찾을 수 없습니다."));
+
+        // 채팅방 참여자인지 확인
+        if (!chatRoom.getGuest().getId().equals(sender.getId()) &&
+                !chatRoom.getHost().getId().equals(sender.getId())) {
+            throw new AccessDeniedException("이 채팅방에 접근할 수 없습니다.");
+        }
+
+        return new ChatMessageEntities(chatRoom, sender);
     }
 
     // 메세지 수정
