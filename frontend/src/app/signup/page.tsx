@@ -4,8 +4,10 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { FaApple, FaCheck } from 'react-icons/fa';
 import { SiNaver, SiKakaotalk } from 'react-icons/si';
+import { useRouter } from 'next/navigation';
 
 export default function SignupPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -22,6 +24,9 @@ export default function SignupPage() {
     sms: false,
     email: false,
   });
+
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -64,6 +69,7 @@ export default function SignupPage() {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -195,12 +201,16 @@ export default function SignupPage() {
                   id="phoneNumber"
                   name="phoneNumber"
                   type="tel"
-                  placeholder="전화번호 (- 없이 입력)"
+                  placeholder="전화번호"
+                  pattern="[0-9]{3}-[0-9]{4}-[0-9]{4}"
                   className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={formData.phoneNumber}
                   onChange={handleInputChange}
                   required
                 />
+                <p className="mt-1 text-xs text-gray-500">
+                  하이픈(-)을 포함하여 입력해주세요 (예: 010-1234-5678)
+                </p>
               </div>
               
               {/* Password */}
@@ -335,13 +345,21 @@ export default function SignupPage() {
                 </div>
               </div>
               
+              {/* Error message */}
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">
+                  {error}
+                </div>
+              )}
+              
               {/* Submit button */}
               <div className="pt-4">
                 <button
                   type="submit"
-                  className="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  disabled={isLoading}
+                  className="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-blue-400 disabled:cursor-not-allowed"
                 >
-                  회원가입
+                  {isLoading ? '처리중...' : '회원가입'}
                 </button>
               </div>
             </div>
