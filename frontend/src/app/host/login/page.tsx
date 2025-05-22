@@ -33,8 +33,18 @@ export default function LoginPage() {
         const data = await response.json();
         // 토큰을 로컬 스토리지에 저장
         localStorage.setItem('token', data.token);
+        
+        // 토큰이 제대로 저장되었는지 확인
+        const savedToken = localStorage.getItem('token');
+        if (!savedToken) {
+          throw new Error('토큰 저장에 실패했습니다.');
+        }
+
+        // 커스텀 이벤트 발생
+        window.dispatchEvent(new Event('tokenChange'));
+        
         alert('로그인 성공!');
-        router.push('/host/dashboard'); // 호스트 대시보드로 이동
+        router.push('/host/dashboard');
       } else {
         const errorData = await response.json();
         setError(errorData.message || '로그인에 실패했습니다.');
