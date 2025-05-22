@@ -115,4 +115,22 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
         user.delete(); // 논리 삭제 처리
     }
+
+    //알림 수신 설정을 ON/OFF 토글
+    @Transactional
+    public boolean toggleNotification(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        user.setNotificationEnabled(!user.isNotificationEnabled());
+        return user.isNotificationEnabled(); // 변경된 상태 반환
+    }
+
+    //알림 수신 여부 조회
+    @Transactional(readOnly = true)
+    public boolean isNotificationEnabled(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        return user.isNotificationEnabled();
+    }
 }

@@ -127,18 +127,24 @@ public class NotificationService {
     }
 
     // 댓글 알림
-    public void notifyCommentReply(User replier, User parentAuthor, User host, User guest, boolean isReply) {
-        if (replier == null || parentAuthor == null || host == null || guest == null) return;
+    public void notifyCommentReply(User replier, User parentAuthor, User host, User guest, boolean isReply, User postAuthor) {
+
+        if (replier == null || parentAuthor == null || host == null
+                || guest == null || postAuthor == null)
+            return;
 
         String message = String.format("[%s]님이 댓글을 남겼습니다.", replier.getUsername());
+
 
         // 1. 부모 댓글 작성자에게 알림 (본인이 본인 댓글에 단 건 제외)
         if (!replier.equals(parentAuthor)) {
             notifyUser(parentAuthor.getId(), message, NotificationType.COMMENT);
         }
 
-        // 2. 호스트는 모든 댓글에 대해 알림 (작성자가 본인이어도 받음)
-        notifyUser(host.getId(), message, NotificationType.COMMENT);
+        // 2. 호스트가 게시글 작성자이면서 댓글 작성자가 아닐 때만 알림
+        if (host.equals(postAuthor) && !replier.equals(host)) {
+            notifyUser(host.getId(), message, NotificationType.COMMENT);
+        }
 
         // 3. 게스트는 대댓글일 때만 알림 (작성자가 본인이 아니어야 함)
         if (isReply && !replier.equals(guest)) {
