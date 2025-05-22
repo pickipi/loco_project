@@ -35,6 +35,15 @@ interface ApiResponse<T> {
 }
 
 /**
+ * 알림 설정 인터페이스
+ */
+interface NotificationSettings {
+  RESERVATION: boolean;
+  RESERVATION_STATUS: boolean;
+  COMMENT: boolean;
+}
+
+/**
  * 알림 패널 컴포넌트
  * 
  * 주요 기능:

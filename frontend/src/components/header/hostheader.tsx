@@ -14,14 +14,14 @@ export default function HostHeader({ isLoggedIn = false }: HostHeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const router = useRouter()
 
-  // 공간관리 클릭 핸들러
-  const handleSpaceManagement = () => {
+  // 보호된 경로 접근 핸들러
+  const handleProtectedRoute = (path: string) => {
     if (!isLoggedIn) {
       alert('로그인이 필요한 서비스입니다.')
       router.push('/host/login')
       return
     }
-    router.push('/host/space/register')
+    router.push(path)
   }
 
   return (
@@ -39,38 +39,41 @@ export default function HostHeader({ isLoggedIn = false }: HostHeaderProps) {
           {/* Desktop Navigation */}
           <nav className={styles.desktopNav}>
             <button 
-              onClick={handleSpaceManagement}
+              onClick={() => handleProtectedRoute('/host/spaces')}
               className={styles.navLink}
             >
               공간관리
             </button>
-            <Link 
-              href="/host/bookings" 
+            <button 
+              onClick={() => handleProtectedRoute('/host/bookings')}
               className={styles.navLink}
             >
               예약관리
-            </Link>
-            <Link 
-              href="/host/revenue" 
+            </button>
+            <button 
+              onClick={() => handleProtectedRoute('/host/revenue')}
               className={styles.navLink}
             >
               정산관리
-            </Link>
+            </button>
           </nav>
 
           {/* Auth Buttons */}
           <div className={styles.authContainer}>
             {isLoggedIn ? (
               <div className={styles.authContainer}>
-                <button className={styles.navLink}>
+                <button 
+                  onClick={() => handleProtectedRoute('/host/notifications')}
+                  className={styles.navLink}
+                >
                   알림
                 </button>
-                <Link 
-                  href="/host/profile" 
+                <button 
+                  onClick={() => handleProtectedRoute('/host/profile')}
                   className={styles.navLink}
                 >
                   프로필
-                </Link>
+                </button>
               </div>
             ) : (
               <Link 
@@ -112,37 +115,37 @@ export default function HostHeader({ isLoggedIn = false }: HostHeaderProps) {
         <div className={`${styles.mobileMenu} ${isMenuOpen ? styles.mobileMenuOpen : ''}`}>
           <div className={styles.mobileMenuContainer}>
             <button
-              onClick={handleSpaceManagement}
+              onClick={() => handleProtectedRoute('/host/spaces')}
               className={styles.mobileMenuItem}
             >
               공간관리
             </button>
-            <Link
-              href="/host/bookings"
+            <button
+              onClick={() => handleProtectedRoute('/host/bookings')}
               className={styles.mobileMenuItem}
             >
               예약관리
-            </Link>
-            <Link
-              href="/host/revenue"
+            </button>
+            <button
+              onClick={() => handleProtectedRoute('/host/revenue')}
               className={styles.mobileMenuItem}
             >
               정산관리
-            </Link>
+            </button>
             {isLoggedIn ? (
               <>
-                <Link
-                  href="/host/notifications"
+                <button
+                  onClick={() => handleProtectedRoute('/host/notifications')}
                   className={styles.mobileMenuItem}
                 >
                   알림
-                </Link>
-                <Link
-                  href="/host/profile"
+                </button>
+                <button
+                  onClick={() => handleProtectedRoute('/host/profile')}
                   className={styles.mobileMenuItem}
                 >
                   프로필
-                </Link>
+                </button>
               </>
             ) : (
               <Link

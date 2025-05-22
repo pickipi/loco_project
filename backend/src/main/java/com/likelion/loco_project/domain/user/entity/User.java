@@ -69,10 +69,6 @@ public class User extends BaseEntity {
         if (phoneNumber != null) this.phoneNumber = phoneNumber;
     }
 
-    //호스트 페이지에서 바로 회원가입 할떄 사용됨
-    @Enumerated(EnumType.STRING)
-    private UserType typeHost;  // Set이 아닌 단일 UserType
-
     // 알림 수신 여부 (기본값: true)
     @Column(nullable = false)
     private boolean notificationEnabled = true;

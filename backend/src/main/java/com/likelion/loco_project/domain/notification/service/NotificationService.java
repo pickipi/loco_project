@@ -1,8 +1,10 @@
 package com.likelion.loco_project.domain.notification.service;
 
 import com.likelion.loco_project.domain.notification.dto.NotificationResponseDto;
+import com.likelion.loco_project.domain.notification.dto.NotificationSettingResponseDto;
 import com.likelion.loco_project.domain.notification.entity.Notification;
 import com.likelion.loco_project.domain.notification.entity.NotificationType;
+import com.likelion.loco_project.domain.notification.entity.UserNotificationSetting;
 import com.likelion.loco_project.domain.notification.repository.NotificationRepository;
 import com.likelion.loco_project.domain.reservation.entity.Reservation;
 import com.likelion.loco_project.domain.reservation.entity.ReservationStatus;
