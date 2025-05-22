@@ -4,6 +4,15 @@ const nextConfig = {
   images: {
     domains: ["example.com"],
   },
+  // API 라우트 리다이렉션 설정
+  async rewrites() {
+    return [
+      {
+        source: '/api/auth/check',
+        destination: '/api/auth/check',
+      },
+    ]
+  },
 };
 
 module.exports = nextConfig;

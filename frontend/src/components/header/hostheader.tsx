@@ -12,8 +12,7 @@ export default function HostHeader() {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
-  useEffect(() => {
-    // 로컬 스토리지에서 토큰 확인
+  const checkToken = () => {
     const token = localStorage.getItem('token')
     if (token) {
       try {
@@ -24,21 +23,55 @@ export default function HostHeader() {
           return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
         }).join(''))
         const payload = JSON.parse(jsonPayload)
+        
         // 이메일에서 @ 앞부분만 추출해서 사용자이름 보이게
         const emailPrefix = payload.sub.split('@')[0]
         setUserEmail(emailPrefix)
+        return true
       } catch (error) {
         console.error('Token parsing error:', error)
+        localStorage.removeItem('token')
+        setUserEmail(null)
+        return false
       }
     }
+    setUserEmail(null)
+    return false
+  }
+
+  // 컴포넌트 마운트 시와 토큰 변경 시 토큰 체크
+  useEffect(() => {
+    // 초기 토큰 체크
+    checkToken()
     setIsLoading(false)
+
+    // storage 이벤트 리스너 등록
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'token') {
+        checkToken()
+      }
+    }
+
+    // 커스텀 이벤트 리스너 등록
+    const handleTokenChange = () => {
+      checkToken()
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('tokenChange', handleTokenChange)
+
+    // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('tokenChange', handleTokenChange)
+    }
   }, [])
 
   // 공간관리 클릭 핸들러
   const handleSpaceManagement = () => {
     if (isLoading) return // 로딩 중이면 아무것도 하지 않음
     
-    if (!userEmail) {
+    if (!checkToken()) {
       alert('로그인이 필요한 서비스입니다.')
       router.push('/host/login')
       return
@@ -50,6 +83,8 @@ export default function HostHeader() {
   const handleLogout = () => {
     localStorage.removeItem('token')
     setUserEmail(null)
+    // 커스텀 이벤트 발생
+    window.dispatchEvent(new Event('tokenChange'))
     router.push('/host/login')
   }
 
