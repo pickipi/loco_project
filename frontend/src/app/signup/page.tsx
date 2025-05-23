@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { FaApple, FaCheck } from 'react-icons/fa';
 import { SiNaver, SiKakaotalk } from 'react-icons/si';
 import { useRouter } from 'next/navigation';
+import EmailVerificationButton from '@/components/emailverification/EmailVerificationButton';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function SignupPage() {
 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -73,6 +75,11 @@ export default function SignupPage() {
     e.preventDefault();
 
     // 클라이언트 측 유효성 검사
+    if (!isEmailVerified) {
+      alert('이메일 인증이 필요합니다.');
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       alert('비밀번호와 비밀번호 확인이 일치하지 않습니다.');
       return;
@@ -157,7 +164,9 @@ export default function SignupPage() {
             <div className="space-y-4">
               {/* Name */}
               <div>
-                <label htmlFor="name" className="sr-only">이름</label>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                  이름
+                </label>
                 <input
                   id="name"
                   name="name"
@@ -172,17 +181,20 @@ export default function SignupPage() {
               
               {/* Email */}
               <div>
-                <label htmlFor="email" className="sr-only">이메일</label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="이메일"
-                  className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                  이메일
+                </label>
+                <EmailVerificationButton 
+                  email={formData.email}
+                  onChange={(email) => setFormData(prev => ({ ...prev, email }))}
+                  onVerified={() => setIsEmailVerified(true)}
                 />
+                {isEmailVerified && (
+                  <p className="mt-1 text-sm text-green-600 flex items-center gap-1">
+                    <FaCheck size={12} />
+                    이메일이 인증되었습니다.
+                  </p>
+                )}
               </div>
               
               {/* Phone Number */}

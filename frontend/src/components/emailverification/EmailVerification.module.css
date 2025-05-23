@@ -1,0 +1,139 @@
+.verificationContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.emailInputContainer {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  width: 100%;
+}
+
+.input {
+  flex: 1;
+  height: 38px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #D1D5DB;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: all 0.2s;
+  background-color: #fff;
+}
+
+.input:focus {
+  border-color: #7047EB;
+  box-shadow: 0 0 0 2px rgba(112, 71, 235, 0.2);
+}
+
+.verifyCodeContainer {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  width: 100%;
+}
+
+.verificationButton {
+  padding: 0.5rem 1rem;
+  background-color: #7047EB;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  height: 38px;
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.verificationButton:hover:not(:disabled) {
+  background-color: #8561ED;
+}
+
+.verificationButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #9CA3AF;
+}
+
+.codeInput {
+  flex: 1;
+  height: 38px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #D1D5DB;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: all 0.2s;
+  background-color: #fff;
+}
+
+.codeInput:focus {
+  border-color: #7047EB;
+  box-shadow: 0 0 0 2px rgba(112, 71, 235, 0.2);
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  width: 90%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modal input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #D1D5DB;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.modal input:focus {
+  border-color: #7047EB;
+  box-shadow: 0 0 0 2px rgba(112, 71, 235, 0.2);
+}
+
+.modal button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #7047EB;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modal button:hover {
+  background-color: #8561ED;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+} 

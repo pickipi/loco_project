@@ -121,4 +121,29 @@
 
 .loginLink:hover {
   color: #8561ED;
+}
+
+.emailVerificationContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.emailInputContainer {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.emailInputContainer input {
+  flex: 1;
+}
+
+.verifiedText {
+  color: #10b981;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
 } 

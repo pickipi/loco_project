@@ -1,10 +1,13 @@
 package com.likelion.loco_project.domain.user.service;
 
+import com.likelion.loco_project.domain.auth.EmailAuthManager;
 import com.likelion.loco_project.domain.user.dto.UserRequestDto;
 import com.likelion.loco_project.domain.user.dto.UserResponseDto;
 import com.likelion.loco_project.domain.user.entity.User;
 import com.likelion.loco_project.domain.user.entity.UserType;
 import com.likelion.loco_project.domain.user.repository.UserRepository;
+import com.likelion.loco_project.global.exception.BusinessLogicException;
+import com.likelion.loco_project.global.exception.ExceptionCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,10 +19,17 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder; // 비밀번호 인코더 주입
+    private final EmailAuthManager emailAuthManager;
 
     //새로운 유저를 생성하고 저장하는 메서드 (회원가입 기능)
     @Transactional
     public UserResponseDto createUser(UserRequestDto dto) {
+
+        // 이메일 인증 여부
+        if (!emailAuthManager.isVerified(dto.getEmail())) {
+            throw new BusinessLogicException(ExceptionCode.EMAIL_NOT_VERIFIED);
+        }
+
         // 이메일 중복 체크 및 User 엔티티 생성
         User user = createUserEntity(dto);
 
@@ -149,5 +159,15 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
         return user.isNotificationEnabled();
+    }
+
+    //인증번호 이메일로 보내기
+    public void sendCodeToEmail(String email) {
+        emailAuthManager.sendAuthCode(email);
+    }
+
+    //인증번호 검증하기
+    public boolean verifyCode(String email, String code) {
+        return emailAuthManager.verifyCode(email, code);
     }
 }
