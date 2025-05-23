@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -13,7 +14,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class SpaceUpdateRequestDto {
-    private Long imageId;
     private String spaceName;
     private String description;
     private LocalDateTime uploadDate;
@@ -27,10 +27,11 @@ public class SpaceUpdateRequestDto {
     private Integer maxCapacity;
     private Boolean isActive;
     private BigDecimal spaceRating;
+    private String imageUrl;
+    private List<String> additionalImageUrls;
 
     //Space 엔티티에 값을 반영하는 메서드
     public void applyTo(Space space) {
-        if (this.imageId != null) space.setImageId(this.imageId);
         if (this.spaceName != null) space.setSpaceName(this.spaceName);
         if (this.description != null) space.setDescription(this.description);
         if (this.uploadDate != null) space.setUploadDate(this.uploadDate);
@@ -44,5 +45,10 @@ public class SpaceUpdateRequestDto {
         if (this.maxCapacity != null) space.setMaxCapacity(this.maxCapacity);
         if (this.isActive != null) space.setIsActive(this.isActive);
         if (this.spaceRating != null) space.setSpaceRating(this.spaceRating);
+        if (this.imageUrl != null) space.setImageUrl(this.imageUrl);
+        if (this.additionalImageUrls != null) {
+            space.getAdditionalImageUrls().clear();
+            space.getAdditionalImageUrls().addAll(this.additionalImageUrls);
+        }
     }
 }

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Builder
@@ -15,7 +16,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class SpaceListResponseDto {
     private Long id;
-    private Long imageId;
     private String spaceName;
     private String description;
     private LocalDateTime uploadDate;
@@ -28,11 +28,12 @@ public class SpaceListResponseDto {
     private Integer maxCapacity;
     private Boolean isActive;
     private BigDecimal spaceRating;
+    private String imageUrl;  // 대표 이미지 URL 추가
+    private List<String> additionalImageUrls;  // 추가 이미지 URL 목록 추가
 
     public static SpaceListResponseDto from(Space space) {
         return SpaceListResponseDto.builder()
                 .id(space.getId())
-                .imageId(space.getImageId())
                 .spaceName(space.getSpaceName())
                 .description(space.getDescription())
                 .uploadDate(space.getUploadDate())
@@ -45,6 +46,8 @@ public class SpaceListResponseDto {
                 .maxCapacity(space.getMaxCapacity())
                 .isActive(space.getIsActive())
                 .spaceRating(space.getSpaceRating())
+                .imageUrl(space.getImageUrl())
+                .additionalImageUrls(space.getAdditionalImageUrls())
                 .build();
     }
 }

@@ -11,10 +11,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/spaces")
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")  // 직접 origin 지정
 public class ApiV1SpaceController {
 
     private final SpaceService spaceService;
@@ -25,7 +29,13 @@ public class ApiV1SpaceController {
     public ResponseEntity<SpaceResponseDto> createSpace(
             @PathVariable("hostId") Long hostId,
             @RequestBody SpaceCreateRequestDto dto) {
-        return ResponseEntity.ok(spaceService.createSpace(hostId, dto));
+        try {
+            SpaceResponseDto response = spaceService.createSpace(hostId, dto);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("공간 등록 중 오류가 발생했습니다: " + e.getMessage());
+        }
     }
 
     // 공간 단건 조회(지도)
@@ -36,8 +46,9 @@ public class ApiV1SpaceController {
         return ResponseEntity.ok(RsData.of("S-200", "공간 조회 성공", dto));
     }
 
-    // 모든 공간 목록 조회    @GetMapping("/all")
+    // 모든 공간 목록 조회
     @Operation(summary = "모든 공간 목록 조회", description = "등록된 모든 공간의 목록을 조회합니다.")
+    @GetMapping("/all")
     public ResponseEntity<RsData<Page<SpaceListResponseDto>>> getAllSpaces(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size,
@@ -70,5 +81,20 @@ public class ApiV1SpaceController {
     @Operation(summary = "공간 검색", description = "조건에 맞는 공간을 검색합니다.")
     public ResponseEntity<Page<SpaceResponseDto>> searchSpaces(SpaceSearchDto searchDto) {
         return ResponseEntity.ok(spaceService.searchSpaces(searchDto));
+    }
+
+    // 공간 이미지 추가
+    @PostMapping("/{id}/images")
+    @Operation(summary = "공간 이미지 추가", description = "공간에 이미지를 추가합니다.")
+    public ResponseEntity<RsData<SpaceResponseDto>> addSpaceImages(
+            @PathVariable Long id,
+            @RequestParam List<String> imageUrls) {
+        try {
+            SpaceResponseDto response = spaceService.addSpaceImages(id, imageUrls);
+            return ResponseEntity.ok(RsData.of("S-1", "이미지 추가 성공", response));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(RsData.of("F-1", "이미지 추가 실패: " + e.getMessage(), null));
+        }
     }
 }

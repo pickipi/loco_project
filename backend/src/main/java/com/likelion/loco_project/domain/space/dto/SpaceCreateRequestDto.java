@@ -9,6 +9,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -57,12 +58,22 @@ public class SpaceCreateRequestDto {
 
     // ✅ DTO → Entity (Host 주입)
     public Space toEntity(Host host) {
+        List<String> additionalUrls = new ArrayList<>();
+        String mainImageUrl = null;
+        
+        if (imageUrls != null && !imageUrls.isEmpty()) {
+            mainImageUrl = imageUrls.get(0);
+            if (imageUrls.size() > 1) {
+                additionalUrls = new ArrayList<>(imageUrls.subList(1, imageUrls.size()));
+            }
+        }
+
         return Space.builder()
                 .host(host)
                 .spaceName(this.name)
                 .description(description)
                 .uploadDate(LocalDateTime.now())
-                .spaceType(SpaceType.valueOf(this.type.name()))
+                .spaceType(this.type)
                 .price(this.price)
                 .address(address)
                 .detailAddress(detailAddress)
@@ -71,7 +82,8 @@ public class SpaceCreateRequestDto {
                 .longitude(longitude)
                 .maxCapacity(this.capacity)
                 .isActive(true)
-                .imageId(null)
+                .imageUrl(mainImageUrl)
+                .additionalImageUrls(additionalUrls)
                 .spaceRating(BigDecimal.ZERO)
                 .status(SpaceStatus.PENDING)
                 .build();
