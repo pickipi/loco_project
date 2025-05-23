@@ -49,6 +49,13 @@ public class SpaceService {
                 .collect(Collectors.toList());
     }
 
+    // 모든 공간 목록 조회
+    public List<SpaceListResponseDto> getAllSpaces() {
+        return spaceRepository.findAll().stream()
+                .map(SpaceListResponseDto::from)
+                .collect(Collectors.toList());
+    }
+
     // 공간 수정
     @Transactional
     public SpaceResponseDto updateSpace(Long id, SpaceUpdateRequestDto dto) {

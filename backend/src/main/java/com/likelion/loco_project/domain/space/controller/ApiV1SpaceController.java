@@ -47,6 +47,13 @@ public class ApiV1SpaceController {
         return ResponseEntity.ok(response);
     }
 
+    // 모든 공간 목록 조회
+    @GetMapping("/all")
+    public RsData<List<SpaceListResponseDto>> getAllSpaces() {
+        List<SpaceListResponseDto> spaces = spaceService.getAllSpaces();
+        return RsData.of("S-1", "모든 공간 목록을 조회했습니다.", spaces);
+    }
+
     // 공간 수정
     @Operation(summary = "공간 정보 수정", description = "공간 ID에 해당하는 공간의 정보를 수정합니다.")
     @PutMapping("/{id}/edit")
