@@ -53,4 +53,35 @@ public class ReviewService {
                 .map(ReviewResponseDto::fromEntity)
                 .collect(Collectors.toList());
     }
+
+    //공간 리뷰 필터링
+    public List<ReviewResponseDto> getReviewsBySpace(Long spaceId, String sort) {
+
+    List<Review> reviews;
+
+    switch (sort.toLowerCase()) {
+        case "rating-desc":     //평점 높은 순
+            reviews = reviewRepository.findBySpaceIdAndIsDeletedFalseOrderByRatingDesc(spaceId);
+            break;
+        case "rating-asc":      //평점 낮은 순
+            reviews = reviewRepository.findBySpaceIdAndIsDeletedFalseOrderByRatingAsc(spaceId);
+            break;
+        case "latest":          //평점 최신 순
+        default:                //기본 평점 작성 순
+            reviews = reviewRepository.findBySpaceIdAndIsDeletedFalseOrderByCreatedAtDesc(spaceId);
+        }
+
+    return reviews.stream()
+            .map(ReviewResponseDto::from)
+            .collect(Collectors.toList());
+    }
+
+    //게스트 평점
+    public List<ReviewResponseDto> getReviewsByGuest(Long guestId) {
+        return reviewRepository.findByGuestIdAndIsDeletedFalse(guestId)
+                .stream()
+                .map(ReviewResponseDto::from)
+                .collect(Collectors.toList());
+    }
+
 }

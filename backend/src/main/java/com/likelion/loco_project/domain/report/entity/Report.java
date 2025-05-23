@@ -1,11 +1,8 @@
 package com.likelion.loco_project.domain.report.entity;
 
-import com.likelion.loco_project.domain.guest.Guest;
-import com.likelion.loco_project.domain.review.entity.Review;
+import com.likelion.loco_project.domain.report.type.ReportType;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -14,28 +11,23 @@ import java.time.LocalDateTime;
 @Builder
 public class Report {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reporter_id", nullable = false)
-    private Guest reporter;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "review_id", nullable = false)
-    private Review review;
-
+    // 신고 유형: BOARD, REVIEW 등
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ReportReason reason;
+    private ReportType type;
 
+    // 신고된 대상 ID (게시물 ID 또는 리뷰 ID)
+    @Column(nullable = false)
+    private Long reportedId;
+
+    // 신고 사유
     @Column(length = 500)
-    private String detail;
+    private String reason;
 
-    private LocalDateTime reportedAt;
-
-    @PrePersist
-    public void onReport() {
-        this.reportedAt = LocalDateTime.now();
-    }
+    // 신고자 (선택 사항)
+    private Long reporterId;
 }

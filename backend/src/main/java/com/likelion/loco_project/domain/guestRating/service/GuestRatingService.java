@@ -12,6 +12,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 @Service
 @RequiredArgsConstructor
 public class GuestRatingService {
@@ -41,5 +44,16 @@ public class GuestRatingService {
 
         guestRatingRepository.save(rating);
         return new GuestRatingResponseDto(rating.getId(), "평가가 완료되었습니다.");
+    }
+
+    //평균 평점
+    public BigDecimal getAverageRatingForGuest(Long guestId) {
+        Double avgScore = guestRatingRepository.findAverageScoreByGuestId(guestId);
+
+        if (avgScore == null) {
+            return BigDecimal.ZERO;
+        }
+
+        return BigDecimal.valueOf(avgScore).setScale(1, RoundingMode.HALF_UP);
     }
 }

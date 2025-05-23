@@ -35,7 +35,18 @@ public class GuestReviewController {
     }
 
     @GetMapping("/space/{spaceId}")
-    public List<ReviewResponseDto> getReviewsBySpace(@PathVariable Long spaceId) {
-        return reviewService.getReviewsForSpace(spaceId);
+    public ResponseEntity<List<ReviewResponseDto>> getReviewsBySpace(
+            @PathVariable Long spaceId,
+            @RequestParam(defaultValue = "latest") String sort
+    ) {
+        log.info("공간 {}에 대한 리뷰 조회 요청 - 정렬: {}", spaceId, sort);
+        return ResponseEntity.ok(reviewService.getReviewsBySpace(spaceId, sort));
     }
+
+    @GetMapping("/guest/{guestId}")
+    public ResponseEntity<List<ReviewResponseDto>> getReviewsByGuest(@PathVariable Long guestId) {
+        log.info("게스트 {}의 리뷰 조회 요청", guestId);
+        return ResponseEntity.ok(reviewService.getReviewsByGuest(guestId));
+    }
+
 }
