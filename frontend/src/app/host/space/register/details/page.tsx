@@ -29,7 +29,7 @@ interface SpaceFormData {
 
 export default function RegisterSpacePage() {
   const router = useRouter();
-  const [activeStep, setActiveStep] = useState(1);
+  const [activeStep, setActiveStep] = useState(2);
   const [showAddressSearch, setShowAddressSearch] = useState(false);
   const [formData, setFormData] = useState<SpaceFormData>({
     name: "",
@@ -77,38 +77,65 @@ export default function RegisterSpacePage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleTypeSelect = (type: string) => {
-    setFormData((prev) => ({ ...prev, type }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // 최종 제출 전 모든 필수 필드 검증
+    if (!formData.name || !formData.description || formData.description.length < 20 || !formData.address) {
+      alert('공간 이름, 공간 소개(20자 이상), 주소는 필수 입력 항목입니다.');
+      return;
+    }
+    if (!formData.capacity || !formData.price || parseInt(formData.price) < 1000 || formData.images.length === 0) {
+      alert('수용 인원, 시간당 가격(1000원 이상), 공간 사진은 필수 입력 항목입니다.');
+      return;
+    }
+    // 단계 3 (이용 규칙)에서는 현재 필수 필드 없음
+
     try {
-      // 실제 API 호출
-      // const response = await fetch('/api/v1/spaces', {
+      // 실제 API 호출 부분 (주석 해제 및 수정 필요)
+      // const response = await fetch('/api/v1/spaces', { // 엔드포인트 수정 필요
       //   method: 'POST',
       //   headers: {
       //     'Content-Type': 'application/json',
+      //     // 필요한 경우 인증 토큰 추가
       //   },
-      //   body: JSON.stringify(formData),
+      //   body: JSON.stringify(formData), // 백엔드 DTO에 맞게 formData 구조 변경 필요
       // })
 
       // if (response.ok) {
       //   const data = await response.json()
-      //   router.push(`/spaces/${data.id}`)
+      //   router.push(`/spaces/${data.id}`) // 성공 후 이동할 페이지 수정 필요
+      // } else {
+      //    const errorData = await response.json(); // 오류 응답 처리
+      //    alert(`공간 등록 실패: ${errorData.message || response.statusText}`);
       // }
 
-      // 임시 처리
+      // 임시 처리 (API 연동 전까지 사용)
       console.log("제출된 데이터:", formData);
       alert("공간이 성공적으로 등록되었습니다!");
-      router.push("/host/dashboard");
+      router.push("/host/dashboard"); // 등록 성공 후 이동할 페이지
+
     } catch (error) {
       console.error("공간 등록 오류:", error);
+      alert("공간 등록 중 오류가 발생했습니다.");
     }
   };
 
   const nextStep = () => {
+    // 현재 단계의 필수 필드만 검증 후 다음 단계로 이동
+    if (activeStep === 2) { // 기본 정보 탭
+      if (!formData.name || !formData.description || formData.description.length < 20 || !formData.address) {
+        alert('공간 이름, 공간 소개(20자 이상), 주소는 필수 입력 항목입니다.');
+        return;
+      }
+    } else if (activeStep === 3) { // 공간 정보 탭
+      if (!formData.capacity || !formData.price || parseInt(formData.price) < 1000 || formData.images.length === 0) {
+        alert('수용 인원, 시간당 가격(1000원 이상), 공간 사진은 필수 입력 항목입니다.');
+        return;
+      }
+    }
+    // 단계 4 (이용 규칙)에서는 현재 필수 필드 없음
+
     setActiveStep((prev) => prev + 1);
   };
 
@@ -124,6 +151,7 @@ export default function RegisterSpacePage() {
 
           {/* 단계 표시 */}
           <div className="flex justify-between items-center mb-10">
+            {/* 단계 1: 공간 유형 */}
             <div
               className={`flex flex-col items-center ${
                 activeStep >= 1 ? "text-indigo-600" : "text-gray-400"
@@ -138,13 +166,15 @@ export default function RegisterSpacePage() {
               >
                 1
               </div>
-              <span className="text-sm">기본 정보</span>
+              <span className="text-sm">공간 유형</span>
             </div>
+            {/* 구분선 */}
             <div
               className={`flex-1 h-1 mx-2 ${
                 activeStep >= 2 ? "bg-indigo-600" : "bg-gray-200"
               }`}
             ></div>
+            {/* 단계 2: 기본 정보 */}
             <div
               className={`flex flex-col items-center ${
                 activeStep >= 2 ? "text-indigo-600" : "text-gray-400"
@@ -159,13 +189,15 @@ export default function RegisterSpacePage() {
               >
                 2
               </div>
-              <span className="text-sm">공간 정보</span>
+              <span className="text-sm">기본 정보</span>
             </div>
+            {/* 구분선 */}
             <div
               className={`flex-1 h-1 mx-2 ${
                 activeStep >= 3 ? "bg-indigo-600" : "bg-gray-200"
               }`}
             ></div>
+            {/* 단계 3: 공간 정보 */}
             <div
               className={`flex flex-col items-center ${
                 activeStep >= 3 ? "text-indigo-600" : "text-gray-400"
@@ -180,13 +212,36 @@ export default function RegisterSpacePage() {
               >
                 3
               </div>
+              <span className="text-sm">공간 정보</span>
+            </div>
+             {/* 구분선 */}
+            <div
+              className={`flex-1 h-1 mx-2 ${
+                activeStep >= 4 ? "bg-indigo-600" : "bg-gray-200"
+              }`}
+            ></div>
+             {/* 단계 4: 이용 규칙 */}
+            <div
+              className={`flex flex-col items-center ${
+                activeStep >= 4 ? "text-indigo-600" : "text-gray-400"
+              }`}
+            >
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                  activeStep >= 4
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-200 text-gray-500"
+                }`}
+              >
+                4
+              </div>
               <span className="text-sm">이용 규칙</span>
             </div>
           </div>
 
           <form onSubmit={handleSubmit}>
             {/* 단계 1: 기본 정보 */}
-            {activeStep === 1 && (
+            {activeStep === 2 && (
               <div className="space-y-6">
                 <div>
                   <label
@@ -208,62 +263,6 @@ export default function RegisterSpacePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    공간 유형
-                  </label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <button
-                      type="button"
-                      onClick={() => handleTypeSelect("회의실")}
-                      className={`flex flex-col items-center justify-center p-4 border rounded-lg ${
-                        formData.type === "회의실"
-                          ? "border-indigo-500 bg-indigo-50"
-                          : "border-gray-200 hover:bg-gray-50"
-                      }`}
-                    >
-                      <Building2 className="w-6 h-6 mb-2 text-gray-600" />
-                      <span>회의실</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleTypeSelect("스튜디오")}
-                      className={`flex flex-col items-center justify-center p-4 border rounded-lg ${
-                        formData.type === "스튜디오"
-                          ? "border-indigo-500 bg-indigo-50"
-                          : "border-gray-200 hover:bg-gray-50"
-                      }`}
-                    >
-                      <Camera className="w-6 h-6 mb-2 text-gray-600" />
-                      <span>스튜디오</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleTypeSelect("파티룸")}
-                      className={`flex flex-col items-center justify-center p-4 border rounded-lg ${
-                        formData.type === "파티룸"
-                          ? "border-indigo-500 bg-indigo-50"
-                          : "border-gray-200 hover:bg-gray-50"
-                      }`}
-                    >
-                      <PartyPopper className="w-6 h-6 mb-2 text-gray-600" />
-                      <span>파티룸</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleTypeSelect("오피스")}
-                      className={`flex flex-col items-center justify-center p-4 border rounded-lg ${
-                        formData.type === "오피스"
-                          ? "border-indigo-500 bg-indigo-50"
-                          : "border-gray-200 hover:bg-gray-50"
-                      }`}
-                    >
-                      <Coffee className="w-6 h-6 mb-2 text-gray-600" />
-                      <span>오피스</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div>
                   <label
                     htmlFor="description"
                     className="block text-sm font-medium text-gray-700 mb-1"
@@ -278,6 +277,7 @@ export default function RegisterSpacePage() {
                     placeholder="공간의 특징, 장점, 주요 시설 등을 자세히 소개해주세요"
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px]"
                     required
+                    minLength={20}
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     최소 20자 이상 작성해주세요
@@ -292,12 +292,14 @@ export default function RegisterSpacePage() {
                     name="address"
                     value={formData.address}
                     onChange={handleInputChange}
-                    placeholder="우편번호"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="주소를 입력해주세요"
+                    className="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     required
                     readOnly
                   />
-                  <AddressSearch onComplete={handleAddressComplete} />
+                  <div className="flex-shrink-0">
+                    <AddressSearch onComplete={handleAddressComplete} />
+                  </div>
                 </div>
                 <div>
                   <label
@@ -320,7 +322,7 @@ export default function RegisterSpacePage() {
             )}
 
             {/* 단계 2: 공간 정보 */}
-            {activeStep === 2 && (
+            {activeStep === 3 && (
               <div className="space-y-6">
                 <div>
                   <label
@@ -447,9 +449,8 @@ export default function RegisterSpacePage() {
                           return true;
                         });
 
-                        const totalImages =
-                          formData.images.length + validFiles.length;
-                        if (totalImages > 10) {
+                        const totalImages = formData.images.length + validFiles.length;
+                         if (totalImages > 10) {
                           alert("최대 10장까지만 업로드 가능합니다.");
                           return;
                         }
@@ -519,7 +520,7 @@ export default function RegisterSpacePage() {
             )}
 
             {/* 단계 3: 이용 규칙 */}
-            {activeStep === 3 && (
+            {activeStep === 4 && (
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -645,27 +646,40 @@ export default function RegisterSpacePage() {
             )}
 
             {/* 버튼 영역 */}
-            <div className="flex justify-between mt-10">
-              {activeStep > 1 ? (
-                <button
-                  type="button"
-                  onClick={prevStep}
-                  className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-                >
-                  이전
-                </button>
-              ) : (
-                <div></div>
-              )}
+            {activeStep >= 2 && activeStep <= 4 && (
+              <div className="flex justify-between mt-10">
+                {activeStep > 2 ? (
+                  <button
+                    type="button"
+                    onClick={prevStep}
+                    className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    이전
+                  </button>
+                ) : (
+                  <div></div>
+                )}
 
-              <button
-                type="button"
-                onClick={activeStep === 3 ? handleSubmit : nextStep}
-                className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-              >
-                {activeStep === 3 ? "등록 하기" : "다음"}
-              </button>
-            </div>
+                <button
+                   type={activeStep === 4 ? "submit" : "button"}
+                   onClick={activeStep === 4 ? handleSubmit : nextStep}
+                   className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                 >
+                   {activeStep === 4 ? "등록 하기" : "다음"}
+                 </button>
+              </div>
+            )}
+            {activeStep === 1 && (
+                 <div className="flex justify-end mt-10">
+                     <button
+                         type="button"
+                         onClick={nextStep}
+                          className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                      >
+                          다음
+                      </button>
+                 </div>
+            )}
           </form>
         </div>
       </div>

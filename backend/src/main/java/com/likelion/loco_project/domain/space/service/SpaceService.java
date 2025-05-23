@@ -29,8 +29,17 @@ public class SpaceService {
     public SpaceResponseDto createSpace(Long hostId, SpaceCreateRequestDto dto) {
         Host host = hostRepository.findById(hostId)
                 .orElseThrow(() -> new IllegalArgumentException("호스트를 찾을 수 없습니다."));
-        Space space = spaceRepository.save(dto.toEntity(host));
-        return SpaceResponseDto.fromEntity(space);
+
+        // DTO를 Entity로 변환
+        Space space = dto.toEntity(host);
+
+        // 이미지 URL 목록 중 첫 번째 URL을 imageId 필드에 임시 저장 (Long 타입과 맞지 않으므로 실제 이미지 ID 또는 URL 저장 필드 필요)
+        // 여기서는 임시로 imageId 필드를 0으로 설정하고, 이미지 URL 처리는 추후 개선 필요
+        // 실제 이미지 URL을 저장하려면 Space 엔티티에 String 타입의 이미지 URL 필드 추가 필요
+        // space.setImageId(...);
+
+        Space savedSpace = spaceRepository.save(space);
+        return SpaceResponseDto.fromEntity(savedSpace);
     }
 
     // 공간 단일 조회
