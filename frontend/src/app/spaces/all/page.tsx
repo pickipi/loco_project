@@ -1,38 +1,44 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import SpaceCard from '@/components/space/SpaceCard';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import SpaceCard from "@/components/space/SpaceCard";
 
-interface Space {
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+
+// 서버에서 받는 데이터 타입
+interface SpaceResponse {
   id: string;
-  name: string;
+  spaceName: string;
   description: string;
   address: string;
   price: number;
   mainImageUrl: string;
-  capacity: number;
-  rating: number;
+  maxCapacity: number;
+  spaceRating: number;
   reviewCount: number;
 }
 
 export default function AllSpacesPage() {
   const router = useRouter();
-  const [spaces, setSpaces] = useState<Space[]>([]);
+  const [spaces, setSpaces] = useState<SpaceResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSpaces = async () => {
       try {
-        const response = await fetch('/api/v1/spaces/all');
+        const response = await fetch(`${API_BASE_URL}/api/v1/spaces`);
         if (!response.ok) {
-          throw new Error('Failed to fetch spaces');
+          throw new Error("Failed to fetch spaces");
         }
+
         const data = await response.json();
-        setSpaces(data);
+        const spaceData = data.data || data;
+        setSpaces(spaceData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : '공간 목록을 불러오는데 실패했습니다.');
+        setError(err instanceof Error ? err.message : "Failed to fetch spaces");
       } finally {
         setLoading(false);
       }
@@ -44,7 +50,7 @@ export default function AllSpacesPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">불러오는 중...</div>
+        <div className="text-gray-600">로딩중...</div>
       </div>
     );
   }
@@ -74,7 +80,13 @@ export default function AllSpacesPage() {
           {spaces.map((space) => (
             <SpaceCard
               key={space.id}
-              {...space}
+              id={space.id}
+              title={space.spaceName}
+              location={space.address}
+              capacity={`${space.maxCapacity}명`}
+              price={space.price}
+              rating={space.spaceRating}
+              imageUrl={space.mainImageUrl}
             />
           ))}
         </div>

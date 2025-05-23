@@ -46,13 +46,14 @@ export default function RegisterSpacePage() {
     minTime: "1",
     maxTime: "4",
   });
-
   // 주소 검색 완료 핸들러
   const handleAddressComplete = (data: any) => {
     setFormData((prev) => ({
       ...prev,
       address: data.address,
       zonecode: data.zonecode,
+      latitude: data.latitude,
+      longitude: data.longitude,
     }));
   };
 
