@@ -86,5 +86,4 @@ public class EmailAuthManager {
         String key = AUTH_CODE_PREFIX + email;
         return redisService.checkExistsValue(redisService.getValues(key));
     }
-
 }
