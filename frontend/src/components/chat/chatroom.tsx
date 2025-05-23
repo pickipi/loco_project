@@ -20,6 +20,7 @@ import { Message } from '@/types/chat';
  * @property {function} onCancelEdit - 메시지 수정 취소 핸들러
  * @property {function} onLeaveRoom - 채팅방 나가기 핸들러
  * @property {string} currentUserId - 현재 사용자 ID
+ * @property {boolean} isConnected - WebSocket 연결 상태
  */
 interface ChatRoomProps {
   roomId: string;
@@ -31,6 +32,7 @@ interface ChatRoomProps {
   onCancelEdit: () => void;
   onLeaveRoom: (roomId: string) => void;
   currentUserId: string;
+  isConnected: boolean;
 }
 
 /**
@@ -47,6 +49,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({
   onCancelEdit,
   onLeaveRoom,
   currentUserId,
+  isConnected,
 }) => {
   // 새 메시지 입력값 상태
   const [newMessage, setNewMessage] = useState('');
@@ -110,7 +113,17 @@ const ChatRoom: React.FC<ChatRoomProps> = ({
       {/* 채팅방 헤더 */}
       <Paper elevation={2} sx={{ p: 2, backgroundColor: '#e3f2fd' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant="h6" sx={{ color: '#1976d2' }}>{roomName}</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="h6" sx={{ color: '#1976d2' }}>{roomName}</Typography>
+            <Box
+              sx={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                backgroundColor: isConnected ? '#4caf50' : '#f44336'
+              }}
+            />
+          </Box>
           <IconButton
             onClick={() => {
               if (window.confirm('채팅방을 나가시겠습니까?')) {
