@@ -74,4 +74,26 @@ public class ApiV1SpaceController {
     public ResponseEntity<Page<SpaceResponseDto>> searchSpaces(SpaceSearchDto searchDto) {
         return ResponseEntity.ok(spaceService.searchSpaces(searchDto));
     }
+
+    // 공간 찜하기
+    @Operation(summary = "공간 찜하기")
+    @PostMapping("/{spaceId}/favorite")
+    public ResponseEntity<RsData<String>> favoriteSpace(
+            @PathVariable Long spaceId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        spaceService.favoriteSpace(userId, spaceId);
+        return ResponseEntity.ok(RsData.of("S-1", "공간을 찜했습니다."));
+    }
+
+    // 공간 찜 제거하기
+    @Operation(summary = "공간 찜 취소")
+    @DeleteMapping("/{spaceId}/favorite")
+    public ResponseEntity<RsData<String>> unfavoriteSpace(
+            @PathVariable Long spaceId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        spaceService.unfavoriteSpace(userId, spaceId);
+        return ResponseEntity.ok(RsData.of("S-2", "찜을 취소했습니다."));
+    }
 }
