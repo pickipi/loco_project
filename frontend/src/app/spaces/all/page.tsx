@@ -13,16 +13,15 @@ interface SpaceResponse {
   spaceName: string;
   description: string;
   address: string;
-  address2?: string;
-  address3?: string;
+  detailAddress?: string;
+  neighborhoodInfo?: string;
   latitude: number;
   longitude: number;
   maxCapacity: number;
   price: number;
   spaceRating: number;
-  mainImageUrl: string;
+  imageId: number;
   isActive: boolean;
-  reviewCount: number;
 }
 
 export default function AllSpacesPage() {
@@ -30,17 +29,18 @@ export default function AllSpacesPage() {
   const [spaces, setSpaces] = useState<SpaceResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
     const fetchSpaces = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/spaces`);
+        const response = await fetch(
+          `${API_BASE_URL}/api/v1/spaces/all?page=0&size=12&sort=id`
+        );
         if (!response.ok) {
           throw new Error("Failed to fetch spaces");
         }
 
         const data = await response.json();
-        const spaceData = data.data || data;
+        const spaceData = data.data?.content || [];
         setSpaces(spaceData);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch spaces");
@@ -92,9 +92,13 @@ export default function AllSpacesPage() {
                 location={space.address}
                 capacity={`${space.maxCapacity}명`}
                 price={space.price}
-                rating={space.spaceRating}
-                imageUrl={space.mainImageUrl}
-                reviewCount={space.reviewCount}
+                rating={Number(space.spaceRating) || 0}
+                imageUrl={`${
+                  space.imageId
+                    ? `/images/${space.imageId}`
+                    : "/placeholder.svg"
+                }`}
+                reviewCount={0}
               />
             ))}
         </div>

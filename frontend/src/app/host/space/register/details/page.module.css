@@ -58,7 +58,7 @@
 }
 
 .editButton {
-  color: #7047EB;
+  color: #7047eb;
   font-size: 0.875rem;
   display: flex;
   align-items: center;
@@ -66,7 +66,7 @@
 }
 
 .editButton:hover {
-  color: #5835B0;
+  color: #5835b0;
 }
 
 .tagContainer {
@@ -77,11 +77,11 @@
 
 .tag {
   background-color: rgba(112, 71, 235, 0.05);
-  color: #7047EB;
+  color: #7047eb;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
   font-size: 0.875rem;
-  border: 1px solid #7047EB;
+  border: 1px solid #7047eb;
 }
 
 .label {
@@ -228,7 +228,7 @@
 
 .buttonPrimary {
   composes: button;
-  background-color: #7047EB;
+  background-color: #7047eb;
   color: white;
 }
 
@@ -237,4 +237,30 @@
   background-color: #e5e7eb;
   color: #9ca3af;
   cursor: not-allowed;
-} 
+}
+
+.stepActive {
+  background-color: #7047eb;
+  color: white;
+}
+
+.stepInactive {
+  background-color: #e5e7eb;
+  color: #9ca3af;
+}
+
+.stepTextActive {
+  color: #7047eb;
+}
+
+.stepTextInactive {
+  color: #9ca3af;
+}
+
+.lineActive {
+  background-color: #7047eb;
+}
+
+.lineInactive {
+  background-color: #e5e7eb;
+}
