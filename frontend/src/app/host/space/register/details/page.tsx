@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import ImageUploader from "@/components/space/ImageUploader";
 import TagInput from "@/components/space/TagInput";
 import type { SpaceType } from "@/components/space/SpaceTypeSelector";
+import AddressSearch from "@/components/AddressSearch";
 import styles from "./page.module.css";
 
 // 카카오맵 컴포넌트를 동적으로 import (SSR 비활성화)
@@ -409,50 +410,35 @@ export default function SpaceDetailsPage() {
               <input
                 type="text"
                 value={form.address}
-                onChange={(e) => {
-                  setForm((prev) => ({ ...prev, address: e.target.value }));
-                  setIsAddressVerified(false);
-                }}
                 className={styles.addressInput}
-                placeholder="주소를 입력해주세요"
+                placeholder="주소를 검색해주세요"
+                readOnly
                 required
               />
-              <button
-                type="button"
-                onClick={() => {
-                  if (form.address) {
-                    setShouldSearch(true);
-                    setIsAddressVerified(true);
-                  }
+              <AddressSearch
+                onComplete={(data) => {
+                  setForm((prev) => ({
+                    ...prev,
+                    address: data.address,
+                    latitude: data.latitude || prev.latitude,
+                    longitude: data.longitude || prev.longitude,
+                  }));
+                  setIsAddressVerified(true);
                 }}
-                className={styles.searchButton}
-                disabled={!form.address}
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-                주소 검색
-              </button>
+                buttonClassName={styles.searchButton}
+              />
             </div>
-            <input
-              type="text"
-              value={form.address2}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, address2: e.target.value }))
-              }
-              className={styles.input}
-              placeholder="상세 주소를 입력해주세요 (선택)"
-            />
+            <div>
+              <input
+                type="text"
+                value={form.address2}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, address2: e.target.value }))
+                }
+                className={styles.input}
+                placeholder="상세 주소를 입력해주세요 (선택)"
+              />
+            </div>
             <div>
               <input
                 type="text"
@@ -469,7 +455,7 @@ export default function SpaceDetailsPage() {
             <div className={styles.mapContainer}>
               <KakaoMap
                 address={form.address}
-                center={mapCenter}
+                center={{ lat: form.latitude, lng: form.longitude }}
                 shouldSearch={shouldSearch}
                 onLocationChange={(lat: number, lng: number) => {
                   setForm((prev) => ({
@@ -477,7 +463,6 @@ export default function SpaceDetailsPage() {
                     latitude: lat,
                     longitude: lng,
                   }));
-                  setMapCenter({ lat, lng });
                   setShouldSearch(false);
                 }}
               />
