@@ -37,16 +37,14 @@ public class SpaceCreateRequestDto {
     private LocalDateTime uploadDate;
 
     @Schema(description = "최대 수용 인원", example = "6")
-    private Integer maxCapacity;
-
-    @Schema(description = "기본 주소", example = "서울시 강남구")
+    private Integer maxCapacity;    @Schema(description = "기본 주소", example = "서울시 강남구")
     private String address;
 
     @Schema(description = "상세 주소", example = "테헤란로 123 5층")
-    private String address2;
+    private String detailAddress;
 
     @Schema(description = "주변 정보", example = "강남역 2번 출구 인근")
-    private String address3;
+    private String neighborhoodInfo;
 
     @Schema(description = "위도", example = "37.498095")
     private BigDecimal latitude;
@@ -65,7 +63,7 @@ public class SpaceCreateRequestDto {
 
     // ✅ DTO → Entity (Host 주입)
     public Space toEntity(Host host) {
-        return Space.builder()
+        return Space.builder()  // superBuilder()를 builder()로 변경
                 .host(host)
                 .spaceName(spaceName)
                 .description(description)
@@ -73,8 +71,8 @@ public class SpaceCreateRequestDto {
                 .spaceType(spaceType)
                 .price(price)
                 .address(address)
-                .address2(address2)
-                .address3(address3)
+                .detailAddress(detailAddress)
+                .neighborhoodInfo(neighborhoodInfo)
                 .latitude(latitude)
                 .longitude(longitude)
                 .maxCapacity(maxCapacity)

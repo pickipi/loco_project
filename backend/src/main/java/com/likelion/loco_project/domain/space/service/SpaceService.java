@@ -2,10 +2,7 @@ package com.likelion.loco_project.domain.space.service;
 
 import com.likelion.loco_project.domain.host.entity.Host;
 import com.likelion.loco_project.domain.host.repository.HostRepository;
-import com.likelion.loco_project.domain.space.dto.SpaceCreateRequestDto;
-import com.likelion.loco_project.domain.space.dto.SpaceResponseDto;
-import com.likelion.loco_project.domain.space.dto.SpaceSearchDto;
-import com.likelion.loco_project.domain.space.dto.SpaceUpdateRequestDto;
+import com.likelion.loco_project.domain.space.dto.*;
 import com.likelion.loco_project.domain.space.entity.Space;
 import com.likelion.loco_project.domain.space.entity.SpaceStatus;
 import com.likelion.loco_project.domain.space.repository.SpaceRepository;
@@ -42,16 +39,10 @@ public class SpaceService {
         return SpaceResponseDto.fromEntity(space);
     }
 
-    // 공간 전체 조회
-    public List<SpaceResponseDto> getAllSpaces() {
-        return spaceRepository.findAll().stream()
-                .map(SpaceResponseDto::fromEntity)
-                .collect(Collectors.toList());
-    }
-
     // 모든 공간 목록 조회
     public List<SpaceListResponseDto> getAllSpaces() {
-        return spaceRepository.findAll().stream()
+        List<Space> spaces = spaceRepository.findAll();
+        return spaces.stream()
                 .map(SpaceListResponseDto::from)
                 .collect(Collectors.toList());
     }

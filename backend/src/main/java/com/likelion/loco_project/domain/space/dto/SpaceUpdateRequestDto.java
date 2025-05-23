@@ -20,6 +20,8 @@ public class SpaceUpdateRequestDto {
     private SpaceType spaceType;
     private Long price;
     private String address;
+    private String detailAddress;  // Changed from address2
+    private String neighborhoodInfo;  // Changed from address3
     private BigDecimal latitude;
     private BigDecimal longitude;
     private Integer maxCapacity;
@@ -35,6 +37,8 @@ public class SpaceUpdateRequestDto {
         if (this.spaceType != null) space.setSpaceType(this.spaceType);
         if (this.price != null) space.setPrice(this.price);
         if (this.address != null) space.setAddress(this.address);
+        if (this.detailAddress != null) space.setDetailAddress(this.detailAddress); // Changed from address2
+        if (this.neighborhoodInfo != null) space.setNeighborhoodInfo(this.neighborhoodInfo); // Changed from address3
         if (this.latitude != null) space.setLatitude(this.latitude);
         if (this.longitude != null) space.setLongitude(this.longitude);
         if (this.maxCapacity != null) space.setMaxCapacity(this.maxCapacity);

@@ -11,11 +11,13 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "spaces")
-@SuperBuilder
 @Getter
 @Setter
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class Space extends BaseEntity {
 
     @Column(name = "image_id", nullable = true)
@@ -35,16 +37,14 @@ public class Space extends BaseEntity {
     private SpaceType spaceType; // 공간 종류 (스터디룸, 스튜디오 등)
 
     @Column(nullable = false)
-    private Long price; // 공간 가격
-
-    @Column(length = 300, nullable = false)
+    private Long price; // 공간 가격    @Column(length = 300, nullable = false)
     private String address; // 주소
 
     @Column(length = 300, nullable = true)
-    private String address2; // 상세 주소
+    private String detailAddress; // 상세 주소
 
     @Column(length = 300, nullable = true)
-    private String address3; // 주변 주소
+    private String neighborhoodInfo; // 주변 정보
 
     @Column(nullable = false, precision = 10, scale = 6)
     private BigDecimal latitude; // 위도
@@ -71,5 +71,4 @@ public class Space extends BaseEntity {
 
     @Column(name = "rejection_reason")
     private String rejectionReason; // 반려 사유
-
 }

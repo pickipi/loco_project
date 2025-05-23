@@ -13,10 +13,15 @@ interface SpaceResponse {
   spaceName: string;
   description: string;
   address: string;
-  price: number;
-  mainImageUrl: string;
+  address2?: string;
+  address3?: string;
+  latitude: number;
+  longitude: number;
   maxCapacity: number;
+  price: number;
   spaceRating: number;
+  mainImageUrl: string;
+  isActive: boolean;
   reviewCount: number;
 }
 
@@ -77,18 +82,21 @@ export default function AllSpacesPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {spaces.map((space) => (
-            <SpaceCard
-              key={space.id}
-              id={space.id}
-              title={space.spaceName}
-              location={space.address}
-              capacity={`${space.maxCapacity}명`}
-              price={space.price}
-              rating={space.spaceRating}
-              imageUrl={space.mainImageUrl}
-            />
-          ))}
+          {spaces
+            .filter((space) => space.isActive)
+            .map((space) => (
+              <SpaceCard
+                key={space.id}
+                id={space.id}
+                title={space.spaceName}
+                location={space.address}
+                capacity={`${space.maxCapacity}명`}
+                price={space.price}
+                rating={space.spaceRating}
+                imageUrl={space.mainImageUrl}
+                reviewCount={space.reviewCount}
+              />
+            ))}
         </div>
 
         {spaces.length === 0 && (

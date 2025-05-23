@@ -1,9 +1,6 @@
 package com.likelion.loco_project.domain.space.controller;
 
-import com.likelion.loco_project.domain.space.dto.SpaceCreateRequestDto;
-import com.likelion.loco_project.domain.space.dto.SpaceResponseDto;
-import com.likelion.loco_project.domain.space.dto.SpaceSearchDto;
-import com.likelion.loco_project.domain.space.dto.SpaceUpdateRequestDto;
+import com.likelion.loco_project.domain.space.dto.*;
 import com.likelion.loco_project.domain.space.service.SpaceService;
 import com.likelion.loco_project.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,19 +36,12 @@ public class ApiV1SpaceController {
         return ResponseEntity.ok(RsData.of("S-200", "공간 조회 성공", dto));
     }
 
-    // 공간 전체 조회(지도)
-    @Operation(summary = "전체 공간 목록 조회", description = "등록된 모든 공간 리스트를 조회합니다. (지도에서 사용)")
-    @GetMapping
-    public ResponseEntity<List<SpaceResponseDto>> getAllSpaces() {
-        List<SpaceResponseDto> response = spaceService.getAllSpaces();
-        return ResponseEntity.ok(response);
-    }
-
     // 모든 공간 목록 조회
     @GetMapping("/all")
-    public RsData<List<SpaceListResponseDto>> getAllSpaces() {
+    @Operation(summary = "모든 공간 목록 조회", description = "등록된 모든 공간의 목록을 조회합니다.")
+    public ResponseEntity<RsData<List<SpaceListResponseDto>>> getAllSpaces() {
         List<SpaceListResponseDto> spaces = spaceService.getAllSpaces();
-        return RsData.of("S-1", "모든 공간 목록을 조회했습니다.", spaces);
+        return ResponseEntity.ok(RsData.of("S-1", "모든 공간 목록을 조회했습니다.", spaces));
     }
 
     // 공간 수정
