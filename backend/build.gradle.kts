@@ -59,6 +59,13 @@ dependencies {
 
 	//Toss Payments 추가
 	implementation("com.fasterxml.jackson.core:jackson-databind")
+
+	//구글 SMTP 설정
+	implementation("org.springframework.boot:spring-boot-starter-mail:3.0.5")
+
+	//Redis(이메일 인증번호)
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
+
 }
 
 tasks.withType<Test> {

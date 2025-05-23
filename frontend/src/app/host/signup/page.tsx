@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import EmailVerificationButton from '@/components/emailverification/EmailVerificationButton'
 import styles from './page.module.css'
 
 // API 기본 URL 설정
@@ -28,6 +29,7 @@ export default function HostRegisterPage() {
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -35,11 +37,22 @@ export default function HostRegisterPage() {
       ...prev,
       [name]: value
     }));
+    
+    // 이메일이 변경되면 인증 상태 초기화
+    if (name === 'email') {
+      setIsEmailVerified(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // 이메일 인증 확인
+    if (!isEmailVerified) {
+      setError('이메일 인증이 필요합니다.');
+      return;
+    }
 
     // 비밀번호 확인 검증
     if (formData.password !== passwordConfirm) {
@@ -109,15 +122,14 @@ export default function HostRegisterPage() {
             <label htmlFor="email" className={styles.label}>
               이메일
             </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className={styles.input}
-              required
+            <EmailVerificationButton 
+              email={formData.email} 
+              onVerified={() => setIsEmailVerified(true)}
+              onChange={(email) => setFormData(prev => ({ ...prev, email }))}
             />
+            {isEmailVerified && (
+              <p className={styles.verifiedText}>✓ 이메일이 인증되었습니다.</p>
+            )}
           </div>
 
           <div className={styles.inputGroup}>
@@ -182,7 +194,7 @@ export default function HostRegisterPage() {
             </Link>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !isEmailVerified}
               className={styles.submitButton}
             >
               {isLoading ? '처리중...' : '가입하기'}

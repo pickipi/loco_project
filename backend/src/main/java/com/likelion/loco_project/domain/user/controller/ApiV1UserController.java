@@ -36,7 +36,7 @@ public class ApiV1UserController {
         return ResponseEntity.ok(user);
     }
 
-//    @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
+    //    @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
 //    @PostMapping("/login")
 //    public ResponseEntity<UserResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
 //        UserResponseDto user = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
@@ -77,5 +77,24 @@ public class ApiV1UserController {
     public ResponseEntity<RsData<Boolean>> isNotificationEnabled(@AuthenticationPrincipal User user) {
         boolean enabled = userService.isNotificationEnabled(user.getId());
         return ResponseEntity.ok(RsData.of("S-1", "알림 설정 상태 조회 성공", enabled));
+    }
+
+    // 이메일 인증 코드 전송
+    @Operation(summary = "이메일 인증 코드 전송", description = "사용자 이메일로 인증 코드를 전송합니다.")
+    @PostMapping("/emails/verification-requests")
+    public ResponseEntity<Void> sendVerificationCode(@RequestParam("email") String email) {
+        userService.sendCodeToEmail(email);
+        return ResponseEntity.ok().build();
+    }
+
+    //이메일 인증 코드 검증
+    @Operation(summary = "이메일 인증 코드 검증", description = "사용자가 입력한 인증 코드를 검증합니다.")
+    @GetMapping("/emails/verifications")
+    public ResponseEntity<RsData<Boolean>> verifyCode(
+            @RequestParam("email") String email,
+            @RequestParam("code") String code
+    ) {
+        boolean verified = userService.verifyCode(email, code);
+        return ResponseEntity.ok(RsData.of("S-1", "이메일 인증 결과", verified));
     }
 }
