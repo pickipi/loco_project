@@ -9,6 +9,7 @@ export interface SpaceCardProps {
   price: number;
   rating: number;
   imageUrl: string;
+  reviewCount?: number;
 }
 
 export default function SpaceCard({
@@ -19,6 +20,7 @@ export default function SpaceCard({
   price,
   rating,
   imageUrl,
+  reviewCount = 0,
 }: SpaceCardProps) {
   return (
     <Link href={`/spaces/${id}`}>

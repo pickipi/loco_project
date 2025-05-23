@@ -16,15 +16,19 @@ export default function DaumPostcode({
   onClose,
 }: DaumPostcodeProps) {
   const postcodeRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src =
-      "//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
-    script.async = true;
-    document.head.appendChild(script);
+    const loadKakaoScript = () => {
+      return new Promise<void>((resolve) => {
+        const script = document.createElement("script");
+        script.src =
+          "//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
+        script.onload = () => resolve();
+        document.head.appendChild(script);
+      });
+    };
 
-    script.onload = () => {
+    const initializePostcode = async () => {
+      await loadKakaoScript();
       new window.daum.Postcode({
         oncomplete: (data: any) => {
           onComplete(data);
@@ -35,8 +39,13 @@ export default function DaumPostcode({
       }).embed(postcodeRef.current);
     };
 
+    initializePostcode();
+
     return () => {
-      document.head.removeChild(script);
+      const script = document.querySelector('script[src*="daumcdn"]');
+      if (script) {
+        document.head.removeChild(script);
+      }
     };
   }, [onComplete, onClose]);
 

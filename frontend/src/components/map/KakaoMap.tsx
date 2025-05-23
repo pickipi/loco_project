@@ -165,17 +165,40 @@ export default function KakaoMap({
 
     setIsAddressSearchVisible(false);
   };
-
   // 카카오맵 로드 및 초기화를 위한 useEffect
   useEffect(() => {
-    if (mapLoaded && window.kakao?.maps) {
-      window.kakao.maps.load(() => {
+    let isMapScriptLoaded = false;
+
+    const loadKakaoMap = () => {
+      if (
+        typeof window.kakao === "undefined" ||
+        typeof window.kakao.maps === "undefined"
+      ) {
+        return;
+      }
+      if (!isMapScriptLoaded) {
+        window.kakao.maps.load(() => {
+          isMapScriptLoaded = true;
+          initializeMap();
+          if (address && shouldSearch) {
+            searchAddress(address);
+          }
+        });
+      } else {
         initializeMap();
         if (address && shouldSearch) {
           searchAddress(address);
         }
-      });
+      }
+    };
+
+    if (mapLoaded) {
+      loadKakaoMap();
     }
+
+    return () => {
+      isMapScriptLoaded = false;
+    };
   }, [mapLoaded, shouldSearch, address]);
 
   return (

@@ -25,34 +25,48 @@ export default function AddressSearch({
   buttonClassName,
 }: AddressSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
-
   const handleComplete = async (data: any) => {
-    const geocoder = new window.kakao.maps.services.Geocoder();
+    const { roadAddress, address, zonecode, buildingName } = data;
+    const selectedAddress = roadAddress || address;
 
-    geocoder.addressSearch(
-      data.roadAddress || data.address,
-      (result: any[], status: string) => {
-        if (status === window.kakao.maps.services.Status.OK) {
-          const coords = {
-            latitude: Number(result[0].y),
-            longitude: Number(result[0].x),
-          };
+    // Kakao Maps SDK가 로드되어 있는지 확인
+    if (window.kakao?.maps?.services) {
+      const geocoder = new window.kakao.maps.services.Geocoder();
 
-          onComplete({
-            address: data.roadAddress || data.address,
-            zonecode: data.zonecode,
-            buildingName: data.buildingName,
-            ...coords,
-          });
-        } else {
-          onComplete({
-            address: data.roadAddress || data.address,
-            zonecode: data.zonecode,
-            buildingName: data.buildingName,
-          });
+      geocoder.addressSearch(
+        selectedAddress,
+        (result: any[], status: string) => {
+          if (status === window.kakao.maps.services.Status.OK) {
+            const coords = {
+              latitude: Number(result[0].y),
+              longitude: Number(result[0].x),
+            };
+
+            onComplete({
+              address: selectedAddress,
+              zonecode,
+              buildingName,
+              ...coords,
+            });
+          } else {
+            console.warn("Geocoding failed:", status);
+            onComplete({
+              address: selectedAddress,
+              zonecode,
+              buildingName,
+            });
+          }
         }
-      }
-    );
+      );
+    } else {
+      // Kakao Maps SDK가 로드되지 않은 경우
+      console.warn("Kakao Maps SDK not loaded");
+      onComplete({
+        address: selectedAddress,
+        zonecode,
+        buildingName,
+      });
+    }
 
     setIsOpen(false);
   };
