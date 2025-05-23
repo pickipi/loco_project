@@ -29,6 +29,7 @@ public class JwtUtil {
 
         return Jwts.builder()
                 .setSubject(email)
+                .claim("role", "HOST")
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(key, SignatureAlgorithm.HS256)

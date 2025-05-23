@@ -9,6 +9,7 @@ import com.likelion.loco_project.domain.space.repository.SpaceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,12 @@ public class SpaceService {
         return spaces.stream()
                 .map(SpaceListResponseDto::from)
                 .collect(Collectors.toList());
+    }
+
+    // 모든 공간 목록 조회 (페이징 처리)
+    public Page<SpaceListResponseDto> getAllSpacesWithPagination(Pageable pageable) {
+        Page<Space> spacePage = spaceRepository.findAll(pageable);
+        return spacePage.map(SpaceListResponseDto::from);
     }
 
     // 공간 수정

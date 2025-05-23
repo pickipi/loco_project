@@ -7,10 +7,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -36,11 +36,14 @@ public class ApiV1SpaceController {
         return ResponseEntity.ok(RsData.of("S-200", "공간 조회 성공", dto));
     }
 
-    // 모든 공간 목록 조회
-    @GetMapping("/all")
+    // 모든 공간 목록 조회    @GetMapping("/all")
     @Operation(summary = "모든 공간 목록 조회", description = "등록된 모든 공간의 목록을 조회합니다.")
-    public ResponseEntity<RsData<List<SpaceListResponseDto>>> getAllSpaces() {
-        List<SpaceListResponseDto> spaces = spaceService.getAllSpaces();
+    public ResponseEntity<RsData<Page<SpaceListResponseDto>>> getAllSpaces(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(defaultValue = "id") String sort) {
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(sort));
+        Page<SpaceListResponseDto> spaces = spaceService.getAllSpacesWithPagination(pageRequest);
         return ResponseEntity.ok(RsData.of("S-1", "모든 공간 목록을 조회했습니다.", spaces));
     }
 
