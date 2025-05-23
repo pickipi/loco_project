@@ -1,5 +1,6 @@
 package com.likelion.loco_project.domain.user.entity;
 
+import com.likelion.loco_project.domain.space.entity.Space;
 import com.likelion.loco_project.global.jpa.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -71,4 +72,14 @@ public class User extends BaseEntity {
     // 알림 수신 여부 (기본값: true)
     @Column(nullable = false)
     private boolean notificationEnabled = true;
+
+    //찜하기
+    @ManyToMany
+    @JoinTable(
+            name = "user_favorite_spaces",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "space_id")
+    )
+    private Set<Space> favoriteSpaces = new HashSet<>();
+
 }

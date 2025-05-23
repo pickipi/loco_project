@@ -26,9 +26,10 @@ public class SpaceResponseDto {
     private Integer maxCapacity;
     private Boolean isActive;
     private BigDecimal spaceRating;
+    private Boolean isFavoritedByMe;
 
     // Space 엔티티를 DTO로 변환하는 정적 팩토리 메서드
-    public static SpaceResponseDto fromEntity(Space space) {
+    public static SpaceResponseDto fromEntity(Space space, boolean isFavoritedByMe) {
         return SpaceResponseDto.builder()
                 .id(space.getId())
                 .imageId(space.getImageId())
@@ -44,6 +45,7 @@ public class SpaceResponseDto {
                 .maxCapacity(space.getMaxCapacity())
                 .isActive(space.getIsActive())
                 .spaceRating(space.getSpaceRating())
+                .isFavoritedByMe(isFavoritedByMe)
                 .build();
     }
 }

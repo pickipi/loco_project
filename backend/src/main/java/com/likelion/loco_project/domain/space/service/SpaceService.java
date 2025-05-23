@@ -9,6 +9,8 @@ import com.likelion.loco_project.domain.space.dto.SpaceUpdateRequestDto;
 import com.likelion.loco_project.domain.space.entity.Space;
 import com.likelion.loco_project.domain.space.entity.SpaceStatus;
 import com.likelion.loco_project.domain.space.repository.SpaceRepository;
+import com.likelion.loco_project.domain.user.entity.User;
+import com.likelion.loco_project.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +28,7 @@ public class SpaceService {
 
     private final SpaceRepository spaceRepository;
     private final HostRepository hostRepository;
+    private final UserRepository userRepository;
 
     // 공간 생성
     public SpaceResponseDto createSpace(Long hostId, SpaceCreateRequestDto dto) {
@@ -128,5 +131,21 @@ public class SpaceService {
 
         space.setStatus(SpaceStatus.REJECTED);
         space.setRejectionReason(rejectionReason); // 반려 사유 저장
+    }
+
+    //찜 추가
+    public void favoriteSpace(Long userId, Long spaceId) {
+        User user = userRepository.findById(userId).orElseThrow();
+        Space space = spaceRepository.findById(spaceId).orElseThrow();
+        user.getFavoriteSpaces().add(space);
+        userRepository.save(user);
+    }
+
+    // 찜 제거
+    public void unfavoriteSpace(Long userId, Long spaceId) {
+        User user = userRepository.findById(userId).orElseThrow();
+        Space space = spaceRepository.findById(spaceId).orElseThrow();
+        user.getFavoriteSpaces().remove(space);
+        userRepository.save(user);
     }
 }
