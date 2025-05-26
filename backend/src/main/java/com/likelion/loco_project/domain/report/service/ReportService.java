@@ -1,6 +1,6 @@
 package com.likelion.loco_project.domain.report.service;
 
-import com.likelion.loco_project.domain.guest.Guest;
+import com.likelion.loco_project.domain.guest.entity.Guest;
 import com.likelion.loco_project.domain.guest.repository.GuestRepository;
 import com.likelion.loco_project.domain.report.dto.ReportRequestDto;
 import com.likelion.loco_project.domain.report.dto.ReportResponseDto;
@@ -30,7 +30,7 @@ public class ReportService {
         Report report = Report.builder()
                 .reporter(reporter)
                 .review(review)
-                .reason(requestDto.getReason())
+                .reason(String.valueOf(requestDto.getReason()))
                 .detail(requestDto.getDetail())
                 .build();
 
