@@ -1,8 +1,8 @@
 package com.likelion.loco_project.domain.guestRating.repository;
 
-import com.likelion.loco_project.domain.guest.Guest;
+import com.likelion.loco_project.domain.guest.entity.Guest;
 import com.likelion.loco_project.domain.guestRating.entity.GuestRating;
-import com.likelion.loco_project.domain.host.Host;
+import com.likelion.loco_project.domain.host.entity.Host;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
