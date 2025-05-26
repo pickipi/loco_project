@@ -1,16 +1,38 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Building2, Camera, PartyPopper, Coffee, Upload } from "lucide-react";
+import { ThemeToggle } from "../../components/ThemeToggle";
+import AddressSearch from "@/components/AddressSearch";
+import dynamic from "next/dynamic";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Building2, Camera, PartyPopper, Coffee, Upload } from "lucide-react"
-import { ThemeToggle } from "../../components/ThemeToggle"
+// DaumPostcode를 dynamic import로 불러오기
+const DaumPostcode = dynamic(() => import("@/components/DaumPostcode"), {
+  ssr: false,
+});
+
+interface SpaceFormData {
+  name: string;
+  type: string;
+  description: string;
+  address: string;
+  detailAddress: string;
+  capacity: string;
+  price: string;
+  images: File[];
+  openTime: string;
+  closeTime: string;
+  minTime: string;
+  maxTime: string;
+}
 
 export default function RegisterSpacePage() {
-  const router = useRouter()
-  const [activeStep, setActiveStep] = useState(1)
-  const [formData, setFormData] = useState({
+  const router = useRouter();
+  const [activeStep, setActiveStep] = useState(1);
+  const [showAddressSearch, setShowAddressSearch] = useState(false);
+  const [formData, setFormData] = useState<SpaceFormData>({
     name: "",
     type: "",
     description: "",
@@ -23,19 +45,32 @@ export default function RegisterSpacePage() {
     closeTime: "",
     minTime: "1",
     maxTime: "4",
-  })
+  });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+  // 주소 검색 완료 핸들러
+  const handleAddressComplete = (data: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      address: data.address,
+      zonecode: data.zonecode,
+    }));
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleTypeSelect = (type: string) => {
-    setFormData((prev) => ({ ...prev, type }))
-  }
+    setFormData((prev) => ({ ...prev, type }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
       // 실제 API 호출
@@ -53,21 +88,21 @@ export default function RegisterSpacePage() {
       // }
 
       // 임시 처리
-      console.log("제출된 데이터:", formData)
-      alert("공간이 성공적으로 등록되었습니다!")
-      router.push("/spaces")
+      console.log("제출된 데이터:", formData);
+      alert("공간이 성공적으로 등록되었습니다!");
+      router.push("/spaces");
     } catch (error) {
-      console.error("공간 등록 오류:", error)
+      console.error("공간 등록 오류:", error);
     }
-  }
+  };
 
   const nextStep = () => {
-    setActiveStep((prev) => prev + 1)
-  }
+    setActiveStep((prev) => prev + 1);
+  };
 
   const prevStep = () => {
-    setActiveStep((prev) => prev - 1)
-  }
+    setActiveStep((prev) => prev - 1);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-800 py-8">
@@ -78,36 +113,80 @@ export default function RegisterSpacePage() {
 
           {/* 단계 표시 */}
           <div className="flex justify-between items-center mb-10">
-            <div className={`flex flex-col items-center ${activeStep >= 1 ? "text-indigo-600" : "text-gray-400"}`}>
+            <div
+              className={`flex flex-col items-center ${
+                activeStep >= 1 ? "text-indigo-600" : "text-gray-400"
+              }`}
+            >
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${activeStep >= 1 ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-500"}`}
+                className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                  activeStep >= 1
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-200 text-gray-500"
+                }`}
               >
                 1
               </div>
               <span className="text-sm">기본 정보</span>
             </div>
-            <div className={`flex-1 h-1 mx-2 ${activeStep >= 2 ? "bg-indigo-600" : "bg-gray-200"}`}></div>
-            <div className={`flex flex-col items-center ${activeStep >= 2 ? "text-indigo-600" : "text-gray-400"}`}>
+            <div
+              className={`flex-1 h-1 mx-2 ${
+                activeStep >= 2 ? "bg-indigo-600" : "bg-gray-200"
+              }`}
+            ></div>
+            <div
+              className={`flex flex-col items-center ${
+                activeStep >= 2 ? "text-indigo-600" : "text-gray-400"
+              }`}
+            >
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${activeStep >= 2 ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-500"}`}
+                className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                  activeStep >= 2
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-200 text-gray-500"
+                }`}
               >
                 2
               </div>
               <span className="text-sm">공간 정보</span>
             </div>
-            <div className={`flex-1 h-1 mx-2 ${activeStep >= 3 ? "bg-indigo-600" : "bg-gray-200"}`}></div>
-            <div className={`flex flex-col items-center ${activeStep >= 3 ? "text-indigo-600" : "text-gray-400"}`}>
+            <div
+              className={`flex-1 h-1 mx-2 ${
+                activeStep >= 3 ? "bg-indigo-600" : "bg-gray-200"
+              }`}
+            ></div>
+            <div
+              className={`flex flex-col items-center ${
+                activeStep >= 3 ? "text-indigo-600" : "text-gray-400"
+              }`}
+            >
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${activeStep >= 3 ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-500"}`}
+                className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                  activeStep >= 3
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-200 text-gray-500"
+                }`}
               >
                 3
               </div>
               <span className="text-sm">이용 규칙</span>
             </div>
-            <div className={`flex-1 h-1 mx-2 ${activeStep >= 4 ? "bg-indigo-600" : "bg-gray-200"}`}></div>
-            <div className={`flex flex-col items-center ${activeStep >= 4 ? "text-indigo-600" : "text-gray-400"}`}>
+            <div
+              className={`flex-1 h-1 mx-2 ${
+                activeStep >= 4 ? "bg-indigo-600" : "bg-gray-200"
+              }`}
+            ></div>
+            <div
+              className={`flex flex-col items-center ${
+                activeStep >= 4 ? "text-indigo-600" : "text-gray-400"
+              }`}
+            >
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${activeStep >= 4 ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-500"}`}
+                className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                  activeStep >= 4
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-200 text-gray-500"
+                }`}
               >
                 4
               </div>
@@ -120,7 +199,10 @@ export default function RegisterSpacePage() {
             {activeStep === 1 && (
               <div className="space-y-6">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     공간 이름
                   </label>
                   <input
@@ -136,12 +218,18 @@ export default function RegisterSpacePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">공간 유형</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    공간 유형
+                  </label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <button
                       type="button"
                       onClick={() => handleTypeSelect("회의실")}
-                      className={`flex flex-col items-center justify-center p-4 border rounded-lg ${formData.type === "회의실" ? "border-indigo-500 bg-indigo-50" : "border-gray-200 hover:bg-gray-50"}`}
+                      className={`flex flex-col items-center justify-center p-4 border rounded-lg ${
+                        formData.type === "회의실"
+                          ? "border-indigo-500 bg-indigo-50"
+                          : "border-gray-200 hover:bg-gray-50"
+                      }`}
                     >
                       <Building2 className="w-6 h-6 mb-2 text-gray-600" />
                       <span>회의실</span>
@@ -149,7 +237,11 @@ export default function RegisterSpacePage() {
                     <button
                       type="button"
                       onClick={() => handleTypeSelect("스튜디오")}
-                      className={`flex flex-col items-center justify-center p-4 border rounded-lg ${formData.type === "스튜디오" ? "border-indigo-500 bg-indigo-50" : "border-gray-200 hover:bg-gray-50"}`}
+                      className={`flex flex-col items-center justify-center p-4 border rounded-lg ${
+                        formData.type === "스튜디오"
+                          ? "border-indigo-500 bg-indigo-50"
+                          : "border-gray-200 hover:bg-gray-50"
+                      }`}
                     >
                       <Camera className="w-6 h-6 mb-2 text-gray-600" />
                       <span>스튜디오</span>
@@ -157,7 +249,11 @@ export default function RegisterSpacePage() {
                     <button
                       type="button"
                       onClick={() => handleTypeSelect("파티룸")}
-                      className={`flex flex-col items-center justify-center p-4 border rounded-lg ${formData.type === "파티룸" ? "border-indigo-500 bg-indigo-50" : "border-gray-200 hover:bg-gray-50"}`}
+                      className={`flex flex-col items-center justify-center p-4 border rounded-lg ${
+                        formData.type === "파티룸"
+                          ? "border-indigo-500 bg-indigo-50"
+                          : "border-gray-200 hover:bg-gray-50"
+                      }`}
                     >
                       <PartyPopper className="w-6 h-6 mb-2 text-gray-600" />
                       <span>파티룸</span>
@@ -165,7 +261,11 @@ export default function RegisterSpacePage() {
                     <button
                       type="button"
                       onClick={() => handleTypeSelect("오피스")}
-                      className={`flex flex-col items-center justify-center p-4 border rounded-lg ${formData.type === "오피스" ? "border-indigo-500 bg-indigo-50" : "border-gray-200 hover:bg-gray-50"}`}
+                      className={`flex flex-col items-center justify-center p-4 border rounded-lg ${
+                        formData.type === "오피스"
+                          ? "border-indigo-500 bg-indigo-50"
+                          : "border-gray-200 hover:bg-gray-50"
+                      }`}
                     >
                       <Coffee className="w-6 h-6 mb-2 text-gray-600" />
                       <span>오피스</span>
@@ -174,7 +274,10 @@ export default function RegisterSpacePage() {
                 </div>
 
                 <div>
-                  <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="description"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     공간 소개
                   </label>
                   <textarea
@@ -186,28 +289,33 @@ export default function RegisterSpacePage() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px]"
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">최소 20자 이상 작성해주세요</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    최소 20자 이상 작성해주세요
+                  </p>
                 </div>
 
+                {/* 주소 입력 부분 */}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    id="address"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    placeholder="우편번호"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                    readOnly
+                  />
+                  <AddressSearch onComplete={handleAddressComplete} />
+                </div>
                 <div>
-                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-                    위치 정보
+                  <label
+                    htmlFor="detailAddress"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    상세 주소
                   </label>
-                  <div className="flex gap-2 mb-2">
-                    <input
-                      type="text"
-                      id="address"
-                      name="address"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      placeholder="우편번호"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      required
-                    />
-                    <button type="button" className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
-                      주소 검색
-                    </button>
-                  </div>
                   <input
                     type="text"
                     id="detailAddress"
@@ -225,7 +333,10 @@ export default function RegisterSpacePage() {
             {activeStep === 2 && (
               <div className="space-y-6">
                 <div>
-                  <label htmlFor="capacity" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="capacity"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     수용 인원
                   </label>
                   <div className="flex items-center">
@@ -245,7 +356,10 @@ export default function RegisterSpacePage() {
                 </div>
 
                 <div>
-                  <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="price"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     시간당 가격
                   </label>
                   <div className="flex items-center">
@@ -265,16 +379,151 @@ export default function RegisterSpacePage() {
                   </div>
                 </div>
 
+                {/* 공간 사진 섹션 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">공간 사진</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                    <div className="flex flex-col items-center">
-                      <Upload className="w-10 h-10 text-gray-400 mb-2" />
-                      <p className="text-gray-600 mb-1">여기를 클릭하거나 드래그하여 사진을 올려주세요</p>
-                      <p className="text-xs text-gray-500">권장 크기: 1000x1000px / 최대 10장</p>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    공간 사진
+                  </label>
+                  <div
+                    className="relative border-2 border-dashed border-gray-300 rounded-lg p-8 
+                             hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200
+                             cursor-pointer flex flex-col items-center justify-center"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.currentTarget.classList.add(
+                        "border-indigo-500",
+                        "bg-indigo-50"
+                      );
+                    }}
+                    onDragLeave={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.currentTarget.classList.remove(
+                        "border-indigo-500",
+                        "bg-indigo-50"
+                      );
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.currentTarget.classList.remove(
+                        "border-indigo-500",
+                        "bg-indigo-50"
+                      );
+
+                      const files = Array.from(e.dataTransfer.files);
+                      const imageFiles = files.filter((file) => {
+                        if (!file.type.startsWith("image/")) {
+                          return false;
+                        }
+                        if (file.size > 3 * 1024 * 1024) {
+                          // 3MB 제한
+                          return false;
+                        }
+                        return true;
+                      });
+
+                      if (imageFiles.length > 0) {
+                        const totalImages =
+                          formData.images.length + imageFiles.length;
+                        if (totalImages > 10) {
+                          alert("최대 10장까지만 업로드 가능합니다.");
+                          return;
+                        }
+                        setFormData((prev) => ({
+                          ...prev,
+                          images: [...prev.images, ...imageFiles],
+                        }));
+                      }
+                    }}
+                    onClick={() =>
+                      document.getElementById("spaceImageUpload")?.click()
+                    }
+                  >
+                    <input
+                      type="file"
+                      id="spaceImageUpload"
+                      multiple
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        const validFiles = files.filter((file) => {
+                          if (file.size > 3 * 1024 * 1024) {
+                            alert("각 이미지는 3MB를 초과할 수 없습니다.");
+                            return false;
+                          }
+                          return true;
+                        });
+
+                        const totalImages =
+                          formData.images.length + validFiles.length;
+                        if (totalImages > 10) {
+                          alert("최대 10장까지만 업로드 가능합니다.");
+                          return;
+                        }
+
+                        setFormData((prev) => ({
+                          ...prev,
+                          images: [...prev.images, ...validFiles],
+                        }));
+                        e.target.value = ""; // input 초기화
+                      }}
+                    />
+                    <div className="flex flex-col items-center text-center">
+                      <Upload className="w-10 h-10 text-gray-400 mb-3" />
+                      <p className="text-gray-600 mb-2">
+                        여기를 클릭하거나 드래그하여 사진을 올려주세요
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        권장 크기: 1000x1000px / 최대 10장
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        파일당 최대 3MB
+                      </p>
                     </div>
-                    <input type="file" className="hidden" accept="image/*" multiple />
                   </div>
+
+                  {/* 업로드된 이미지 미리보기 */}
+                  {formData.images.length > 0 && (
+                    <div className="mt-4">
+                      <div className="mb-2 text-sm text-gray-600">
+                        업로드된 이미지 ({formData.images.length}/10)
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {formData.images.map((image, index) => (
+                          <div
+                            key={index}
+                            className="relative group aspect-square"
+                          >
+                            <img
+                              src={URL.createObjectURL(image)}
+                              alt={`미리보기 ${index + 1}`}
+                              className="w-full h-full object-cover rounded-lg"
+                            />
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  images: prev.images.filter(
+                                    (_, i) => i !== index
+                                  ),
+                                }));
+                              }}
+                              className="absolute top-2 right-2 bg-black bg-opacity-50 text-white 
+                                       rounded-full w-6 h-6 flex items-center justify-center
+                                       opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -283,19 +532,29 @@ export default function RegisterSpacePage() {
             {activeStep === 3 && (
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">예약 단위</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    예약 단위
+                  </label>
                   <div className="flex items-center">
-                    <button type="button" className="px-4 py-2 bg-indigo-600 text-white rounded-md mr-2">
+                    <button
+                      type="button"
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-md mr-2"
+                    >
                       시간 단위
                     </button>
-                    <button type="button" className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md">
+                    <button
+                      type="button"
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md"
+                    >
                       일 단위
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">운영 시간</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    운영 시간
+                  </label>
                   <div className="flex items-center gap-2">
                     <select
                       name="openTime"
@@ -305,7 +564,10 @@ export default function RegisterSpacePage() {
                     >
                       <option value="">시작 시간</option>
                       {Array.from({ length: 24 }).map((_, i) => (
-                        <option key={i} value={`${i.toString().padStart(2, "0")}:00`}>
+                        <option
+                          key={i}
+                          value={`${i.toString().padStart(2, "0")}:00`}
+                        >
                           {i.toString().padStart(2, "0")}:00
                         </option>
                       ))}
@@ -319,7 +581,10 @@ export default function RegisterSpacePage() {
                     >
                       <option value="">종료 시간</option>
                       {Array.from({ length: 24 }).map((_, i) => (
-                        <option key={i} value={`${i.toString().padStart(2, "0")}:00`}>
+                        <option
+                          key={i}
+                          value={`${i.toString().padStart(2, "0")}:00`}
+                        >
                           {i.toString().padStart(2, "0")}:00
                         </option>
                       ))}
@@ -328,7 +593,9 @@ export default function RegisterSpacePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">시간당 가격</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    시간당 가격
+                  </label>
                   <div className="flex items-center gap-2">
                     <input
                       type="text"
@@ -341,7 +608,9 @@ export default function RegisterSpacePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">최소/최대 예약 시간</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    최소/최대 예약 시간
+                  </label>
                   <div className="flex items-center gap-2">
                     <select
                       name="minTime"
@@ -370,7 +639,9 @@ export default function RegisterSpacePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">수용 인원</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    수용 인원
+                  </label>
                   <div className="flex items-center gap-2">
                     <input
                       type="text"
@@ -395,11 +666,18 @@ export default function RegisterSpacePage() {
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   </div>
                 </div>
-                <h2 className="text-2xl font-bold">공간 등록이 완료되었습니다!</h2>
+                <h2 className="text-2xl font-bold">
+                  공간 등록이 완료되었습니다!
+                </h2>
                 <p className="text-gray-600">
                   등록하신 공간은 관리자 승인 후 게시됩니다.
                   <br />
@@ -445,5 +723,5 @@ export default function RegisterSpacePage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

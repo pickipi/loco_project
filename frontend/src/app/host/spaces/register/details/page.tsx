@@ -7,41 +7,61 @@ import ImageUploader from '@/components/space/ImageUploader'
 import TagInput from '@/components/space/TagInput'
 import type { SpaceType } from '@/components/space/SpaceTypeSelector'
 import styles from './page.module.css'
-import api from '@/lib/axios'
+//import api from '@/lib/axios'
 
 // 카카오맵 컴포넌트를 동적으로 import (SSR 비활성화)
 const KakaoMap = dynamic(() => import('@/components/map/KakaoMap'), {
   ssr: false,
   loading: () => (
-    <div className={styles.mapContainer}>
-      지도를 불러오는 중...
-    </div>
+    <div className={styles.mapContainer}>지도를 불러오는 중...</div>
   ),
-})
+});
 
 //로컬 url
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8090";
 
 // 공간 등록 폼 데이터 타입 정의
 interface SpaceForm {
-  spaceType: SpaceType;        // 공간 유형 (단일 선택)
-  spaceName: string;           // 공간 이름
-  description: string;         // 공간 설명
-  maxCapacity: number;         // 최대 수용 인원
-  address: string;            // 주소
-  address2: string;           // 상세 주소
-  address3: string;           // 위치 정보 (근처)
-  latitude: number;           // 위도
-  longitude: number;          // 경도
-  price: number;              // 가격
-  isActive: boolean;          // 공개 여부
-  spaceRating: number;        // 공간 평점
-  hostId: number;            // 호스트 ID
+  spaceType: SpaceType; // 공간 유형 (단일 선택)
+  spaceName: string; // 공간 이름
+  description: string; // 공간 설명
+  maxCapacity: number; // 최대 수용 인원
+  address: string; // 주소
+  address2: string; // 상세 주소
+  address3: string; // 위치 정보 (근처)
+  latitude: number; // 위도
+  longitude: number; // 경도
+  price: number; // 가격
+  isActive: boolean; // 공개 여부
+  spaceRating: number; // 공간 평점
+  hostId?: number; // 임시 호스트 ID (테스트용)
 }
 
 export default function SpaceDetailsPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // 이미지 상태 관리
+  const [mainImage, setMainImage] = useState<File | null>(null);
+  const [additionalImages, setAdditionalImages] = useState<File[]>([]);
+
+  // 이미지 업로드 핸들러
+  const handleMainImageUpload = (file: File) => {
+    setMainImage(file);
+  };
+
+  const handleAdditionalImagesUpload = (files: File[]) => {
+    setAdditionalImages((prev) => [...prev, ...files]);
+  };
+
+  const handleMainImageDelete = () => {
+    setMainImage(null);
+  };
+
+  const handleAdditionalImageDelete = (index: number) => {
+    setAdditionalImages((prev) => prev.filter((_, i) => i !== index));
+  };
 
   // 폼 상태 관리 - 초기값 설정
   const [form, setForm] = useState<SpaceForm>({
@@ -61,77 +81,92 @@ export default function SpaceDetailsPage() {
   })
 
   // 주소 검색 완료 상태 추가
-  const [isAddressVerified, setIsAddressVerified] = useState(false)
+  const [isAddressVerified, setIsAddressVerified] = useState(false);
 
   // 지도 중심 좌표 상태 관리
   const [mapCenter, setMapCenter] = useState({
-    lat: 37.5665,  // 서울시청 기본 위도
-    lng: 126.9780, // 서울시청 기본 경도
-  })
+    lat: 37.5665, // 서울시청 기본 위도
+    lng: 126.978, // 서울시청 기본 경도
+  });
 
   // 주소 검색 상태 관리
-  const [shouldSearch, setShouldSearch] = useState(false)
+  const [shouldSearch, setShouldSearch] = useState(false);
 
-  // 컴포넌트 마운트 시 localStorage에서 이전에 선택한 공간 유형과 토큰에서 호스트 ID 불러오기
+  // 컴포넌트 마운트 시 localStorage에서 이전에 선택한 공간 유형 불러오기
   useEffect(() => {
-    // 토큰 확인 및 호스트 ID 추출
-    const token = localStorage.getItem('token')
-    if (!token) {
-      alert('로그인이 필요한 서비스입니다.')
-      router.push('/host/login')
-      return
-    }
-
-    try {
-      const base64Url = token.split('.')[1]
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-      }).join(''))
-      const payload = JSON.parse(jsonPayload)
-      const hostId = payload.userId // JWT 토큰에서 userId를 호스트 ID로 사용
-
-      setForm(prev => ({ ...prev, hostId }))
-
-      // 공간 유형 불러오기
-      const savedType = localStorage.getItem('selectedSpaceTypes')
-      if (savedType) {
-        try {
-          const types = JSON.parse(savedType) as SpaceType[]
-          setForm(prev => ({ ...prev, spaceType: types[0] }))
-        } catch (error) {
-          console.error('공간 유형 데이터 파싱 오류:', error)
-        }
+    const savedType = localStorage.getItem("selectedSpaceTypes");
+    if (savedType) {
+      try {
+        const types = JSON.parse(savedType) as SpaceType[];
+        setForm((prev) => ({ ...prev, spaceType: types[0] }));
+      } catch (error) {
+        console.error("공간 유형 데이터 파싱 오류:", error);
       }
-    } catch (error) {
-      console.error('토큰 파싱 오류:', error)
-      alert('인증 정보가 올바르지 않습니다.')
-      router.push('/host/login')
     }
-  }, [router])
+  }, []);
 
   // 공간 유형 이름 변환 함수
   const getSpaceTypeName = (type: SpaceType): string => {
     const typeNames: Record<SpaceType, string> = {
-      'MEETING': '모임 공간',
-      'PRACTICE': '연습 공간',
-      'PHOTO': '촬영 공간',
-      'ACTIVITY': '행사 공간',
-      'CAMPING': '캠핑 공간',
-      'OFFICE': '오피스 공간'
+      MEETING: "모임 공간",
+      PRACTICE: "연습 공간",
+      PHOTO: "촬영 공간",
+      ACTIVITY: "행사 공간",
+      CAMPING: "캠핑 공간",
+      OFFICE: "오피스 공간",
+    };
+    return typeNames[type];
+  };
+
+  // AWS S3 이미지 업로드 함수
+  const uploadImagesToS3 = async () => {
+    if (!mainImage) {
+      throw new Error("대표 이미지를 등록해주세요.");
     }
-    return typeNames[type]
-  }
+
+    try {
+      const formData = new FormData();
+      formData.append("mainImage", mainImage);
+
+      additionalImages.forEach((file, index) => {
+        formData.append(`additionalImages`, file);
+      });
+
+      // S3 업로드 API 호출
+      const response = await fetch(
+        `${API_BASE_URL}/api/v1/spaces/images/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("이미지 업로드에 실패했습니다.");
+      }
+
+      const imageUrls = await response.json();
+      return imageUrls;
+    } catch (error) {
+      console.error("이미지 업로드 중 오류:", error);
+      throw new Error("이미지 업로드에 실패했습니다.");
+    }
+  };
 
   // 폼 제출 처리
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      // API 엔드포인트 확인
-      const apiUrl = `${API_BASE_URL}/api/v1/spaces/me/register`;
-      console.log('API 요청 URL:', apiUrl);
+    e.preventDefault();
 
-      // API 요청 데이터 준비
+    if (!mainImage) {
+      alert("대표 이미지를 등록해주세요.");
+      return;
+    }
+
+    try {
+      // 이미지 먼저 업로드
+      const imageUrls = await uploadImagesToS3();
+
+      // 요청 데이터 준비
       const requestData = {
         spaceType: form.spaceType,
         spaceName: form.spaceName,
@@ -145,40 +180,50 @@ export default function SpaceDetailsPage() {
         price: form.price,
         isActive: form.isActive,
         spaceRating: form.spaceRating,
+        hostId: form.hostId,
+        mainImageUrl: imageUrls.mainImageUrl,
+        additionalImageUrls: imageUrls.additionalImageUrls,
       };
-      console.log('요청 데이터:', requestData);
+
+      // API 엔드포인트 확인
+      const apiUrl = `${API_BASE_URL}/api/v1/spaces/${form.hostId}/register`;
+      console.log("API 요청 URL:", apiUrl);
+      console.log("요청 데이터:", requestData);
 
       // API 호출
-      await fetch(apiUrl, {
-        method: 'POST',
+      const response = await fetch(apiUrl, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Accept': 'application/json',
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify(requestData),
-      }).then(async (response) => {
-        if (!response.ok) {
-          const errorData = await response.text();
-          console.error('API 오류 응답:', errorData);
-          throw new Error(`공간 등록 실패: ${response.status} ${response.statusText}`);
-        }
-        return response.json();
-      }).then((data) => {
-        console.log('공간 등록 성공:', data);
-        // 성공 시 완료 페이지로 이동
-        router.push('/host/spaces/register/complete');
       });
-    } catch (error) {
-      console.error('공간 등록 중 오류 발생:', error);
-      if (error instanceof Error && error.message === 'Failed to fetch') {
-        alert('서버와의 연결이 원활하지 않습니다. 잠시 후 다시 시도해주세요.');
-      } else {
-        alert('공간 등록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+
+      // 응답 확인
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error("API 오류 응답:", errorData);
+        throw new Error(
+          `공간 등록 실패: ${response.status} ${response.statusText}`
+        );
       }
+
+      const data = await response.json();
+      console.log("공간 등록 성공:", data);
+
+      // 성공 시 완료 페이지로 이동
+      router.push("/host/space/register/complete");
+    } catch (error) {
+      console.error("공간 등록 중 오류 발생:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "공간 등록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+      );
     }
-  }
+  };
 
   return (
     <main className={styles.container}>
@@ -197,19 +242,19 @@ export default function SpaceDetailsPage() {
             <h3 className={styles.sectionTitle}>선택된 공간 유형</h3>
             <button
               type="button"
-              onClick={() => router.push('/host/spaces/register')}
+              onClick={() => router.push("/host/space/register")}
               className={styles.editButton}
             >
-              <svg 
-                className="w-4 h-4 mr-1" 
-                fill="none" 
-                stroke="currentColor" 
+              <svg
+                className="w-4 h-4 mr-1"
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth="2" 
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
                   d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
                 />
               </svg>
@@ -233,11 +278,31 @@ export default function SpaceDetailsPage() {
           <input
             type="text"
             value={form.spaceName}
-            onChange={(e) => setForm(prev => ({ ...prev, spaceName: e.target.value }))}
+            onChange={(e) =>
+              setForm((prev) => ({ ...prev, spaceName: e.target.value }))
+            }
             className={styles.input}
             placeholder="(예시) 인디레코즈 하이브 회의실"
             maxLength={18}
             required
+          />
+        </div>
+
+        {/* 호스트 ID (테스트용) */}
+        <div className={styles.section}>
+          <label className={styles.label}>호스트 ID (테스트용)</label>
+          <input
+            type="number"
+            value={form.hostId ?? ""}
+            onChange={(e) =>
+              setForm((prev) => ({
+                ...prev,
+                hostId:
+                  e.target.value === "" ? undefined : Number(e.target.value),
+              }))
+            }
+            className={styles.input}
+            placeholder="호스트 ID를 입력하세요"
           />
         </div>
 
@@ -248,7 +313,9 @@ export default function SpaceDetailsPage() {
           </label>
           <textarea
             value={form.description}
-            onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
+            onChange={(e) =>
+              setForm((prev) => ({ ...prev, description: e.target.value }))
+            }
             className={styles.textarea}
             placeholder="게스트들에게 필요한 공간 정보를 상세하게 소개해주세요."
             minLength={20}
@@ -269,10 +336,15 @@ export default function SpaceDetailsPage() {
             <input
               type="number"
               value={form.maxCapacity}
-              onChange={(e) => setForm(prev => ({ 
-                ...prev, 
-                maxCapacity: Math.max(1, Math.min(1000, parseInt(e.target.value) || 1))
-              }))}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  maxCapacity: Math.max(
+                    1,
+                    Math.min(1000, parseInt(e.target.value) || 1)
+                  ),
+                }))
+              }
               className={styles.numberInput}
               min="1"
               max="1000"
@@ -293,14 +365,13 @@ export default function SpaceDetailsPage() {
           <div className="flex items-center">
             <input
               type="number"
-              value={form.price === 0 ? '' : form.price}
-              onChange={(e) => {
-                const value = e.target.value;
-                setForm(prev => ({ 
-                  ...prev, 
-                  price: value === '' ? 0 : parseInt(value)
+              value={form.price}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  price: Math.max(0, parseInt(e.target.value) || 0),
                 }))
-              }}
+              }
               className={styles.numberInput}
               min="0"
               required
@@ -308,6 +379,26 @@ export default function SpaceDetailsPage() {
             />
             <span className={styles.unit}>원/시간</span>
           </div>
+        </div>
+
+        {/* 공간 이미지 업로드 */}
+        <div className={styles.section}>
+          <label className={styles.label}>
+            공간 이미지 <span className={styles.required}>*</span>
+          </label>
+          <p className={styles.helpText}>
+            대표 이미지 1장과 추가 이미지를 등록해주세요. (최대 10장)
+          </p>
+          <ImageUploader
+            mainImage={mainImage}
+            additionalImages={additionalImages}
+            onMainImageUpload={setMainImage}
+            onAdditionalImagesUpload={setAdditionalImages}
+            onMainImageDelete={() => setMainImage(null)}
+            onAdditionalImageDelete={(index: number) => {
+              setAdditionalImages((prev) => prev.filter((_, i) => i !== index));
+            }}
+          />
         </div>
 
         {/* 주소 입력 */}
@@ -321,7 +412,7 @@ export default function SpaceDetailsPage() {
                 type="text"
                 value={form.address}
                 onChange={(e) => {
-                  setForm(prev => ({ ...prev, address: e.target.value }));
+                  setForm((prev) => ({ ...prev, address: e.target.value }));
                   setIsAddressVerified(false);
                 }}
                 className={styles.addressInput}
@@ -339,14 +430,14 @@ export default function SpaceDetailsPage() {
                 className={styles.searchButton}
                 disabled={!form.address}
               >
-                <svg 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
                   strokeLinejoin="round"
                 >
                   <circle cx="11" cy="11" r="8"></circle>
@@ -358,7 +449,9 @@ export default function SpaceDetailsPage() {
             <input
               type="text"
               value={form.address2}
-              onChange={(e) => setForm(prev => ({ ...prev, address2: e.target.value }))}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, address2: e.target.value }))
+              }
               className={styles.input}
               placeholder="상세 주소를 입력해주세요 (선택)"
             />
@@ -366,7 +459,9 @@ export default function SpaceDetailsPage() {
               <input
                 type="text"
                 value={form.address3}
-                onChange={(e) => setForm(prev => ({ ...prev, address3: e.target.value }))}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, address3: e.target.value }))
+                }
                 className={styles.input}
                 placeholder="주변 정보를 입력해주세요 (예: 강남역 3번 출구 도보 5분) (선택)"
                 maxLength={20}
@@ -379,13 +474,13 @@ export default function SpaceDetailsPage() {
                 center={mapCenter}
                 shouldSearch={shouldSearch}
                 onLocationChange={(lat: number, lng: number) => {
-                  setForm(prev => ({
+                  setForm((prev) => ({
                     ...prev,
                     latitude: lat,
                     longitude: lng,
-                  }))
-                  setMapCenter({ lat, lng })
-                  setShouldSearch(false)
+                  }));
+                  setMapCenter({ lat, lng });
+                  setShouldSearch(false);
                 }}
               />
             </div>
@@ -410,7 +505,8 @@ export default function SpaceDetailsPage() {
                 form.description.length < 20 ||
                 !form.address ||
                 !isAddressVerified ||
-                form.price <= 0
+                form.price <= 0 ||
+                !mainImage
                   ? styles.buttonDisabled
                   : styles.buttonPrimary
               }
@@ -420,7 +516,8 @@ export default function SpaceDetailsPage() {
                 form.description.length < 20 ||
                 !form.address ||
                 !isAddressVerified ||
-                form.price <= 0
+                form.price <= 0 ||
+                !mainImage
               }
             >
               다음
@@ -429,5 +526,5 @@ export default function SpaceDetailsPage() {
         </div>
       </form>
     </main>
-  )
-} 
+  );
+}
