@@ -1,7 +1,7 @@
 package com.likelion.loco_project.domain.review.entity;
 
-import com.likelion.loco_project.domain.guest.Guest;
-import com.likelion.loco_project.domain.space.Space;
+import com.likelion.loco_project.domain.guest.entity.Guest;
+import com.likelion.loco_project.domain.space.entity.Space;
 import jakarta.persistence.*;
 import lombok.*;
 

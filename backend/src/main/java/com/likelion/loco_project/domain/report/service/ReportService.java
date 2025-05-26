@@ -1,6 +1,6 @@
 package com.likelion.loco_project.domain.report.service;
 
-import com.likelion.loco_project.domain.guest.Guest;
+import com.likelion.loco_project.domain.guest.entity.Guest;
 import com.likelion.loco_project.domain.guest.repository.GuestRepository;
 import com.likelion.loco_project.domain.report.dto.ReportRequestDto;
 import com.likelion.loco_project.domain.report.dto.ReportResponseDto;
@@ -27,14 +27,16 @@ public class ReportService {
         Review review = reviewRepository.findById(requestDto.getReviewId())
                 .orElseThrow(() -> new IllegalArgumentException("리뷰가 존재하지 않습니다."));
 
-        Report report = Report.builder()
-                .reporter(reporter)
-                .review(review)
-                .reason(requestDto.getReason())
-                .detail(requestDto.getDetail())
-                .build();
+        // 임시로 리턴 null 처리했습니다. for further editing.
+//        Report report = Report.builder()
+//                .reporter(reporter)
+//                .review(review)
+//                .reason(requestDto.getReason())
+//                .detail(requestDto.getDetail())
+//                .build();
 
-        reportRepository.save(report);
-        return new ReportResponseDto(report.getId(), "신고가 접수되었습니다.");
+//        reportRepository.save(report);
+//        return new ReportResponseDto(report.getId(), "신고가 접수되었습니다.");
+        return null;
     }
 }

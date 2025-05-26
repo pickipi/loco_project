@@ -1,12 +1,12 @@
 package com.likelion.loco_project.domain.guestRating.service;
 
-import com.likelion.loco_project.domain.guest.Guest;
+import com.likelion.loco_project.domain.guest.entity.Guest;
 import com.likelion.loco_project.domain.guest.repository.GuestRepository;
 import com.likelion.loco_project.domain.guestRating.dto.GuestRatingRequestDto;
 import com.likelion.loco_project.domain.guestRating.dto.GuestRatingResponseDto;
 import com.likelion.loco_project.domain.guestRating.entity.GuestRating;
 import com.likelion.loco_project.domain.guestRating.repository.GuestRatingRepository;
-import com.likelion.loco_project.domain.host.Host;
+import com.likelion.loco_project.domain.host.entity.Host;
 import com.likelion.loco_project.domain.host.repository.HostRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
