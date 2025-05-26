@@ -8,7 +8,9 @@ import styles from './page.module.css'
 import HostHeader from '@/components/header/hostheader'
 
 interface User {
-  isLoggedIn: boolean;
+  email: string;
+  username: string;
+  userType: string;
 }
 
 export default function HostMainPage() {
@@ -17,32 +19,26 @@ export default function HostMainPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // 로그인 상태 확인
-    const checkLoginStatus = async () => {
-      try {
-        const response = await fetch('/api/auth/check', {
-          credentials: 'include'
-        });
-        const data = await response.json();
-        setUser(data);
-      } catch (error) {
-        setUser({ isLoggedIn: false });
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    // 로컬 스토리지에서 사용자 정보와 토큰 확인
+    const token = localStorage.getItem('token')
+    const storedUser = localStorage.getItem('user')
 
-    checkLoginStatus();
-  }, []);
-
-  // 보호된 경로 접근 핸들러
-  const handleProtectedRoute = (path: string) => {
-    if (!user?.isLoggedIn) {
-      alert('로그인이 필요한 서비스입니다.')
-      router.push('/host/login?redirect=' + encodeURIComponent(path))
+    if (!token || !storedUser) {
+      // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
+      router.push('/login')
       return
     }
-    router.push(path)
+
+    setUser(JSON.parse(storedUser))
+    setIsLoading(false)
+  }, [router])
+
+  const handleLogout = () => {
+    // 로컬 스토리지에서 사용자 정보와 토큰 제거
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    // 로그인 페이지로 리다이렉트
+    router.push('/login')
   }
 
   if (isLoading) {
@@ -55,14 +51,18 @@ export default function HostMainPage() {
 
   return (
     <div className={styles.container}>
-      <HostHeader isLoggedIn={user?.isLoggedIn || false} />
+      <HostHeader 
+        isLoggedIn={!!user} 
+        username={user?.username}
+        onLogout={handleLogout}
+      />
       
       {/* Hero Section */}
       <section className={styles.heroSection}>
-        <h1 className={styles.heroTitle}>당신의 공간을 LOCO와 함께</h1>
+        <h1 className={styles.heroTitle}>안녕하세요, {user?.username}님!</h1>
         <p className={styles.heroSubtitle}>새로운 호스팅의 시작, LOCO와 함께하세요</p>
         <button 
-          onClick={() => handleProtectedRoute('/host/spaces')} 
+          onClick={() => router.push('/host/spaces')} 
           className={styles.button}
         >
           호스트 시작하기
@@ -114,7 +114,7 @@ export default function HostMainPage() {
         <h2 className={styles.ctaTitle}>지금 바로 LOCO 호스트가 되어보세요</h2>
         <p className={styles.ctaDescription}>전문적인 호스트 매니저가 당신의 성공적인 호스팅을 도와드립니다</p>
         <button 
-          onClick={() => handleProtectedRoute('/host/spaces')} 
+          onClick={() => router.push('/host/spaces')} 
           className={styles.button}
         >
           무료로 시작하기

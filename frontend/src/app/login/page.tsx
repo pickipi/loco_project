@@ -33,11 +33,18 @@ export default function LoginPage() {
       });
 
       if (response.ok) {
-        // 로그인 성공 시 처리
         const data = await response.json();
-        // TODO: 토큰 저장 로직 추가
+        // JWT 토큰을 로컬 스토리지에 저장
+        localStorage.setItem('token', data.token);
+        // 사용자 정보 저장
+        localStorage.setItem('user', JSON.stringify({
+          email: data.email,
+          username: data.username,
+          userType: data.userType
+        }));
+        
         alert('로그인 성공!');
-        router.push('/'); // 메인 페이지로 이동
+        router.push('/host'); // 호스트 페이지로 이동
       } else {
         const errorData = await response.json();
         setError(errorData.message || '로그인에 실패했습니다.');
