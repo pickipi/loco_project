@@ -1,33 +1,25 @@
-package com.likelion.loco_project.domain.report.entity;
+package com.likelion.loco_project.domain.report.controller;
 
-import com.likelion.loco_project.domain.report.type.ReportType;
-import jakarta.persistence.*;
-import lombok.*;
+import com.likelion.loco_project.domain.report.dto.ReportRequestDto;
+import com.likelion.loco_project.domain.report.dto.ReportResponseDto;
+import com.likelion.loco_project.domain.report.service.ReportService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-@Entity
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
-public class Report {
+@RestController
+@RequestMapping("/api/v1/report")
+@RequiredArgsConstructor
+public class ReportController {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private final ReportService reportService;
 
-    // 신고 유형: BOARD, REVIEW 등
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ReportType type;
+    @PostMapping("/review")
+    public ResponseEntity<ReportResponseDto> reportReview(
+            @RequestHeader("guestId") Long guestId, // 임시 인증 방식
+            @RequestBody ReportRequestDto requestDto) {
 
-    // 신고된 대상 ID (게시물 ID 또는 리뷰 ID)
-    @Column(nullable = false)
-    private Long reportedId;
-
-    // 신고 사유
-    @Column(length = 500)
-    private String reason;
-
-    // 신고자 (선택 사항)
-    private Long reporterId;
+        ReportResponseDto response = reportService.reportReview(guestId, requestDto);
+        return ResponseEntity.ok(response);
+    }
 }
