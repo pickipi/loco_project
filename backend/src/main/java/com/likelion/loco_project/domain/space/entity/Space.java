@@ -1,6 +1,7 @@
 package com.likelion.loco_project.domain.space.entity;
 
 import com.likelion.loco_project.domain.host.entity.Host;
+import com.likelion.loco_project.domain.user.entity.User;
 import com.likelion.loco_project.global.jpa.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,6 +9,8 @@ import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "spaces")
@@ -71,5 +74,9 @@ public class Space extends BaseEntity {
 
     @Column(name = "rejection_reason")
     private String rejectionReason; // 반려 사유
+
+    //찜하기
+    @ManyToMany(mappedBy = "favoriteSpaces")
+    private Set<User> usersWhoFavorited = new HashSet<>();
 
 }

@@ -11,6 +11,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,10 +26,11 @@ public class ApiV1SpaceController {
 
     // 공간 생성
     @Operation(summary = "공간 생성", description = "새로운 공간을 등록합니다.")
-    @PostMapping("/{hostId}/register")
+    @PostMapping("/me/register")
     public ResponseEntity<SpaceResponseDto> createSpace(
-            @PathVariable("hostId") Long hostId,
+            @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody SpaceCreateRequestDto dto) {
+        Long hostId = Long.parseLong(userDetails.getUsername()); // 로그인 유저 ID
         return ResponseEntity.ok(spaceService.createSpace(hostId, dto));
     }
 
@@ -70,5 +73,27 @@ public class ApiV1SpaceController {
     @Operation(summary = "공간 검색", description = "조건에 맞는 공간을 검색합니다.")
     public ResponseEntity<Page<SpaceResponseDto>> searchSpaces(SpaceSearchDto searchDto) {
         return ResponseEntity.ok(spaceService.searchSpaces(searchDto));
+    }
+
+    // 공간 찜하기
+    @Operation(summary = "공간 찜하기")
+    @PostMapping("/{spaceId}/favorite")
+    public ResponseEntity<RsData<String>> favoriteSpace(
+            @PathVariable Long spaceId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        spaceService.favoriteSpace(userId, spaceId);
+        return ResponseEntity.ok(RsData.of("S-1", "공간을 찜했습니다."));
+    }
+
+    // 공간 찜 제거하기
+    @Operation(summary = "공간 찜 취소")
+    @DeleteMapping("/{spaceId}/favorite")
+    public ResponseEntity<RsData<String>> unfavoriteSpace(
+            @PathVariable Long spaceId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        spaceService.unfavoriteSpace(userId, spaceId);
+        return ResponseEntity.ok(RsData.of("S-2", "찜을 취소했습니다."));
     }
 }

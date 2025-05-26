@@ -1,15 +1,16 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import dynamic from "next/dynamic";
-import ImageUploader from "@/components/space/ImageUploader";
-import TagInput from "@/components/space/TagInput";
-import type { SpaceType } from "@/components/space/SpaceTypeSelector";
-import styles from "./page.module.css";
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import dynamic from 'next/dynamic'
+import ImageUploader from '@/components/space/ImageUploader'
+import TagInput from '@/components/space/TagInput'
+import type { SpaceType } from '@/components/space/SpaceTypeSelector'
+import styles from './page.module.css'
+//import api from '@/lib/axios'
 
 // 카카오맵 컴포넌트를 동적으로 import (SSR 비활성화)
-const KakaoMap = dynamic(() => import("@/components/map/KakaoMap"), {
+const KakaoMap = dynamic(() => import('@/components/map/KakaoMap'), {
   ssr: false,
   loading: () => (
     <div className={styles.mapContainer}>지도를 불러오는 중...</div>
@@ -18,7 +19,7 @@ const KakaoMap = dynamic(() => import("@/components/map/KakaoMap"), {
 
 //로컬 url
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8090";
 
 // 공간 등록 폼 데이터 타입 정의
 interface SpaceForm {
@@ -64,20 +65,20 @@ export default function SpaceDetailsPage() {
 
   // 폼 상태 관리 - 초기값 설정
   const [form, setForm] = useState<SpaceForm>({
-    spaceType: "MEETING", // 기본 공간 유형
-    spaceName: "", // 공간 이름 (빈 문자열)
-    description: "", // 설명 (빈 문자열)
-    maxCapacity: 1, // 최소 수용 인원
-    address: "", // 주소 (빈 문자열)
-    address2: "", // 상세 주소 (빈 문자열)
-    address3: "", // 주변 정보 (빈 문자열)
-    latitude: 37.5665, // 기본 위도 (서울시청)
-    longitude: 126.978, // 기본 경도 (서울시청)
-    price: 0, // 가격 (0원)
-    isActive: true, // 공개 여부 (기본값 true)
-    spaceRating: 0, // 평점 (초기값 0)
-    hostId: undefined, // 임시 호스트 ID (테스트용)
-  });
+    spaceType: 'MEETING',      // 기본 공간 유형
+    spaceName: '',             // 공간 이름 (빈 문자열)
+    description: '',           // 설명 (빈 문자열)
+    maxCapacity: 1,            // 최소 수용 인원
+    address: '',               // 주소 (빈 문자열)
+    address2: '',              // 상세 주소 (빈 문자열)
+    address3: '',              // 주변 정보 (빈 문자열)
+    latitude: 37.5665,         // 기본 위도 (서울시청)
+    longitude: 126.9780,       // 기본 경도 (서울시청)
+    price: 0,                  // 가격 (0원)
+    isActive: true,            // 공개 여부 (기본값 true)
+    spaceRating: 0,            // 평점 (초기값 0)
+    hostId: 0,                // 호스트 ID 초기값
+  })
 
   // 주소 검색 완료 상태 추가
   const [isAddressVerified, setIsAddressVerified] = useState(false);
@@ -374,6 +375,7 @@ export default function SpaceDetailsPage() {
               className={styles.numberInput}
               min="0"
               required
+              placeholder="10000"
             />
             <span className={styles.unit}>원/시간</span>
           </div>

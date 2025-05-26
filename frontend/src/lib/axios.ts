@@ -9,7 +9,7 @@ const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
   
   // 요청 제한 시간 설정 (5초)
-  timeout: 5000,
+  timeout: 10000,
   
   // 기본 헤더 설정
   headers: {
