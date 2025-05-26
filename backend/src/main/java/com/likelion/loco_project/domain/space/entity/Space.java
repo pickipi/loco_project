@@ -1,7 +1,6 @@
 package com.likelion.loco_project.domain.space.entity;
 
 import com.likelion.loco_project.domain.host.entity.Host;
-import com.likelion.loco_project.domain.user.entity.User;
 import com.likelion.loco_project.global.jpa.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -9,20 +8,19 @@ import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "spaces")
-@SuperBuilder
 @Getter
 @Setter
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class Space extends BaseEntity {
-
-    @Column(name = "image_id", nullable = true)
-    private Long imageId; // 이미지 ID
 
     @Column(name = "space_name", length = 100, nullable = false)
     private String spaceName; // 공간 이름
@@ -44,10 +42,10 @@ public class Space extends BaseEntity {
     private String address; // 주소
 
     @Column(length = 300, nullable = true)
-    private String address2; // 상세 주소
+    private String detailAddress; // 상세 주소
 
     @Column(length = 300, nullable = true)
-    private String address3; // 주변 주소
+    private String neighborhoodInfo; // 주변 정보
 
     @Column(nullable = false, precision = 10, scale = 6)
     private BigDecimal latitude; // 위도
@@ -75,8 +73,32 @@ public class Space extends BaseEntity {
     @Column(name = "rejection_reason")
     private String rejectionReason; // 반려 사유
 
-    //찜하기
-    @ManyToMany(mappedBy = "favoriteSpaces")
-    private Set<User> usersWhoFavorited = new HashSet<>();
+    @Column(name = "image_url", length = 512)
+    private String imageUrl; // 대표 이미지 URL
 
+    @ElementCollection
+    @CollectionTable(
+        name = "space_images",
+        joinColumns = @JoinColumn(name = "space_id", nullable = false)
+    )
+    @Column(name = "image_url", length = 512, nullable = false)
+    private List<String> additionalImageUrls = new ArrayList<>(); // 추가 이미지 URL 목록
+
+    // 이미지 URL 처리를 위한 헬퍼 메서드 추가
+    public void setMainImage(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public void addAdditionalImage(String imageUrl) {
+        if (this.additionalImageUrls == null) {
+            this.additionalImageUrls = new ArrayList<>();
+        }
+        this.additionalImageUrls.add(imageUrl);
+    }
+
+    public void clearAdditionalImages() {
+        if (this.additionalImageUrls != null) {
+            this.additionalImageUrls.clear();
+        }
+    }
 }

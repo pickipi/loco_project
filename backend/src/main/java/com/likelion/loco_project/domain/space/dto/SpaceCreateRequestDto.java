@@ -9,6 +9,8 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -22,31 +24,28 @@ public class SpaceCreateRequestDto {
 //    private Long hostId;
 
     @Schema(description = "공간 유형", example = "MEETING")
-    private SpaceType spaceType;
+    private SpaceType type;
 
     @Schema(description = "공간 이름", example = "서울 강남점 스터디룸 A")
-    private String spaceName;
+    private String name;
 
     @Schema(description = "공간 설명", example = "쾌적한 환경의 6인용 스터디룸입니다.")
     private String description;
 
-    @Schema(description = "이미지 ID", example = "10")
-    private Long imageId;
-
-    @Schema(description = "등록일", example = "2025-05-19T10:00:00")
-    private LocalDateTime uploadDate;
+    @Schema(description = "이미지 URL 목록")
+    private List<String> imageUrls;
 
     @Schema(description = "최대 수용 인원", example = "6")
-    private Integer maxCapacity;
+    private Integer capacity;
 
     @Schema(description = "기본 주소", example = "서울시 강남구")
     private String address;
 
     @Schema(description = "상세 주소", example = "테헤란로 123 5층")
-    private String address2;
+    private String detailAddress;
 
     @Schema(description = "주변 정보", example = "강남역 2번 출구 인근")
-    private String address3;
+    private String neighborhoodInfo;
 
     @Schema(description = "위도", example = "37.498095")
     private BigDecimal latitude;
@@ -57,30 +56,35 @@ public class SpaceCreateRequestDto {
     @Schema(description = "가격", example = "15000")
     private Long price;
 
-    @Schema(description = "공개 여부", example = "true")
-    private Boolean isActive;
-
-    @Schema(description = "평점", example = "4.5")
-    private BigDecimal spaceRating;
-
     // ✅ DTO → Entity (Host 주입)
     public Space toEntity(Host host) {
+        List<String> additionalUrls = new ArrayList<>();
+        String mainImageUrl = null;
+        
+        if (imageUrls != null && !imageUrls.isEmpty()) {
+            mainImageUrl = imageUrls.get(0);
+            if (imageUrls.size() > 1) {
+                additionalUrls = new ArrayList<>(imageUrls.subList(1, imageUrls.size()));
+            }
+        }
+
         return Space.builder()
                 .host(host)
-                .spaceName(spaceName)
+                .spaceName(this.name)
                 .description(description)
-                .uploadDate(uploadDate != null ? uploadDate : LocalDateTime.now())
-                .spaceType(spaceType)
-                .price(price)
+                .uploadDate(LocalDateTime.now())
+                .spaceType(this.type)
+                .price(this.price)
                 .address(address)
-                .address2(address2)
-                .address3(address3)
+                .detailAddress(detailAddress)
+                .neighborhoodInfo(neighborhoodInfo)
                 .latitude(latitude)
                 .longitude(longitude)
-                .maxCapacity(maxCapacity)
-                .isActive(isActive != null ? isActive : true)
-                .imageId(imageId)
-                .spaceRating(spaceRating)
+                .maxCapacity(this.capacity)
+                .isActive(true)
+                .imageUrl(mainImageUrl)
+                .additionalImageUrls(additionalUrls)
+                .spaceRating(BigDecimal.ZERO)
                 .status(SpaceStatus.PENDING)
                 .build();
     }

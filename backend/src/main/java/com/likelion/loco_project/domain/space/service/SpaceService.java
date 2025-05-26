@@ -2,18 +2,18 @@ package com.likelion.loco_project.domain.space.service;
 
 import com.likelion.loco_project.domain.host.entity.Host;
 import com.likelion.loco_project.domain.host.repository.HostRepository;
-import com.likelion.loco_project.domain.space.dto.SpaceCreateRequestDto;
-import com.likelion.loco_project.domain.space.dto.SpaceResponseDto;
-import com.likelion.loco_project.domain.space.dto.SpaceSearchDto;
-import com.likelion.loco_project.domain.space.dto.SpaceUpdateRequestDto;
+import com.likelion.loco_project.domain.space.dto.*;
 import com.likelion.loco_project.domain.space.entity.Space;
 import com.likelion.loco_project.domain.space.entity.SpaceStatus;
 import com.likelion.loco_project.domain.space.repository.SpaceRepository;
 import com.likelion.loco_project.domain.user.entity.User;
 import com.likelion.loco_project.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -28,14 +28,55 @@ public class SpaceService {
 
     private final SpaceRepository spaceRepository;
     private final HostRepository hostRepository;
+    private final Logger logger = LoggerFactory.getLogger(SpaceService.class);
     private final UserRepository userRepository;
 
     // 공간 생성
+    @Transactional
     public SpaceResponseDto createSpace(Long hostId, SpaceCreateRequestDto dto) {
-        Host host = hostRepository.findById(hostId)
-                .orElseThrow(() -> new IllegalArgumentException("호스트를 찾을 수 없습니다."));
-        Space space = spaceRepository.save(dto.toEntity(host));
-        return SpaceResponseDto.fromEntity(space);
+        try {
+            logger.info("공간 등록 시작. Host ID: {}", hostId);
+            logger.debug("받은 DTO 데이터: {}", dto);
+
+            Host host = hostRepository.findById(hostId)
+                    .orElseThrow(() -> new IllegalArgumentException("호스트를 찾을 수 없습니다. ID: " + hostId));
+            logger.debug("호스트 찾음: {}", host.getId());
+
+            // 이미지 URL 유효성 검사 수정
+            if (dto.getImageUrls() != null && !dto.getImageUrls().isEmpty()) {
+                logger.debug("이미지 URL 확인: {}", dto.getImageUrls());
+                validateImageUrls(dto.getImageUrls());
+            }
+
+            // DTO를 Entity로 변환
+            Space space = dto.toEntity(host);
+            logger.debug("생성된 Space 엔티티: {}", space);
+
+            // DB 저장
+            Space savedSpace = spaceRepository.save(space);
+            logger.info("공간 등록 성공. Space ID: {}", savedSpace.getId());  // getId 메서드 호출 수정
+
+            return SpaceResponseDto.fromEntity(savedSpace);
+        } catch (Exception e) {
+            logger.error("공간 등록 실패. Host ID: {}, 에러: {}", hostId, e.getMessage(), e);
+            throw new RuntimeException("공간 등록 중 오류가 발생했습니다: " + e.getMessage(), e);
+        }
+    }
+
+    private void validateImageUrls(List<String> imageUrls) {
+        if (imageUrls == null || imageUrls.isEmpty()) {
+            logger.warn("이미지 URL이 제공되지 않음");
+            return; // 이미지가 필수가 아닌 경우 처리
+        }
+
+        for (String imageUrl : imageUrls) {
+            if (imageUrl == null || imageUrl.trim().isEmpty()) {
+                logger.warn("빈 이미지 URL 발견");
+                continue;
+            }
+            // 이미지 URL 패턴 체크 제거 (placeholder 이미지도 허용)
+            logger.debug("유효한 이미지 URL: {}", imageUrl);
+        }
     }
 
     // 공간 단일 조회
@@ -45,11 +86,18 @@ public class SpaceService {
         return SpaceResponseDto.fromEntity(space);
     }
 
-    // 공간 전체 조회
-    public List<SpaceResponseDto> getAllSpaces() {
-        return spaceRepository.findAll().stream()
-                .map(SpaceResponseDto::fromEntity)
+    // 모든 공간 목록 조회
+    public List<SpaceListResponseDto> getAllSpaces() {
+        List<Space> spaces = spaceRepository.findAll();
+        return spaces.stream()
+                .map(SpaceListResponseDto::from)
                 .collect(Collectors.toList());
+    }
+
+    // 모든 공간 목록 조회 (페이징 처리)
+    public Page<SpaceListResponseDto> getAllSpacesWithPagination(Pageable pageable) {
+        Page<Space> spacePage = spaceRepository.findAll(pageable);
+        return spacePage.map(SpaceListResponseDto::from);
     }
 
     // 공간 수정
@@ -131,6 +179,30 @@ public class SpaceService {
 
         space.setStatus(SpaceStatus.REJECTED);
         space.setRejectionReason(rejectionReason); // 반려 사유 저장
+    }
+
+    @Transactional
+    public SpaceResponseDto addSpaceImages(Long id, List<String> imageUrls) {
+        if (imageUrls == null || imageUrls.isEmpty()) {
+            throw new IllegalArgumentException("이미지 URL이 제공되지 않았습니다.");
+        }
+
+        Space space = spaceRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공간입니다."));
+
+        // 첫 번째 이미지가 없는 경우에만 대표 이미지로 설정
+        if (space.getImageUrl() == null && !imageUrls.isEmpty()) {
+            space.setImageUrl(imageUrls.get(0));
+            if (imageUrls.size() > 1) {
+                space.getAdditionalImageUrls().addAll(imageUrls.subList(1, imageUrls.size()));
+            }
+        } else {
+            // 이미 대표 이미지가 있는 경우 모든 이미지를 추가 이미지로 등록
+            space.getAdditionalImageUrls().addAll(imageUrls);
+        }
+
+        Space savedSpace = spaceRepository.save(space);
+        return SpaceResponseDto.fromEntity(savedSpace);
     }
 
     //찜 추가

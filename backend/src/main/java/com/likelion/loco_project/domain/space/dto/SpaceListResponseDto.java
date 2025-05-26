@@ -1,48 +1,46 @@
 package com.likelion.loco_project.domain.space.dto;
 
 import com.likelion.loco_project.domain.space.entity.Space;
-import com.likelion.loco_project.domain.space.entity.SpaceType;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Getter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@Getter
-public class SpaceResponseDto {
+public class SpaceListResponseDto {
     private Long id;
-    private Long hostId;
-    private Long imageId;
     private String spaceName;
     private String description;
     private LocalDateTime uploadDate;
-    private SpaceType spaceType;
     private Long price;
     private String address;
+    private String detailAddress;
+    private String neighborhoodInfo;
     private BigDecimal latitude;
     private BigDecimal longitude;
     private Integer maxCapacity;
     private Boolean isActive;
     private BigDecimal spaceRating;
-    private Boolean isFavoritedByMe;
-    private String imageUrl;
-    private List<String> additionalImageUrls;
+    private String imageUrl;  // 대표 이미지 URL 추가
+    private List<String> additionalImageUrls;  // 추가 이미지 URL 목록 추가
 
-    // Space 엔티티를 DTO로 변환하는 정적 팩토리 메서드
-    public static SpaceResponseDto fromEntity(Space space) {
-        return SpaceResponseDto.builder()
+    public static SpaceListResponseDto from(Space space) {
+        return SpaceListResponseDto.builder()
                 .id(space.getId())
-                .imageId(space.getImageId())
-                .hostId(space.getHost().getId())
                 .spaceName(space.getSpaceName())
                 .description(space.getDescription())
                 .uploadDate(space.getUploadDate())
-                .spaceType(space.getSpaceType())
                 .price(space.getPrice())
                 .address(space.getAddress())
+                .detailAddress(space.getDetailAddress())
+                .neighborhoodInfo(space.getNeighborhoodInfo())
                 .latitude(space.getLatitude())
                 .longitude(space.getLongitude())
                 .maxCapacity(space.getMaxCapacity())
@@ -50,7 +48,6 @@ public class SpaceResponseDto {
                 .spaceRating(space.getSpaceRating())
                 .imageUrl(space.getImageUrl())
                 .additionalImageUrls(space.getAdditionalImageUrls())
-                .isFavoritedByMe(isFavoritedByMe)
                 .build();
     }
 }

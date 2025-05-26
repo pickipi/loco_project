@@ -1,37 +1,41 @@
 package com.likelion.loco_project.domain.space.controller;
 
-import com.likelion.loco_project.domain.space.dto.SpaceCreateRequestDto;
-import com.likelion.loco_project.domain.space.dto.SpaceResponseDto;
-import com.likelion.loco_project.domain.space.dto.SpaceSearchDto;
-import com.likelion.loco_project.domain.space.dto.SpaceUpdateRequestDto;
+import com.likelion.loco_project.domain.space.dto.*;
 import com.likelion.loco_project.domain.space.service.SpaceService;
 import com.likelion.loco_project.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/spaces")
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")  // 직접 origin 지정
 public class ApiV1SpaceController {
 
     private final SpaceService spaceService;
 
     // 공간 생성
     @Operation(summary = "공간 생성", description = "새로운 공간을 등록합니다.")
-    @PostMapping("/me/register")
+    @PostMapping("/{hostId}/register")
     public ResponseEntity<SpaceResponseDto> createSpace(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable("hostId") Long hostId,
             @RequestBody SpaceCreateRequestDto dto) {
-        Long hostId = Long.parseLong(userDetails.getUsername()); // 로그인 유저 ID
-        return ResponseEntity.ok(spaceService.createSpace(hostId, dto));
+        try {
+            SpaceResponseDto response = spaceService.createSpace(hostId, dto);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("공간 등록 중 오류가 발생했습니다: " + e.getMessage());
+        }
     }
 
     // 공간 단건 조회(지도)
@@ -42,12 +46,16 @@ public class ApiV1SpaceController {
         return ResponseEntity.ok(RsData.of("S-200", "공간 조회 성공", dto));
     }
 
-    // 공간 전체 조회(지도)
-    @Operation(summary = "전체 공간 목록 조회", description = "등록된 모든 공간 리스트를 조회합니다. (지도에서 사용)")
-    @GetMapping
-    public ResponseEntity<List<SpaceResponseDto>> getAllSpaces() {
-        List<SpaceResponseDto> response = spaceService.getAllSpaces();
-        return ResponseEntity.ok(response);
+    // 모든 공간 목록 조회
+    @Operation(summary = "모든 공간 목록 조회", description = "등록된 모든 공간의 목록을 조회합니다.")
+    @GetMapping("/all")
+    public ResponseEntity<RsData<Page<SpaceListResponseDto>>> getAllSpaces(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(defaultValue = "id") String sort) {
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(sort));
+        Page<SpaceListResponseDto> spaces = spaceService.getAllSpacesWithPagination(pageRequest);
+        return ResponseEntity.ok(RsData.of("S-1", "모든 공간 목록을 조회했습니다.", spaces));
     }
 
     // 공간 수정
@@ -75,25 +83,18 @@ public class ApiV1SpaceController {
         return ResponseEntity.ok(spaceService.searchSpaces(searchDto));
     }
 
-    // 공간 찜하기
-    @Operation(summary = "공간 찜하기")
-    @PostMapping("/{spaceId}/favorite")
-    public ResponseEntity<RsData<String>> favoriteSpace(
-            @PathVariable Long spaceId,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = Long.parseLong(userDetails.getUsername());
-        spaceService.favoriteSpace(userId, spaceId);
-        return ResponseEntity.ok(RsData.of("S-1", "공간을 찜했습니다."));
-    }
-
-    // 공간 찜 제거하기
-    @Operation(summary = "공간 찜 취소")
-    @DeleteMapping("/{spaceId}/favorite")
-    public ResponseEntity<RsData<String>> unfavoriteSpace(
-            @PathVariable Long spaceId,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = Long.parseLong(userDetails.getUsername());
-        spaceService.unfavoriteSpace(userId, spaceId);
-        return ResponseEntity.ok(RsData.of("S-2", "찜을 취소했습니다."));
+    // 공간 이미지 추가
+    @PostMapping("/{id}/images")
+    @Operation(summary = "공간 이미지 추가", description = "공간에 이미지를 추가합니다.")
+    public ResponseEntity<RsData<SpaceResponseDto>> addSpaceImages(
+            @PathVariable Long id,
+            @RequestParam List<String> imageUrls) {
+        try {
+            SpaceResponseDto response = spaceService.addSpaceImages(id, imageUrls);
+            return ResponseEntity.ok(RsData.of("S-1", "이미지 추가 성공", response));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(RsData.of("F-1", "이미지 추가 실패: " + e.getMessage(), null));
+        }
     }
 }

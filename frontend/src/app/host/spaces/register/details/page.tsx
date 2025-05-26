@@ -1,530 +1,692 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import dynamic from 'next/dynamic'
-import ImageUploader from '@/components/space/ImageUploader'
-import TagInput from '@/components/space/TagInput'
-import type { SpaceType } from '@/components/space/SpaceTypeSelector'
-import styles from './page.module.css'
-//import api from '@/lib/axios'
+import type React from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Building2, Camera, PartyPopper, Coffee, Upload } from "lucide-react";
+import AddressSearch from "@/components/AddressSearch";
+import dynamic from "next/dynamic";
 
-// 카카오맵 컴포넌트를 동적으로 import (SSR 비활성화)
-const KakaoMap = dynamic(() => import('@/components/map/KakaoMap'), {
+// DaumPostcode를 dynamic import로 불러오기
+const DaumPostcode = dynamic(() => import("@/components/DaumPostcode"), {
   ssr: false,
-  loading: () => (
-    <div className={styles.mapContainer}>지도를 불러오는 중...</div>
-  ),
 });
 
-//로컬 url
+//로컬 url 머지하면서 추가 --봉준님 확인하세요
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8090";
 
-// 공간 등록 폼 데이터 타입 정의
-interface SpaceForm {
-  spaceType: SpaceType; // 공간 유형 (단일 선택)
-  spaceName: string; // 공간 이름
-  description: string; // 공간 설명
-  maxCapacity: number; // 최대 수용 인원
-  address: string; // 주소
-  address2: string; // 상세 주소
-  address3: string; // 위치 정보 (근처)
-  latitude: number; // 위도
-  longitude: number; // 경도
-  price: number; // 가격
-  isActive: boolean; // 공개 여부
-  spaceRating: number; // 공간 평점
-  hostId?: number; // 임시 호스트 ID (테스트용)
+interface SpaceFormData {
+  name: string;
+  type: string;
+  description: string;
+  address: string;
+  detailAddress: string;
+  capacity: string;
+  price: string;
+  images: File[];
+  openTime: string;
+  closeTime: string;
+  minTime: string;
+  maxTime: string;
 }
 
-export default function SpaceDetailsPage() {
+export default function RegisterSpacePage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  // 이미지 상태 관리
-  const [mainImage, setMainImage] = useState<File | null>(null);
-  const [additionalImages, setAdditionalImages] = useState<File[]>([]);
-
-  // 이미지 업로드 핸들러
-  const handleMainImageUpload = (file: File) => {
-    setMainImage(file);
-  };
-
-  const handleAdditionalImagesUpload = (files: File[]) => {
-    setAdditionalImages((prev) => [...prev, ...files]);
-  };
-
-  const handleMainImageDelete = () => {
-    setMainImage(null);
-  };
-
-  const handleAdditionalImageDelete = (index: number) => {
-    setAdditionalImages((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  // 폼 상태 관리 - 초기값 설정
-  const [form, setForm] = useState<SpaceForm>({
-    spaceType: 'MEETING',      // 기본 공간 유형
-    spaceName: '',             // 공간 이름 (빈 문자열)
-    description: '',           // 설명 (빈 문자열)
-    maxCapacity: 1,            // 최소 수용 인원
-    address: '',               // 주소 (빈 문자열)
-    address2: '',              // 상세 주소 (빈 문자열)
-    address3: '',              // 주변 정보 (빈 문자열)
-    latitude: 37.5665,         // 기본 위도 (서울시청)
-    longitude: 126.9780,       // 기본 경도 (서울시청)
-    price: 0,                  // 가격 (0원)
-    isActive: true,            // 공개 여부 (기본값 true)
-    spaceRating: 0,            // 평점 (초기값 0)
-    hostId: 0,                // 호스트 ID 초기값
-  })
-
-  // 주소 검색 완료 상태 추가
-  const [isAddressVerified, setIsAddressVerified] = useState(false);
-
-  // 지도 중심 좌표 상태 관리
-  const [mapCenter, setMapCenter] = useState({
-    lat: 37.5665, // 서울시청 기본 위도
-    lng: 126.978, // 서울시청 기본 경도
+  const [activeStep, setActiveStep] = useState(2);
+  const [showAddressSearch, setShowAddressSearch] = useState(false);
+  const [formData, setFormData] = useState<SpaceFormData>({
+    name: "",
+    type: "",
+    description: "",
+    address: "",
+    detailAddress: "",
+    capacity: "",
+    price: "",
+    images: [],
+    openTime: "",
+    closeTime: "",
+    minTime: "1",
+    maxTime: "4",
   });
 
-  // 주소 검색 상태 관리
-  const [shouldSearch, setShouldSearch] = useState(false);
-
-  // 컴포넌트 마운트 시 localStorage에서 이전에 선택한 공간 유형 불러오기
+  // localStorage에서 선택된 공간 유형 가져오기
   useEffect(() => {
-    const savedType = localStorage.getItem("selectedSpaceTypes");
-    if (savedType) {
-      try {
-        const types = JSON.parse(savedType) as SpaceType[];
-        setForm((prev) => ({ ...prev, spaceType: types[0] }));
-      } catch (error) {
-        console.error("공간 유형 데이터 파싱 오류:", error);
+    const selectedTypes = localStorage.getItem("selectedSpaceTypes");
+    if (selectedTypes) {
+      const types = JSON.parse(selectedTypes);
+      if (types.length > 0) {
+        setFormData(prev => ({ ...prev, type: types[0] }));
       }
     }
   }, []);
 
-  // 공간 유형 이름 변환 함수
-  const getSpaceTypeName = (type: SpaceType): string => {
-    const typeNames: Record<SpaceType, string> = {
-      MEETING: "모임 공간",
-      PRACTICE: "연습 공간",
-      PHOTO: "촬영 공간",
-      ACTIVITY: "행사 공간",
-      CAMPING: "캠핑 공간",
-      OFFICE: "오피스 공간",
-    };
-    return typeNames[type];
+  // 주소 검색 완료 핸들러
+  const handleAddressComplete = (data: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      address: data.address,
+      zonecode: data.zonecode,
+      latitude: data.latitude,
+      longitude: data.longitude,
+    }));
   };
 
-  // AWS S3 이미지 업로드 함수
-  const uploadImagesToS3 = async () => {
-    if (!mainImage) {
-      throw new Error("대표 이미지를 등록해주세요.");
-    }
-
-    try {
-      const formData = new FormData();
-      formData.append("mainImage", mainImage);
-
-      additionalImages.forEach((file, index) => {
-        formData.append(`additionalImages`, file);
-      });
-
-      // S3 업로드 API 호출
-      const response = await fetch(
-        `${API_BASE_URL}/api/v1/spaces/images/upload`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("이미지 업로드에 실패했습니다.");
-      }
-
-      const imageUrls = await response.json();
-      return imageUrls;
-    } catch (error) {
-      console.error("이미지 업로드 중 오류:", error);
-      throw new Error("이미지 업로드에 실패했습니다.");
-    }
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 폼 제출 처리
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!mainImage) {
-      alert("대표 이미지를 등록해주세요.");
+    // 최종 제출 전 모든 필수 필드 검증
+    if (!formData.name || !formData.description || formData.description.length < 20 || !formData.address) {
+      alert('공간 이름, 공간 소개(20자 이상), 주소는 필수 입력 항목입니다.');
       return;
     }
+    if (!formData.capacity || !formData.price || parseInt(formData.price) < 1000 || formData.images.length === 0) {
+      alert('수용 인원, 시간당 가격(1000원 이상), 공간 사진은 필수 입력 항목입니다.');
+      return;
+    }
+    // 단계 3 (이용 규칙)에서는 현재 필수 필드 없음
 
     try {
-      // 이미지 먼저 업로드
-      const imageUrls = await uploadImagesToS3();
+      // 실제 API 호출 부분 (주석 해제 및 수정 필요)
+      // const response = await fetch('/api/v1/spaces', { // 엔드포인트 수정 필요
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     // 필요한 경우 인증 토큰 추가
+      //   },
+      //   body: JSON.stringify(formData), // 백엔드 DTO에 맞게 formData 구조 변경 필요
+      // })
 
-      // 요청 데이터 준비
-      const requestData = {
-        spaceType: form.spaceType,
-        spaceName: form.spaceName,
-        description: form.description,
-        maxCapacity: form.maxCapacity,
-        address: form.address,
-        address2: form.address2,
-        address3: form.address3,
-        latitude: form.latitude,
-        longitude: form.longitude,
-        price: form.price,
-        isActive: form.isActive,
-        spaceRating: form.spaceRating,
-        hostId: form.hostId,
-        mainImageUrl: imageUrls.mainImageUrl,
-        additionalImageUrls: imageUrls.additionalImageUrls,
-      };
+      // if (response.ok) {
+      //   const data = await response.json()
+      //   router.push(`/spaces/${data.id}`) // 성공 후 이동할 페이지 수정 필요
+      // } else {
+      //    const errorData = await response.json(); // 오류 응답 처리
+      //    alert(`공간 등록 실패: ${errorData.message || response.statusText}`);
+      // }
 
-      // API 엔드포인트 확인
-      const apiUrl = `${API_BASE_URL}/api/v1/spaces/${form.hostId}/register`;
-      console.log("API 요청 URL:", apiUrl);
-      console.log("요청 데이터:", requestData);
+      // 임시 처리 (API 연동 전까지 사용)
+      console.log("제출된 데이터:", formData);
+      alert("공간이 성공적으로 등록되었습니다!");
+      router.push("/host/dashboard"); // 등록 성공 후 이동할 페이지
 
-      // API 호출
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(requestData),
-      });
-
-      // 응답 확인
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error("API 오류 응답:", errorData);
-        throw new Error(
-          `공간 등록 실패: ${response.status} ${response.statusText}`
-        );
-      }
-
-      const data = await response.json();
-      console.log("공간 등록 성공:", data);
-
-      // 성공 시 완료 페이지로 이동
-      router.push("/host/space/register/complete");
     } catch (error) {
-      console.error("공간 등록 중 오류 발생:", error);
-      alert(
-        error instanceof Error
-          ? error.message
-          : "공간 등록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
-      );
+      console.error("공간 등록 오류:", error);
+      alert("공간 등록 중 오류가 발생했습니다.");
     }
   };
 
-  return (
-    <main className={styles.container}>
-      {/* 페이지 헤더 */}
-      <div className={styles.header}>
-        <div className={styles.headerContent}>
-          <h1 className={styles.headerTitle}>공간 정보를 입력해주세요</h1>
-          <p className={styles.requiredText}>* 필수입력</p>
-        </div>
-      </div>
+  const nextStep = () => {
+    // 현재 단계의 필수 필드만 검증 후 다음 단계로 이동
+    if (activeStep === 2) { // 기본 정보 탭
+      if (!formData.name || !formData.description || formData.description.length < 20 || !formData.address) {
+        alert('공간 이름, 공간 소개(20자 이상), 주소는 필수 입력 항목입니다.');
+        return;
+      }
+    } else if (activeStep === 3) { // 공간 정보 탭
+      if (!formData.capacity || !formData.price || parseInt(formData.price) < 1000 || formData.images.length === 0) {
+        alert('수용 인원, 시간당 가격(1000원 이상), 공간 사진은 필수 입력 항목입니다.');
+        return;
+      }
+    }
+    // 단계 4 (이용 규칙)에서는 현재 필수 필드 없음
 
-      <form onSubmit={handleSubmit} className={styles.form}>
-        {/* 선택된 공간 유형 표시 */}
-        <div className={styles.section}>
-          <div className={styles.sectionHeader}>
-            <h3 className={styles.sectionTitle}>선택된 공간 유형</h3>
-            <button
-              type="button"
-              onClick={() => router.push("/host/space/register")}
-              className={styles.editButton}
+    setActiveStep((prev) => prev + 1);
+  };
+
+  const prevStep = () => {
+    setActiveStep((prev) => prev - 1);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-800 py-8">
+      <div className="container mx-auto px-4 max-w-3xl">
+        <div className="bg-white rounded-lg shadow-sm p-8">
+          <h1 className="text-2xl font-bold text-center mb-8">공간 등록하기</h1>
+
+          {/* 단계 표시 */}
+          <div className="flex justify-between items-center mb-10">
+            {/* 단계 1: 공간 유형 */}
+            <div
+              className={`flex flex-col items-center ${
+                activeStep >= 1 ? "text-indigo-600" : "text-gray-400"
+              }`}
             >
-              <svg
-                className="w-4 h-4 mr-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                  activeStep >= 1
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-200 text-gray-500"
+                }`}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                />
-              </svg>
-              수정
-            </button>
+                1
+              </div>
+              <span className="text-sm">공간 유형</span>
+            </div>
+            {/* 구분선 */}
+            <div
+              className={`flex-1 h-1 mx-2 ${
+                activeStep >= 2 ? "bg-indigo-600" : "bg-gray-200"
+              }`}
+            ></div>
+            {/* 단계 2: 기본 정보 */}
+            <div
+              className={`flex flex-col items-center ${
+                activeStep >= 2 ? "text-indigo-600" : "text-gray-400"
+              }`}
+            >
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                  activeStep >= 2
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-200 text-gray-500"
+                }`}
+              >
+                2
+              </div>
+              <span className="text-sm">기본 정보</span>
+            </div>
+            {/* 구분선 */}
+            <div
+              className={`flex-1 h-1 mx-2 ${
+                activeStep >= 3 ? "bg-indigo-600" : "bg-gray-200"
+              }`}
+            ></div>
+            {/* 단계 3: 공간 정보 */}
+            <div
+              className={`flex flex-col items-center ${
+                activeStep >= 3 ? "text-indigo-600" : "text-gray-400"
+              }`}
+            >
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                  activeStep >= 3
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-200 text-gray-500"
+                }`}
+              >
+                3
+              </div>
+              <span className="text-sm">공간 정보</span>
+            </div>
+             {/* 구분선 */}
+            <div
+              className={`flex-1 h-1 mx-2 ${
+                activeStep >= 4 ? "bg-indigo-600" : "bg-gray-200"
+              }`}
+            ></div>
+             {/* 단계 4: 이용 규칙 */}
+            <div
+              className={`flex flex-col items-center ${
+                activeStep >= 4 ? "text-indigo-600" : "text-gray-400"
+              }`}
+            >
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                  activeStep >= 4
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-200 text-gray-500"
+                }`}
+              >
+                4
+              </div>
+              <span className="text-sm">이용 규칙</span>
+            </div>
           </div>
-          <div className={styles.tagContainer}>
-            {form.spaceType && (
-              <div className={styles.tag}>
-                {getSpaceTypeName(form.spaceType)}
+
+          <form onSubmit={handleSubmit}>
+            {/* 단계 1: 기본 정보 */}
+            {activeStep === 2 && (
+              <div className="space-y-6">
+                <div>
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    공간 이름
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder="공간의 특징이 잘 드러나는 이름을 입력해주세요"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="description"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    공간 소개
+                  </label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    placeholder="공간의 특징, 장점, 주요 시설 등을 자세히 소개해주세요"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px]"
+                    required
+                    minLength={20}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    최소 20자 이상 작성해주세요
+                  </p>
+                </div>
+
+                {/* 주소 입력 부분 */}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    id="address"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    placeholder="주소를 입력해주세요"
+                    className="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                    readOnly
+                  />
+                  <div className="flex-shrink-0">
+                    <AddressSearch onComplete={handleAddressComplete} />
+                  </div>
+                </div>
+                <div>
+                  <label
+                    htmlFor="detailAddress"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    상세 주소
+                  </label>
+                  <input
+                    type="text"
+                    id="detailAddress"
+                    name="detailAddress"
+                    value={formData.detailAddress}
+                    onChange={handleInputChange}
+                    placeholder="상세 주소를 입력해주세요"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
               </div>
             )}
-          </div>
-        </div>
 
-        {/* 공간명 입력 필드 */}
-        <div className={styles.section}>
-          <label className={styles.label}>
-            공간명 <span className={styles.required}>*</span>
-          </label>
-          <input
-            type="text"
-            value={form.spaceName}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, spaceName: e.target.value }))
-            }
-            className={styles.input}
-            placeholder="(예시) 인디레코즈 하이브 회의실"
-            maxLength={18}
-            required
-          />
-        </div>
+            {/* 단계 2: 공간 정보 */}
+            {activeStep === 3 && (
+              <div className="space-y-6">
+                <div>
+                  <label
+                    htmlFor="capacity"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    수용 인원
+                  </label>
+                  <div className="flex items-center">
+                    <input
+                      type="number"
+                      id="capacity"
+                      name="capacity"
+                      value={formData.capacity}
+                      onChange={handleInputChange}
+                      placeholder="최대 수용 가능한 인원"
+                      className="w-24 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      min="1"
+                      required
+                    />
+                    <span className="ml-2">명</span>
+                  </div>
+                </div>
 
-        {/* 호스트 ID (테스트용) */}
-        <div className={styles.section}>
-          <label className={styles.label}>호스트 ID (테스트용)</label>
-          <input
-            type="number"
-            value={form.hostId ?? ""}
-            onChange={(e) =>
-              setForm((prev) => ({
-                ...prev,
-                hostId:
-                  e.target.value === "" ? undefined : Number(e.target.value),
-              }))
-            }
-            className={styles.input}
-            placeholder="호스트 ID를 입력하세요"
-          />
-        </div>
+                <div>
+                  <label
+                    htmlFor="price"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    시간당 가격
+                  </label>
+                  <div className="flex items-center">
+                    <input
+                      type="number"
+                      id="price"
+                      name="price"
+                      value={formData.price}
+                      onChange={handleInputChange}
+                      placeholder="시간당 가격을 입력해주세요"
+                      className="w-40 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      min="1000"
+                      step="1000"
+                      required
+                    />
+                    <span className="ml-2">원</span>
+                  </div>
+                </div>
 
-        {/* 공간 상세 소개 */}
-        <div className={styles.section}>
-          <label className={styles.label}>
-            공간 소개 <span className={styles.required}>*</span>
-          </label>
-          <textarea
-            value={form.description}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, description: e.target.value }))
-            }
-            className={styles.textarea}
-            placeholder="게스트들에게 필요한 공간 정보를 상세하게 소개해주세요."
-            minLength={20}
-            maxLength={500}
-            required
-          />
-          <p className={styles.charCount}>
-            ({form.description.length}/500자) 최소 20자 이상 입력해주세요.
-          </p>
-        </div>
+                {/* 공간 사진 섹션 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    공간 사진
+                  </label>
+                  <div
+                    className="relative border-2 border-dashed border-gray-300 rounded-lg p-8
+                             hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200
+                             cursor-pointer flex flex-col items-center justify-center"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.currentTarget.classList.add(
+                        "border-indigo-500",
+                        "bg-indigo-50"
+                      );
+                    }}
+                    onDragLeave={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.currentTarget.classList.remove(
+                        "border-indigo-500",
+                        "bg-indigo-50"
+                      );
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      e.currentTarget.classList.remove(
+                        "border-indigo-500",
+                        "bg-indigo-50"
+                      );
 
-        {/* 최대 수용 인원 */}
-        <div className={styles.section}>
-          <label className={styles.label}>
-            최대 수용 인원 <span className={styles.required}>*</span>
-          </label>
-          <div className="flex items-center">
-            <input
-              type="number"
-              value={form.maxCapacity}
-              onChange={(e) =>
-                setForm((prev) => ({
-                  ...prev,
-                  maxCapacity: Math.max(
-                    1,
-                    Math.min(1000, parseInt(e.target.value) || 1)
-                  ),
-                }))
-              }
-              className={styles.numberInput}
-              min="1"
-              max="1000"
-              required
-            />
-            <span className={styles.unit}>명</span>
-          </div>
-          <p className={styles.helpText}>
-            최소 1명부터 최대 1,000명까지 설정 가능합니다.
-          </p>
-        </div>
+                      const files = Array.from(e.dataTransfer.files);
+                      const imageFiles = files.filter((file) => {
+                        if (!file.type.startsWith("image/")) {
+                          return false;
+                        }
+                        if (file.size > 3 * 1024 * 1024) {
+                          // 3MB 제한
+                          return false;
+                        }
+                        return true;
+                      });
 
-        {/* 가격 입력 */}
-        <div className={styles.section}>
-          <label className={styles.label}>
-            가격 <span className={styles.required}>*</span>
-          </label>
-          <div className="flex items-center">
-            <input
-              type="number"
-              value={form.price}
-              onChange={(e) =>
-                setForm((prev) => ({
-                  ...prev,
-                  price: Math.max(0, parseInt(e.target.value) || 0),
-                }))
-              }
-              className={styles.numberInput}
-              min="0"
-              required
-              placeholder="10000"
-            />
-            <span className={styles.unit}>원/시간</span>
-          </div>
-        </div>
+                      if (imageFiles.length > 0) {
+                        const totalImages =
+                          formData.images.length + imageFiles.length;
+                        if (totalImages > 10) {
+                          alert("최대 10장까지만 업로드 가능합니다.");
+                          return;
+                        }
+                        setFormData((prev) => ({
+                          ...prev,
+                          images: [...prev.images, ...imageFiles],
+                        }));
+                      }
+                    }}
+                    onClick={() =>
+                      document.getElementById("spaceImageUpload")?.click()
+                    }
+                  >
+                    <input
+                      type="file"
+                      id="spaceImageUpload"
+                      multiple
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        const validFiles = files.filter((file) => {
+                          if (file.size > 3 * 1024 * 1024) {
+                            alert("각 이미지는 3MB를 초과할 수 없습니다.");
+                            return false;
+                          }
+                          return true;
+                        });
 
-        {/* 공간 이미지 업로드 */}
-        <div className={styles.section}>
-          <label className={styles.label}>
-            공간 이미지 <span className={styles.required}>*</span>
-          </label>
-          <p className={styles.helpText}>
-            대표 이미지 1장과 추가 이미지를 등록해주세요. (최대 10장)
-          </p>
-          <ImageUploader
-            mainImage={mainImage}
-            additionalImages={additionalImages}
-            onMainImageUpload={setMainImage}
-            onAdditionalImagesUpload={setAdditionalImages}
-            onMainImageDelete={() => setMainImage(null)}
-            onAdditionalImageDelete={(index: number) => {
-              setAdditionalImages((prev) => prev.filter((_, i) => i !== index));
-            }}
-          />
-        </div>
+                        const totalImages = formData.images.length + validFiles.length;
+                         if (totalImages > 10) {
+                          alert("최대 10장까지만 업로드 가능합니다.");
+                          return;
+                        }
 
-        {/* 주소 입력 */}
-        <div className={styles.section}>
-          <label className={styles.label}>
-            주소 <span className={styles.required}>*</span>
-          </label>
-          <div className="space-y-4">
-            <div className={styles.addressContainer}>
-              <input
-                type="text"
-                value={form.address}
-                onChange={(e) => {
-                  setForm((prev) => ({ ...prev, address: e.target.value }));
-                  setIsAddressVerified(false);
-                }}
-                className={styles.addressInput}
-                placeholder="주소를 입력해주세요"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  if (form.address) {
-                    setShouldSearch(true);
-                    setIsAddressVerified(true);
-                  }
-                }}
-                className={styles.searchButton}
-                disabled={!form.address}
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-                주소 검색
-              </button>
-            </div>
-            <input
-              type="text"
-              value={form.address2}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, address2: e.target.value }))
-              }
-              className={styles.input}
-              placeholder="상세 주소를 입력해주세요 (선택)"
-            />
-            <div>
-              <input
-                type="text"
-                value={form.address3}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, address3: e.target.value }))
-                }
-                className={styles.input}
-                placeholder="주변 정보를 입력해주세요 (예: 강남역 3번 출구 도보 5분) (선택)"
-                maxLength={20}
-              />
-            </div>
+                        setFormData((prev) => ({
+                          ...prev,
+                          images: [...prev.images, ...validFiles],
+                        }));
+                        e.target.value = ""; // input 초기화
+                      }}
+                    />
+                    <div className="flex flex-col items-center text-center">
+                      <Upload className="w-10 h-10 text-gray-400 mb-3" />
+                      <p className="text-gray-600 mb-2">
+                        여기를 클릭하거나 드래그하여 사진을 올려주세요
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        권장 크기: 1000x1000px / 최대 10장
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        파일당 최대 3MB
+                      </p>
+                    </div>
+                  </div>
 
-            <div className={styles.mapContainer}>
-              <KakaoMap
-                address={form.address}
-                center={mapCenter}
-                shouldSearch={shouldSearch}
-                onLocationChange={(lat: number, lng: number) => {
-                  setForm((prev) => ({
-                    ...prev,
-                    latitude: lat,
-                    longitude: lng,
-                  }));
-                  setMapCenter({ lat, lng });
-                  setShouldSearch(false);
-                }}
-              />
-            </div>
-          </div>
-        </div>
+                  {/* 업로드된 이미지 미리보기 */}
+                  {formData.images.length > 0 && (
+                    <div className="mt-4">
+                      <div className="mb-2 text-sm text-gray-600">
+                        업로드된 이미지 ({formData.images.length}/10)
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {formData.images.map((image, index) => (
+                          <div
+                            key={index}
+                            className="relative group aspect-square"
+                          >
+                            <img
+                              src={URL.createObjectURL(image)}
+                              alt={`미리보기 ${index + 1}`}
+                              className="w-full h-full object-cover rounded-lg"
+                            />
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  images: prev.images.filter(
+                                    (_, i) => i !== index
+                                  ),
+                                }));
+                              }}
+                              className="absolute top-2 right-2 bg-black bg-opacity-50 text-white
+                                       rounded-full w-6 h-6 flex items-center justify-center
+                                       opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
-        {/* 하단 네비게이션 */}
-        <div className={styles.footer}>
-          <div className={styles.footerContent}>
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className={styles.buttonSecondary}
-            >
-              이전
-            </button>
-            <button
-              type="submit"
-              className={
-                !form.spaceName ||
-                !form.description ||
-                form.description.length < 20 ||
-                !form.address ||
-                !isAddressVerified ||
-                form.price <= 0 ||
-                !mainImage
-                  ? styles.buttonDisabled
-                  : styles.buttonPrimary
-              }
-              disabled={
-                !form.spaceName ||
-                !form.description ||
-                form.description.length < 20 ||
-                !form.address ||
-                !isAddressVerified ||
-                form.price <= 0 ||
-                !mainImage
-              }
-            >
-              다음
-            </button>
-          </div>
+            {/* 단계 3: 이용 규칙 */}
+            {activeStep === 4 && (
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    예약 단위
+                  </label>
+                  <div className="flex items-center">
+                    <button
+                      type="button"
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-md mr-2"
+                    >
+                      시간 단위
+                    </button>
+                    <button
+                      type="button"
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md"
+                    >
+                      일 단위
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    운영 시간
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <select
+                      name="openTime"
+                      value={formData.openTime}
+                      onChange={handleInputChange}
+                      className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="">시작 시간</option>
+                      {Array.from({ length: 24 }).map((_, i) => (
+                        <option
+                          key={i}
+                          value={`${i.toString().padStart(2, "0")}:00`}
+                        >
+                          {i.toString().padStart(2, "0")}:00
+                        </option>
+                      ))}
+                    </select>
+                    <span>~</span>
+                    <select
+                      name="closeTime"
+                      value={formData.closeTime}
+                      onChange={handleInputChange}
+                      className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="">종료 시간</option>
+                      {Array.from({ length: 24 }).map((_, i) => (
+                        <option
+                          key={i}
+                          value={`${i.toString().padStart(2, "0")}:00`}
+                        >
+                          {i.toString().padStart(2, "0")}:00
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    시간당 가격
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={formData.price}
+                      readOnly
+                      className="w-40 px-4 py-2 border border-gray-300 rounded-md bg-gray-50"
+                    />
+                    <span>원</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    최소/최대 예약 시간
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <select
+                      name="minTime"
+                      value={formData.minTime}
+                      onChange={handleInputChange}
+                      className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="1">1시간</option>
+                      <option value="2">2시간</option>
+                      <option value="3">3시간</option>
+                      <option value="4">4시간</option>
+                    </select>
+                    <span>~</span>
+                    <select
+                      name="maxTime"
+                      value={formData.maxTime}
+                      onChange={handleInputChange}
+                      className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="4">4시간</option>
+                      <option value="6">6시간</option>
+                      <option value="8">8시간</option>
+                      <option value="12">12시간</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    수용 인원
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={`최소 인원: 1명 ~ 최대 인원: ${formData.capacity}명`}
+                      readOnly
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 버튼 영역 */}
+            {activeStep >= 2 && activeStep <= 4 && (
+              <div className="flex justify-between mt-10">
+                {activeStep > 2 ? (
+                  <button
+                    type="button"
+                    onClick={prevStep}
+                    className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    이전
+                  </button>
+                ) : (
+                  <div></div>
+                )}
+
+                <button
+                   type={activeStep === 4 ? "submit" : "button"}
+                   onClick={activeStep === 4 ? handleSubmit : nextStep}
+                   className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                 >
+                   {activeStep === 4 ? "등록 하기" : "다음"}
+                 </button>
+              </div>
+            )}
+            {activeStep === 1 && (
+                 <div className="flex justify-end mt-10">
+                     <button
+                         type="button"
+                         onClick={nextStep}
+                          className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                      >
+                          다음
+                      </button>
+                 </div>
+            )}
+          </form>
         </div>
-      </form>
-    </main>
+      </div>
+    </div>
   );
 }
