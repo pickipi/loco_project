@@ -12,6 +12,10 @@ const DaumPostcode = dynamic(() => import("@/components/DaumPostcode"), {
   ssr: false,
 });
 
+//로컬 url 머지하면서 추가 --봉준님 확인하세요
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8090";
+
 interface SpaceFormData {
   name: string;
   type: string;
@@ -377,7 +381,7 @@ export default function RegisterSpacePage() {
                     공간 사진
                   </label>
                   <div
-                    className="relative border-2 border-dashed border-gray-300 rounded-lg p-8 
+                    className="relative border-2 border-dashed border-gray-300 rounded-lg p-8
                              hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200
                              cursor-pointer flex flex-col items-center justify-center"
                     onDragOver={(e) => {
@@ -504,7 +508,7 @@ export default function RegisterSpacePage() {
                                   ),
                                 }));
                               }}
-                              className="absolute top-2 right-2 bg-black bg-opacity-50 text-white 
+                              className="absolute top-2 right-2 bg-black bg-opacity-50 text-white
                                        rounded-full w-6 h-6 flex items-center justify-center
                                        opacity-0 group-hover:opacity-100 transition-opacity"
                             >

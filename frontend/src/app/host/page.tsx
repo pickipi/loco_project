@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import styles from './page.module.css'
+import HostHeader from '@/components/header/hostheader'
 
 interface User {
   isLoggedIn: boolean;
@@ -34,13 +35,15 @@ export default function HostMainPage() {
     checkLoginStatus();
   }, []);
 
-  const handleRegisterClick = () => {
+  // 보호된 경로 접근 핸들러
+  const handleProtectedRoute = (path: string) => {
     if (!user?.isLoggedIn) {
-      router.push('/host/login?redirect=/host/space/register');
-    } else {
-      router.push('/host/space/register');
+      alert('로그인이 필요한 서비스입니다.')
+      router.push('/host/login?redirect=' + encodeURIComponent(path))
+      return
     }
-  };
+    router.push(path)
+  }
 
   if (isLoading) {
     return (
@@ -52,11 +55,16 @@ export default function HostMainPage() {
 
   return (
     <div className={styles.container}>
+      <HostHeader isLoggedIn={user?.isLoggedIn || false} />
+      
       {/* Hero Section */}
       <section className={styles.heroSection}>
         <h1 className={styles.heroTitle}>당신의 공간을 LOCO와 함께</h1>
         <p className={styles.heroSubtitle}>새로운 호스팅의 시작, LOCO와 함께하세요</p>
-        <button onClick={handleRegisterClick} className={styles.button}>
+        <button 
+          onClick={() => handleProtectedRoute('/host/spaces')} 
+          className={styles.button}
+        >
           호스트 시작하기
         </button>
       </section>
@@ -105,7 +113,12 @@ export default function HostMainPage() {
       <section className={styles.ctaSection}>
         <h2 className={styles.ctaTitle}>지금 바로 LOCO 호스트가 되어보세요</h2>
         <p className={styles.ctaDescription}>전문적인 호스트 매니저가 당신의 성공적인 호스팅을 도와드립니다</p>
-        <button onClick={handleRegisterClick} className={styles.button}>무료로 시작하기</button>
+        <button 
+          onClick={() => handleProtectedRoute('/host/spaces')} 
+          className={styles.button}
+        >
+          무료로 시작하기
+        </button>
       </section>
 
       {/* Testimonials Section */}

@@ -1,8 +1,10 @@
 package com.likelion.loco_project.domain.notification.controller;
 
 import com.likelion.loco_project.domain.notification.dto.NotificationResponseDto;
+import com.likelion.loco_project.domain.notification.dto.NotificationSettingResponseDto;
 import com.likelion.loco_project.domain.notification.entity.NotificationType;
 import com.likelion.loco_project.domain.notification.service.NotificationService;
+import com.likelion.loco_project.domain.notification.service.NotificationSettingService;
 import com.likelion.loco_project.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import java.util.List;
 @RequestMapping("/api/v1/notifications")
 public class ApiV1NotificationController {
     private final NotificationService notificationService;
+    private final NotificationSettingService notificationSettingService;
 
     // 알림 목록
     @Operation(summary = "내 알림 목록 조회")
@@ -62,6 +65,17 @@ public class ApiV1NotificationController {
         Long userId = Long.parseLong(userDetails.getUsername());
         notificationService.deleteNotification(notificationId, userId);
         return ResponseEntity.ok(RsData.of("S-4", "알림 삭제 완료"));
+    }
+
+    // 알림 설정 조회
+    @Operation(summary = "알림 설정 조회")
+    @GetMapping("/settings")
+    public ResponseEntity<RsData<NotificationSettingResponseDto>> getNotificationSettings(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        NotificationSettingResponseDto settings = notificationSettingService.getSettingsForUser(userId);
+        return ResponseEntity.ok(RsData.of("S-1", "알림 설정 조회 성공", settings));
     }
 
     //테스트용 알림

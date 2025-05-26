@@ -36,7 +36,7 @@ public class Space extends BaseEntity {
     private SpaceType spaceType; // 공간 종류 (스터디룸, 스튜디오 등)
 
     @Column(nullable = false)
-    private Long price; // 공간 가격    
+    private Long price; // 공간 가격
 
     @Column(length = 300, nullable = false)
     private String address; // 주소
@@ -78,7 +78,7 @@ public class Space extends BaseEntity {
 
     @ElementCollection
     @CollectionTable(
-        name = "space_images", 
+        name = "space_images",
         joinColumns = @JoinColumn(name = "space_id", nullable = false)
     )
     @Column(name = "image_url", length = 512, nullable = false)

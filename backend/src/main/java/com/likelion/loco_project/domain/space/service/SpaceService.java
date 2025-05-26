@@ -6,6 +6,8 @@ import com.likelion.loco_project.domain.space.dto.*;
 import com.likelion.loco_project.domain.space.entity.Space;
 import com.likelion.loco_project.domain.space.entity.SpaceStatus;
 import com.likelion.loco_project.domain.space.repository.SpaceRepository;
+import com.likelion.loco_project.domain.user.entity.User;
+import com.likelion.loco_project.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +29,7 @@ public class SpaceService {
     private final SpaceRepository spaceRepository;
     private final HostRepository hostRepository;
     private final Logger logger = LoggerFactory.getLogger(SpaceService.class);
+    private final UserRepository userRepository;
 
     // 공간 생성
     @Transactional
@@ -52,7 +55,7 @@ public class SpaceService {
             // DB 저장
             Space savedSpace = spaceRepository.save(space);
             logger.info("공간 등록 성공. Space ID: {}", savedSpace.getId());  // getId 메서드 호출 수정
-            
+
             return SpaceResponseDto.fromEntity(savedSpace);
         } catch (Exception e) {
             logger.error("공간 등록 실패. Host ID: {}, 에러: {}", hostId, e.getMessage(), e);
@@ -200,5 +203,21 @@ public class SpaceService {
 
         Space savedSpace = spaceRepository.save(space);
         return SpaceResponseDto.fromEntity(savedSpace);
+    }
+
+    //찜 추가
+    public void favoriteSpace(Long userId, Long spaceId) {
+        User user = userRepository.findById(userId).orElseThrow();
+        Space space = spaceRepository.findById(spaceId).orElseThrow();
+        user.getFavoriteSpaces().add(space);
+        userRepository.save(user);
+    }
+
+    // 찜 제거
+    public void unfavoriteSpace(Long userId, Long spaceId) {
+        User user = userRepository.findById(userId).orElseThrow();
+        Space space = spaceRepository.findById(spaceId).orElseThrow();
+        user.getFavoriteSpaces().remove(space);
+        userRepository.save(user);
     }
 }

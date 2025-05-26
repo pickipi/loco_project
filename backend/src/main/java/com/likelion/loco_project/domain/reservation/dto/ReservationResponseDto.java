@@ -4,6 +4,8 @@ import com.likelion.loco_project.domain.reservation.entity.Reservation;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Builder
 public class ReservationResponseDto {       //예약 응답
@@ -13,9 +15,10 @@ public class ReservationResponseDto {       //예약 응답
     private String startTime;               //예약 시작시간
     private String endTime;                 //예약 종료시간
     private String status;                  //예약 상태
+    private String spaceName;               //공간명
     private Long guestId;                   //예약자의 ID
     private Long spaceId;                   //예약된 공간 ID
-    private Long paymentId;                 //결제된
+    private Long paymentId;                 //결제된 ID
 
     public void ReservationResponseDTO(Reservation reservation) {
         this.id = reservation.getId();
@@ -33,6 +36,8 @@ public class ReservationResponseDto {       //예약 응답
                 .guestId(reservation.getGuest().getId())
                 .startTime(String.valueOf(reservation.getStartTime()))
                 .endTime(String.valueOf(reservation.getEndTime()))
+                .status(reservation.getStatus().name()) // Enum -> String
+                .spaceName(reservation.getSpace().getName()) // space 필드가 있을 경우
                 .build();
     }
 }
