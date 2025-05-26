@@ -4,6 +4,7 @@ import com.likelion.loco_project.domain.guestRating.dto.GuestRatingRequestDto;
 import com.likelion.loco_project.domain.guestRating.dto.GuestRatingResponseDto;
 import com.likelion.loco_project.domain.guestRating.service.GuestRatingService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +13,7 @@ import java.math.BigDecimal;
 @RestController
 @RequestMapping("/api/v1/guest-rating")
 @RequiredArgsConstructor
+@Slf4j
 public class GuestRatingController {
 
     private final GuestRatingService guestRatingService;

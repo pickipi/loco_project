@@ -4,6 +4,8 @@ import com.likelion.loco_project.domain.review.dto.ReviewRequestDto;
 import com.likelion.loco_project.domain.review.dto.ReviewResponseDto;
 import com.likelion.loco_project.domain.review.service.ReviewService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,6 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/guest/reviews")
 @RequiredArgsConstructor
+@Slf4j
 public class GuestReviewController {
 
     private final ReviewService reviewService;

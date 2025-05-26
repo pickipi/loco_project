@@ -9,21 +9,6 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 public class ReviewResponseDto {
-    private Long id;
-    private Long guestId;
-    private Long spaceId;
-    private int rating;
-    private String content;
-
-    public static ReviewResponseDto fromEntity(Review review) {
-        return ReviewResponseDto.builder()
-                .id(review.getId())
-                .guestId(review.getGuestId())
-                .spaceId(review.getSpaceId())
-                .rating(review.getRating())
-                .content(review.getContent())
-                .build();
-    }
 
     private Long reviewId;
     private Long guestId;

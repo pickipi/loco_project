@@ -37,7 +37,7 @@ public class ReservationResponseDto {       //예약 응답
                 .startTime(String.valueOf(reservation.getStartTime()))
                 .endTime(String.valueOf(reservation.getEndTime()))
                 .status(reservation.getStatus().name()) // Enum -> String
-                .spaceName(reservation.getSpace().getName()) // space 필드가 있을 경우
+                .spaceName(reservation.getSpace().getSpaceName()) // space 필드가 있을 경우
                 .build();
     }
 }

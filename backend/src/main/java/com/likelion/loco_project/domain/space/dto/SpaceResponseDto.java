@@ -35,7 +35,7 @@ public class SpaceResponseDto {
     public static SpaceResponseDto fromEntity(Space space) {
         return SpaceResponseDto.builder()
                 .id(space.getId())
-                .imageId(space.getImageId())
+                //.imageId(space.getImageId())
                 .hostId(space.getHost().getId())
                 .spaceName(space.getSpaceName())
                 .description(space.getDescription())
@@ -50,7 +50,7 @@ public class SpaceResponseDto {
                 .spaceRating(space.getSpaceRating())
                 .imageUrl(space.getImageUrl())
                 .additionalImageUrls(space.getAdditionalImageUrls())
-                .isFavoritedByMe(isFavoritedByMe)
+                //.isFavoritedByMe(isFavoritedByMe)
                 .build();
     }
 }
