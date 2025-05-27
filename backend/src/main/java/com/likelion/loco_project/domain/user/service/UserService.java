@@ -97,15 +97,22 @@ public class UserService {
 //                .rating(user.getRating())
 //                .build();
 //    }
-    public User loginAndValidate(String email, String rawPassword) {
+    public User loginAndValidate(String email, String password) {
         User user = userRepository.findByEmail(email)
-                .filter(u -> !u.isDeleted())
-                .orElseThrow(() -> new RuntimeException("해당 이메일의 사용자가 없습니다."));
-
-        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
-            throw new RuntimeException("비밀번호가 일치하지 않습니다.");
+                .orElseThrow(() -> new IllegalArgumentException("이메일 또는 비밀번호가 일치하지 않습니다."));
+        
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new IllegalArgumentException("이메일 또는 비밀번호가 일치하지 않습니다.");
         }
+        
+        return user;
+    }
 
+    public User loginAndValidate(String email, String password, UserType requiredType) {
+        User user = loginAndValidate(email, password);
+        if (user.getUserType() != requiredType) {
+            throw new IllegalArgumentException(requiredType + " 계정이 아닙니다.");
+        }
         return user;
     }
 
