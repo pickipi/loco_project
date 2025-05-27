@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import { useRouter } from 'next/navigation'
-import styles from './page.module.css'
+import { useRouter } from "next/navigation";
+import styles from "./page.module.css";
 
 export default function RegisterCompletePage() {
-  const router = useRouter()
+  const router = useRouter();
 
   return (
     <main className={styles.container}>
@@ -27,18 +27,19 @@ export default function RegisterCompletePage() {
         </div>
         <h1 className={styles.title}>저장이 완료되었습니다!</h1>
         <p className={styles.description}>
-          공간 등록이 성공적으로 완료되었습니다.<br />
+          공간 등록이 성공적으로 완료되었습니다.
+          <br />
           호스트 페이지에서 등록한 공간을 확인하실 수 있습니다.
         </p>
         <div className={styles.buttonGroup}>
           <button
-            onClick={() => router.push('/host/spaces')}
+            onClick={() => router.push("/host/spaces")}
             className={styles.primaryButton}
           >
             공간 목록 보기
-          </button>
+          </button>{" "}
           <button
-            onClick={() => router.push('/host/space/register')}
+            onClick={() => router.push("/host/spaces/register")}
             className={styles.secondaryButton}
           >
             새로운 공간 등록하기
@@ -46,5 +47,5 @@ export default function RegisterCompletePage() {
         </div>
       </div>
     </main>
-  )
-} 
+  );
+}
