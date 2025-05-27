@@ -36,7 +36,7 @@ public class AuthController {
         // 3) 토큰 발급 (role 클레임 포함)
         String token = jwtTokenProvider.generateAccessToken(
                 user.getId(),
-                isHost ? "HOST" : "USER"
+                isHost ? "HOST" : "GUEST"
         );
 
         // 4) 응답에 userId와 role 포함
@@ -44,7 +44,7 @@ public class AuthController {
                 token,
                 "로그인 완료!",
                 user.getId(),
-                isHost ? "HOST" : "USER"
+                isHost ? "HOST" : "GUEST"
         );
         return ResponseEntity.ok(resDto);
     }
