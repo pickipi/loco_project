@@ -8,11 +8,15 @@ import com.likelion.loco_project.domain.user.dto.UserRequestDto;
 import com.likelion.loco_project.domain.user.entity.User;
 import com.likelion.loco_project.domain.user.entity.UserType;
 import com.likelion.loco_project.domain.user.repository.UserRepository;
+import com.likelion.loco_project.domain.user.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
+import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +25,7 @@ public class HostService {
     private final HostRepository hostRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
 
     // 호스트 등록 기능
     @Transactional
@@ -89,8 +94,26 @@ public class HostService {
         hostRepository.save(host);
     }
 
+    // 호스트인지의 여부
     @Transactional(readOnly = true)
     public boolean isHost(Long userId) {
         return hostRepository.findByUserId(userId).isPresent();
+    }
+
+    // 호스트 로그인 검증
+    @Transactional(readOnly = true)
+    public Host loginAndValidate(String email, String password) {
+        User user = userService.loginAndValidate(email, password, UserType.HOST);
+        return hostRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new IllegalArgumentException("호스트 정보를 찾을 수 없습니다."));
+    }
+
+    // 전체 호스트 조회 
+    @Transactional(readOnly = true)
+    public List<HostResponseDto> getAllHosts() {
+        List<Host> hosts = hostRepository.findAll();
+        return hosts.stream()
+                .map(HostResponseDto::new)
+                .collect(Collectors.toList());
     }
 }

@@ -9,6 +9,7 @@ import com.likelion.loco_project.domain.user.service.UserService;
 import com.likelion.loco_project.global.jwt.JwtUtil;
 import com.likelion.loco_project.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
+@Tag(name = "유저", description = "유저 관련 API")
 public class ApiV1UserController {
     private final UserService userService;
     private final JwtUtil jwtUtil;
@@ -47,7 +49,8 @@ public class ApiV1UserController {
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
         User user = userService.loginAndValidate(loginRequest.getEmail(), loginRequest.getPassword());
         String token = jwtUtil.generateToken(user.getEmail());
-        return ResponseEntity.ok(new LoginResponseDto(token));
+        LoginResponseDto response = new LoginResponseDto(token, "로그인 완료!", user.getId());
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "사용자 정보 수정", description = "기존 사용자의 정보를 수정합니다.")
@@ -66,6 +69,7 @@ public class ApiV1UserController {
     }
 
     //유저 알림 기능 끄기(채팅, 예약상태 선택가능)
+    @Operation(summary = "유저 알림 기능 끄기", description = "유저 알림 기능 끄기(채팅, 예약상태 선택가능)")
     @PutMapping("/me/notifications/toggle")
     public ResponseEntity<RsData<Boolean>> toggleNotification(@AuthenticationPrincipal User user) {
         boolean updated = userService.toggleNotification(user.getId());
@@ -73,6 +77,7 @@ public class ApiV1UserController {
     }
 
     // 유저 알림 상태 조회
+    @Operation(summary = "유저 알림 상태 조회", description = "유저 알림 상태 조회")
     @GetMapping("/me/notifications/enabled")
     public ResponseEntity<RsData<Boolean>> isNotificationEnabled(@AuthenticationPrincipal User user) {
         boolean enabled = userService.isNotificationEnabled(user.getId());

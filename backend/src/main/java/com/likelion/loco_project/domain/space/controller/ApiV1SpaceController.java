@@ -12,13 +12,15 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.CrossOrigin;
-
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Parameter;
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/spaces")
 @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")  // 직접 origin 지정
+@Tag(name = "공간", description = "공간 관련 API")
 public class ApiV1SpaceController {
 
     private final SpaceService spaceService;
@@ -39,19 +41,37 @@ public class ApiV1SpaceController {
     }
 
     // 공간 단건 조회(지도)
-    @Operation(summary = "공간 단건 조회", description = "공간 ID로 단일 공간 정보를 조회합니다. (지도에서 사용)")
+    @Operation(
+        summary = "공간 단건 조회",
+        description = "공간 ID로 단일 공간 정보를 조회합니다. (지도에서 사용)",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "공간 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "공간을 찾을 수 없음")
+        }
+    )
     @GetMapping("/{id}")
-    public ResponseEntity<RsData<SpaceResponseDto>> getSpace(@PathVariable Long id) {
+    public ResponseEntity<RsData<SpaceResponseDto>> getSpace(
+            @Parameter(description = "조회할 공간 ID", required = true, example = "1")
+            @PathVariable Long id) {
         SpaceResponseDto dto = spaceService.getSpace(id);
         return ResponseEntity.ok(RsData.of("S-200", "공간 조회 성공", dto));
     }
 
     // 모든 공간 목록 조회
-    @Operation(summary = "모든 공간 목록 조회", description = "등록된 모든 공간의 목록을 조회합니다.")
+    @Operation(
+        summary = "모든 공간 목록 조회",
+        description = "등록된 모든 공간의 목록을 조회합니다.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "공간 목록 조회 성공")
+        }
+    )
     @GetMapping("/all")
     public ResponseEntity<RsData<Page<SpaceListResponseDto>>> getAllSpaces(
+            @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
             @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지당 항목 수", example = "12")
             @RequestParam(defaultValue = "12") int size,
+            @Parameter(description = "정렬 기준 필드", example = "id")
             @RequestParam(defaultValue = "id") String sort) {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(sort));
         Page<SpaceListResponseDto> spaces = spaceService.getAllSpacesWithPagination(pageRequest);
@@ -61,10 +81,29 @@ public class ApiV1SpaceController {
     // 공간 수정
     @Operation(summary = "공간 정보 수정", description = "공간 ID에 해당하는 공간의 정보를 수정합니다.")
     @PutMapping("/{id}/edit")
-    public ResponseEntity<SpaceResponseDto> updateSpace(@PathVariable Long id,
-                                                        @RequestBody SpaceUpdateRequestDto dto) {
+    public ResponseEntity<RsData<SpaceResponseDto>> updateSpace(@PathVariable Long id,
+                                                            @RequestBody SpaceUpdateRequestDto dto) {
         SpaceResponseDto response = spaceService.updateSpace(id, dto);
-        return ResponseEntity.ok(response);
+        
+        StringBuilder message = new StringBuilder("공간 수정 완료!\n변경된 내용:\n");
+        
+        if (dto.getSpaceName() != null) {
+            message.append(String.format("- 공간명: %s\n", dto.getSpaceName()));
+        }
+        if (dto.getSpaceType() != null) {
+            message.append(String.format("- 공간 유형: %s\n", dto.getSpaceType()));
+        }
+        if (dto.getPrice() != null) {
+            message.append(String.format("- 가격: %d원\n", dto.getPrice()));
+        }
+        if (dto.getMaxCapacity() != null) {
+            message.append(String.format("- 최대 수용 인원: %d명\n", dto.getMaxCapacity()));
+        }
+        if (dto.getAddress() != null) {
+            message.append(String.format("- 주소: %s\n", dto.getAddress()));
+        }
+        
+        return ResponseEntity.ok(RsData.of("S-1", message.toString(), response));
     }
 
     // 공간 삭제
