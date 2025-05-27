@@ -51,7 +51,7 @@ export default function SpaceTypePage() {
     if (selectedTypes.length > 0) {
       // 선택된 공간 유형을 localStorage에 저장
       localStorage.setItem("selectedSpaceTypes", JSON.stringify(selectedTypes));
-      router.push("/host/space/register/details");
+      router.push("/host/spaces/register/details");
     }
   };
 
