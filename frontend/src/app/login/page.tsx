@@ -21,7 +21,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8090/api/v1/users/login', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/users/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -144,7 +144,7 @@ export default function LoginPage() {
                     로그인 기억하기
                   </label>
                 </div>
-                <Link href="/forgot-password" className="text-sm text-gray-600 hover:text-gray-900">
+                <Link href="/login/forgot-password" className="text-sm text-gray-600 hover:text-gray-900">
                   비밀번호 찾기
                 </Link>
               </div>
