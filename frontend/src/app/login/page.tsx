@@ -36,8 +36,15 @@ export default function LoginPage() {
         // 로그인 성공 시 처리
         const data = await response.json();
         // TODO: 토큰 저장 로직 추가
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('userId', data.userId); // userId 저장
+        // 로컬 스토리지에 저장된 사용자 이름 가져오기 (선택 사항)
+        // const userName = localStorage.getItem('userName');
+        // if (userName) {
+        //   // 상단바 등에 사용자 이름 표시 로직 추가
+        // }
         alert('로그인 성공!');
-        router.push('/'); // 메인 페이지로 이동
+        router.push('/host'); // 호스트 대시보드 페이지로 이동
       } else {
         const errorData = await response.json();
         setError(errorData.message || '로그인에 실패했습니다.');
