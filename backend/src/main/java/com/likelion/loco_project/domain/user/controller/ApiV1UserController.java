@@ -1,10 +1,9 @@
 package com.likelion.loco_project.domain.user.controller;
 
-import com.likelion.loco_project.domain.user.dto.LoginRequestDto;
-import com.likelion.loco_project.domain.user.dto.LoginResponseDto;
-import com.likelion.loco_project.domain.user.dto.UserRequestDto;
-import com.likelion.loco_project.domain.user.dto.UserResponseDto;
+import com.likelion.loco_project.domain.auth.EmailAuthManager;
+import com.likelion.loco_project.domain.user.dto.*;
 import com.likelion.loco_project.domain.user.entity.User;
+import com.likelion.loco_project.domain.user.entity.UserType;
 import com.likelion.loco_project.domain.user.service.UserService;
 import com.likelion.loco_project.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "유저", description = "유저 관련 API")
 public class ApiV1UserController {
     private final UserService userService;
+    private final EmailAuthManager emailAuthManager;
 
     @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다.")
     @PostMapping
@@ -34,7 +34,6 @@ public class ApiV1UserController {
         UserResponseDto user = userService.getUserById(id);
         return ResponseEntity.ok(user);
     }
-
 
     @Operation(summary = "사용자 정보 수정", description = "기존 사용자의 정보를 수정합니다.")
     @PutMapping("/{id}")
@@ -84,5 +83,23 @@ public class ApiV1UserController {
     ) {
         boolean verified = userService.verifyCode(email, code);
         return ResponseEntity.ok(RsData.of("S-1", "이메일 인증 결과", verified));
+    }
+
+    // 게스트용
+    @PostMapping("/guests/forgot-password")
+    public ResponseEntity<RsData<String>> resetGuestPassword(
+            @RequestBody @Valid PasswordResetRequestDto dto
+    ) {
+        emailAuthManager.resetPasswordByEmail(dto.getEmail(), UserType.GUEST);
+        return ResponseEntity.ok(RsData.of("S-1", "임시 비밀번호가 이메일로 전송되었습니다.", null));
+    }
+
+    // 호스트용
+    @PostMapping("/hosts/forgot-password")
+    public ResponseEntity<RsData<String>> resetHostPassword(
+            @RequestBody @Valid PasswordResetRequestDto dto
+    ) {
+        emailAuthManager.resetPasswordByEmail(dto.getEmail(), UserType.HOST);
+        return ResponseEntity.ok(RsData.of("S-1", "임시 비밀번호가 이메일로 전송되었습니다.", null));
     }
 }

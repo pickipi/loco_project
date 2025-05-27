@@ -1,18 +1,25 @@
 package com.likelion.loco_project.domain.auth;
 
 import com.likelion.loco_project.domain.mail.mail.service.MailService;
+import com.likelion.loco_project.domain.user.entity.User;
+import com.likelion.loco_project.domain.user.entity.UserType;
+import com.likelion.loco_project.domain.user.repository.UserRepository;
 import com.likelion.loco_project.global.exception.BusinessLogicException;
 import com.likelion.loco_project.global.exception.ExceptionCode;
 import com.likelion.loco_project.global.redis.RedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.Random;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -21,6 +28,9 @@ public class EmailAuthManager {
 
     private static final String AUTH_CODE_PREFIX = "AuthCode ";
 
+    private final JavaMailSender mailSender;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
     private final RedisService redisService;
 
@@ -28,6 +38,11 @@ public class EmailAuthManager {
     private long authCodeExpirationMillis;
 
     public void sendAuthCode(String email) {
+        // 이미 존재하는 회원인지 검사
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new BusinessLogicException(ExceptionCode.MEMBER_EXISTS);
+        }
+        // 인증코드 생성 및 전송
         String code = generateCode();
         String subject = "Loco 회원가입 이메일 인증 번호";
         mailService.sendEmail(email, subject, code);
@@ -85,5 +100,34 @@ public class EmailAuthManager {
     public boolean isVerified(String email) {
         String key = AUTH_CODE_PREFIX + email;
         return redisService.checkExistsValue(redisService.getValues(key));
+    }
+
+    public void sendTemporaryPassword(String toEmail, String tempPassword) {
+        String subject = "[LoCo] 임시 비밀번호 안내";
+        String body = "임시 비밀번호는 " + tempPassword + " 입니다.\n" +
+                "로그인 후 반드시 비밀번호를 변경해주세요.";
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject(subject);
+        message.setText(body);
+
+        mailSender.send(message);
+    }
+
+    public void resetPasswordByEmail(String email, UserType expectedType) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+
+        //유저 타임
+        if (!user.getUserType().equals(expectedType)) {
+            throw new BusinessLogicException(ExceptionCode.USER_TYPE_NOT_MATCH);
+        }
+
+        String tempPassword = UUID.randomUUID().toString().substring(0, 8);
+        user.changePassword(passwordEncoder.encode(tempPassword));
+        userRepository.save(user);
+
+        sendTemporaryPassword(email, tempPassword);
     }
 }
