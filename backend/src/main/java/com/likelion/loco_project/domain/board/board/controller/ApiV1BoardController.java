@@ -5,6 +5,8 @@ import com.likelion.loco_project.domain.board.board.service.BoardService;
 import com.likelion.loco_project.global.exception.AccessDeniedException;
 import com.likelion.loco_project.global.exception.ResourceNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -16,12 +18,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/boards") // 기본 URL 경로 설정
+@Tag(name = "공간 게시판", description = "공간 게시판 관련 API, 호스트 - 공간 등록 / 게스트 - 공간 열람")
 public class ApiV1BoardController {
     private final BoardService boardService;
 
@@ -30,10 +33,17 @@ public class ApiV1BoardController {
      * @param pageable 페이징 및 정렬 정보를 담은 객체 (Spring Data JPA Pageable)
      * @return 페이징된 게시글 목록 정보와 함께 HTTP 상태 코드 200 (OK) 반환
      */
-    @Operation(summary = "게시글 목록 조회", description = "페이징 처리된 게시글 목록을 조회합니다.")
+    @Operation(
+        summary = "게시글 목록 조회",
+        description = "페이징 처리된 게시글 목록을 조회합니다.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "게시글 목록 조회 성공")
+        }
+    )
     @GetMapping
     public ResponseEntity<List<BoardListResponseDto>> getAllBoards(
-            @PageableDefault(size = 10, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable // 기본 페이징 설정
+            @Parameter(description = "페이지 정보 (size: 페이지당 항목 수, sort: 정렬 기준, direction: 정렬 방향)")
+            @PageableDefault(size = 10, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         // BoardService의 getAllBoards 메소드 호출하여 게시글 목록 조회 비즈니스 로직 수행
         // Service 메소드가 Page<BoardListResponseDto>를 반환하도록 변경할 수도 있습니다.
@@ -49,13 +59,19 @@ public class ApiV1BoardController {
      * @return 게시글 상세 정보와 함께 HTTP 상태 코드 200 (OK) 반환
      * @throws ResourceNotFoundException 게시글을 찾을 수 없을 때 발생
      */
-    @Operation(summary = "게시글 상세 조회", description = "게시글 ID로 특정 게시글의 상세 정보를 조회합니다.")
+    @Operation(
+        summary = "게시글 상세 조회",
+        description = "특정 게시글의 상세 정보를 조회합니다.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "게시글 상세 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "게시글을 찾을 수 없음")
+        }
+    )
     @GetMapping("/{id}")
-    public ResponseEntity<BoardDetailResponseDto> getBoardById(@PathVariable Long id) { // @PathVariable로 경로 변수 값을 Long 타입 id로 받음
-        // BoardService의 getBoardById 메소드 호출하여 게시글 상세 조회 비즈니스 로직 수행
+    public ResponseEntity<BoardDetailResponseDto> getBoardById(
+            @Parameter(description = "조회할 게시글 ID", required = true, example = "1")
+            @PathVariable Long id) {
         BoardDetailResponseDto board = boardService.getBoardById(id);
-
-        // 조회된 게시글 상세 정보(DTO)와 함께 HTTP 상태 코드 200 (OK) 반환
         return ResponseEntity.ok(board);
     }
 
