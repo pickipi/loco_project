@@ -15,7 +15,6 @@ const DaumPostcode = dynamic(() => import("@/components/DaumPostcode"), {
   ssr: false,
 });
 
-//로컬 url 머지하면서 추가 --봉준님 확인하세요
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8090";
 
