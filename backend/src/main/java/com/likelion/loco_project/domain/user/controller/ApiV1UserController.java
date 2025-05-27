@@ -6,11 +6,9 @@ import com.likelion.loco_project.domain.user.dto.UserRequestDto;
 import com.likelion.loco_project.domain.user.dto.UserResponseDto;
 import com.likelion.loco_project.domain.user.entity.User;
 import com.likelion.loco_project.domain.user.service.UserService;
-import com.likelion.loco_project.global.jwt.JwtUtil;
 import com.likelion.loco_project.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "유저", description = "유저 관련 API")
 public class ApiV1UserController {
     private final UserService userService;
-    private final JwtUtil jwtUtil;
 
     @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다.")
     @PostMapping
@@ -38,20 +35,6 @@ public class ApiV1UserController {
         return ResponseEntity.ok(user);
     }
 
-    //    @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
-//    @PostMapping("/login")
-//    public ResponseEntity<UserResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
-//        UserResponseDto user = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
-//        return ResponseEntity.ok(user);
-//    }
-    @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
-        User user = userService.loginAndValidate(loginRequest.getEmail(), loginRequest.getPassword());
-        String token = jwtUtil.generateToken(user.getEmail());
-        LoginResponseDto response = new LoginResponseDto(token, "로그인 완료!", user.getId());
-        return ResponseEntity.ok(response);
-    }
 
     @Operation(summary = "사용자 정보 수정", description = "기존 사용자의 정보를 수정합니다.")
     @PutMapping("/{id}")
