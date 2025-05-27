@@ -9,6 +9,7 @@ import NotificationPanel from '../notification/notification'
 import styles from './hostheader.module.css'
 import api from '@/lib/axios'
 import { Notification } from '@/components/notification/notification'
+import { useAuth } from "@/app/host/layout"; // HostLayout에서 정의한 useAuth 훅 임포트
 
 interface ApiResponse<T> {
   data: T;
@@ -17,12 +18,9 @@ interface ApiResponse<T> {
 }
 
 export default function HostHeader() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [userEmail, setUserEmail] = useState<string | null>(null)
-  const [userId, setUserId] = useState<number | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const { isLoggedIn, userName: authUserName, userId: authUserId, logout } = useAuth(); // useAuth 훅으로 로그인 상태와 정보, 로그아웃 함수 가져오기
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   // 알림 관련 상태 추가
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
@@ -46,7 +44,7 @@ export default function HostHeader() {
   // 읽지 않은 알림 개수를 가져오는 함수
   const fetchNotificationsAndCountUnread = async () => {
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('token');
       if (!token) return
 
       // 기존 알림 목록 엔드포인트 호출
@@ -67,39 +65,12 @@ export default function HostHeader() {
 
   // 초기 읽지 않은 알림 개수 조회 및 주기적 업데이트
   useEffect(() => {
-    if (isLoggedIn) {
+    if (isLoggedIn && authUserId) { // useAuth의 isLoggedIn과 userId가 유효할 때만 호출
       fetchNotificationsAndCountUnread(); // 초기 로드
       const interval = setInterval(fetchNotificationsAndCountUnread, 30000); // 30초마다 갱신
       return () => clearInterval(interval)
     }
-  }, [isLoggedIn])
-
-  useEffect(() => {
-    // 로컬 스토리지에서 토큰 확인
-    const token = localStorage.getItem('token')
-    if (token) {
-      try {
-        // JWT 토큰 디코딩
-        const base64Url = token.split('.')[1]
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-        }).join(''))
-        const payload = JSON.parse(jsonPayload)
-        // 이메일에서 @ 앞부분만 추출해서 사용자이름 보이게
-        const emailPrefix = payload.sub.split('@')[0]
-        setUserEmail(emailPrefix)
-        setUserId(payload.userId)
-        setIsLoggedIn(true)
-      } catch (error) {
-        console.error('Token parsing error:', error)
-        setIsLoggedIn(false)
-      }
-    } else {
-      setIsLoggedIn(false)
-    }
-    setIsLoading(false)
-  }, [])
+  }, [isLoggedIn, authUserId]) // isLoggedIn과 authUserId가 변경될 때마다 실행
 
   // 보호된 경로 접근 핸들러
   const handleProtectedRoute = (path: string) => {
@@ -113,15 +84,8 @@ export default function HostHeader() {
 
   // 로그아웃 핸들러
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    setUserEmail(null)
-    setIsLoggedIn(false)
+    logout(); // useAuth에서 제공하는 로그아웃 함수 호출
     router.push('/host/login')
-  }
-
-  // 로딩 중이면 아무것도 렌더링하지 않음
-  if (isLoading) {
-    return null
   }
 
   return (
@@ -184,7 +148,7 @@ export default function HostHeader() {
                   {isNotificationOpen && (
                     <div className={styles.notificationPanel}>
                       <NotificationPanel 
-                        userId={userId || 0}
+                        userId={authUserId ? Number(authUserId) : 0}
                         jwtToken={localStorage.getItem('token') || ''}
                       />
                     </div>
@@ -196,7 +160,7 @@ export default function HostHeader() {
                 >
                   프로필
                 </button>
-                <span className={styles.userEmail}>{userEmail}님</span>
+                <span className={styles.userEmail}>{authUserName || '사용자'}님</span>
                 <button
                   onClick={handleLogout}
                   className={styles.logoutButton}
@@ -282,7 +246,7 @@ export default function HostHeader() {
                 >
                   프로필
                 </button>
-                <span className={styles.userEmail}>{userEmail}님</span>
+                <span className={styles.userEmail}>{authUserName || '사용자'}님</span>
                 <button
                   onClick={handleLogout}
                   className={styles.mobileMenuItem}
