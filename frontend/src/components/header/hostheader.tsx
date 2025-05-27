@@ -8,6 +8,7 @@ import { IoNotifications } from 'react-icons/io5'
 import NotificationPanel from '../notification/notification'
 import styles from './hostheader.module.css'
 import api from '@/lib/axios'
+import { Notification } from '@/components/notification/notification'
 
 interface ApiResponse<T> {
   data: T;
@@ -43,27 +44,32 @@ export default function HostHeader() {
   }, [])
 
   // 읽지 않은 알림 개수를 가져오는 함수
-  const fetchUnreadCount = async () => {
+  const fetchNotificationsAndCountUnread = async () => {
     try {
       const token = localStorage.getItem('token')
       if (!token) return
 
-      const response = await api.get<ApiResponse<number>>('/api/v1/notifications/unread-count', {
+      // 기존 알림 목록 엔드포인트 호출
+      const response = await api.get<ApiResponse<Notification[]>>('/api/v1/notifications', {
         headers: {
           Authorization: `Bearer ${token}`
         }
       })
-      setUnreadCount(response.data.data)
+      // 읽지 않은 알림 개수 계산
+      const unread = response.data.data.filter(noti => !noti.isRead).length;
+      setUnreadCount(unread);
+      // NotificationPanel에 전달하기 위해 전체 알림 목록도 상태로 관리할 수 있지만, 현재는 개수만 필요하므로 개수만 업데이트
+      // 필요하다면 setNotifications(response.data.data) 와 같이 전체 알림 목록도 업데이트하도록 수정 가능
     } catch (error) {
-      console.error('읽지 않은 알림 개수 조회 실패:', error)
+      console.error('알림 목록 및 읽지 않은 개수 조회 실패:', error)
     }
   }
 
   // 초기 읽지 않은 알림 개수 조회 및 주기적 업데이트
   useEffect(() => {
     if (isLoggedIn) {
-      fetchUnreadCount()
-      const interval = setInterval(fetchUnreadCount, 30000) // 30초마다 갱신
+      fetchNotificationsAndCountUnread(); // 초기 로드
+      const interval = setInterval(fetchNotificationsAndCountUnread, 30000); // 30초마다 갱신
       return () => clearInterval(interval)
     }
   }, [isLoggedIn])
