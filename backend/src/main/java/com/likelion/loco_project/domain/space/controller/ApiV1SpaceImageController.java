@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/spaces/images")
 @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")  // 직접 origin 지정
-@Tag(name = "Space Images", description = "공간 이미지 관리 API")
+@Tag(name = "공간의 이미지", description = "공간 이미지 관리 API")
 public class ApiV1SpaceImageController {
     private final S3Service s3Service;
 

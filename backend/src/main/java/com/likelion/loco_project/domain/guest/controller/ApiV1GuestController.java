@@ -8,10 +8,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/v1/guests")
 @RequiredArgsConstructor
+@Tag(name = "게스트", description = "게스트 관련 API, 게스트 등록 / 조회")
 public class ApiV1GuestController {
     private final GuestService guestService;
 

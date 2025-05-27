@@ -8,12 +8,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/boards/{boardId}/comments")
+@Tag(name = "댓글", description = "댓글 관련 API, 공간 게시판에 댓글 작성 / 수정 / 삭제")
 public class ApiV1CommentController {
     private final CommentService commentService;
 
