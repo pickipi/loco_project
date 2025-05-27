@@ -13,6 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -20,6 +22,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder; // 비밀번호 인코더 주입
     private final EmailAuthManager emailAuthManager;
+
 
     //새로운 유저를 생성하고 저장하는 메서드 (회원가입 기능)
     @Transactional
@@ -170,4 +173,16 @@ public class UserService {
     public boolean verifyCode(String email, String code) {
         return emailAuthManager.verifyCode(email, code);
     }
+
+    public void resetPasswordByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+
+        String tempPassword = UUID.randomUUID().toString().substring(0, 8);
+        user.changePassword(passwordEncoder.encode(tempPassword));
+        userRepository.save(user);
+
+        emailAuthManager.sendTemporaryPassword(email, tempPassword);
+    }
+
 }

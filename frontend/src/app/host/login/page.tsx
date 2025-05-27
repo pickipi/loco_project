@@ -18,7 +18,7 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      const response = await fetch('http://localhost:8090/api/v1/hosts/login', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/hosts/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -110,7 +110,7 @@ export default function LoginPage() {
               </label>
             </div>
 
-            <Link href="/host/forgot-password" className={styles.forgotPassword}>
+            <Link href="/host/login/forgot-password" className={styles.forgotPassword}>
               비밀번호 찾기
             </Link>
           </div>
