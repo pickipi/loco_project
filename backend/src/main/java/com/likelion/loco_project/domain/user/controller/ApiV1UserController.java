@@ -47,7 +47,7 @@ public class ApiV1UserController {
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
         User user = userService.loginAndValidate(loginRequest.getEmail(), loginRequest.getPassword());
         String token = jwtUtil.generateToken(user.getEmail());
-        return ResponseEntity.ok(new LoginResponseDto(token));
+        return ResponseEntity.ok(new LoginResponseDto(token, user.getId()));
     }
 
     @Operation(summary = "사용자 정보 수정", description = "기존 사용자의 정보를 수정합니다.")

@@ -57,6 +57,6 @@ public class ApiV1HostController {
             throw new IllegalArgumentException("호스트 계정이 아닙니다.");
         }
         String token = jwtUtil.generateToken(user.getEmail());
-        return ResponseEntity.ok(new LoginResponseDto(token));
+        return ResponseEntity.ok(new LoginResponseDto(token, user.getId()));
     }
 }
