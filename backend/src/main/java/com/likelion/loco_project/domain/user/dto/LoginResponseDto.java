@@ -9,4 +9,5 @@ public class LoginResponseDto {
     private String token;
     private String message;
     private Long hostId;
+    private String username; // 로그인 유지를 위한 사용자 이름 표시 필드
 }
