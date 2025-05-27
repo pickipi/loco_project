@@ -1,10 +1,43 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { FiMenu, FiSearch, FiBell, FiUser } from "react-icons/fi";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { FaInstagram, FaTwitter, FaYoutube } from "react-icons/fa";
+import { useEffect, useState } from 'react';
 
 export default function Home() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState('');
+
+  useEffect(() => {
+    // 클라이언트 사이드에서만 Local Storage 접근
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      const storedUsername = localStorage.getItem('username');
+      if (token && storedUsername) {
+        setIsLoggedIn(true);
+        setUsername(storedUsername);
+      } else {
+        setIsLoggedIn(false);
+        setUsername('');
+      }
+    }
+  }, []); // 컴포넌트 마운트 시 한 번만 실행
+
+  const handleLogout = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+      localStorage.removeItem('username');
+      setIsLoggedIn(false);
+      setUsername('');
+      alert('로그아웃되었습니다.');
+      // 필요한 경우 로그아웃 후 리다이렉트
+      // window.location.href = '/login';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -27,7 +60,23 @@ export default function Home() {
                 className="bg-transparent border-none outline-none text-base w-48"
               />
             </div>
-            <Link href="/login" className="ml-2 text-base font-medium hover:text-blue-500">로그인</Link>
+            
+            {isLoggedIn ? (
+              // 로그인 상태일 때 표시
+              <div className="flex items-center gap-2">
+                <span className="text-base font-medium text-gray-700">{username}님 환영합니다!</span>
+                <button 
+                  onClick={handleLogout} 
+                  className="text-base font-medium text-gray-600 hover:text-gray-900"
+                >
+                  로그아웃
+                </button>
+              </div>
+            ) : (
+              // 로그인 상태가 아닐 때 표시
+              <Link href="/login" className="ml-2 text-base font-medium hover:text-blue-500">로그인</Link>
+            )}
+            
             <button className="p-2">
               <FiBell className="text-gray-600 text-xl" />
             </button>
