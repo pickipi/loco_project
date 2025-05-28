@@ -21,21 +21,15 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/users/login`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          password
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
       });
 
       if (response.ok) {
         // 로그인 성공 시 처리
         const data = await response.json();
-        // TODO: 토큰 저장 로직 추가
         // 백엔드 응답 구조에 따라 토큰 필드 이름을 확인해야 합니다.
         // 예시: data.token 또는 data.accessToken
         if (data.token) { // 백엔드 응답에 'token' 필드가 있다고 가정
@@ -46,7 +40,6 @@ export default function LoginPage() {
           router.push('/'); // 메인 페이지로 이동
         } else {
            setError('로그인 성공했지만 토큰이 응답에 없습니다.');
-        }
       } else {
         const errorData = await response.json();
         setError(errorData.message || '로그인에 실패했습니다.');

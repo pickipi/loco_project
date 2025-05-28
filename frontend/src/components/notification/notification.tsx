@@ -9,7 +9,7 @@ import styles from './notification.module.css';
 /**
  * 알림 정보 인터페이스
  */
-interface Notification {
+export interface Notification {
   id: number;          // 알림 고유 ID
   content: string;     // 알림 내용
   isRead: boolean;     // 읽음 여부
