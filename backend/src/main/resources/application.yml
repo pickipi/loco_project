@@ -12,6 +12,7 @@ spring:
   profiles:
     active: dev
     include: secret
+
   datasource:
     url: jdbc:mysql://localhost:3308/loco_db
     username: nenomdeul
@@ -34,6 +35,7 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 20MB
+
   mail:
     host: smtp.gmail.com
     port: 587
@@ -50,6 +52,27 @@ spring:
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
+
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID}          # application-secret.yml 에 정의
+            client-name: Kakao
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - profile_nickname
+              - profile_image
+              - account_email
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
 logging:
   level:
     com.likelion.loco: DEBUG
