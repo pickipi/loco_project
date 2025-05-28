@@ -8,9 +8,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -22,44 +25,46 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+
     private final JwtTokenProvider jwtTokenProvider;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        try {
-            // Request Header에서 JWT 토큰 추출
-            String token = resolveToken(request);
-
-            // 토큰 유효성 검증
-            if (token != null && jwtTokenProvider.validateToken(token)) {
-                // 토큰에서 사용자 ID 및 역할 정보 추출
+        String token = extractToken(request);
+        
+        if (token != null && jwtTokenProvider.validateToken(token)) {
+            try {
                 Long userId = jwtTokenProvider.getUserIdFromToken(token);
                 String role = jwtTokenProvider.getRoleFromToken(token);
-
-                // Authentication 객체 생성
-                // 여기서는 간단히 userId와 role만 사용. 실제 UserDetails 객체를 사용하는 것이 일반적
+                
+                // UserDetails 객체 생성
+                UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
+                    .username(userId.toString())
+                    .password("")
+                    .roles(role)
+                    .build();
+                
+                // Authentication 객체 생성 및 SecurityContext에 설정
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userId, null, Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role)));
-
-                // 인증 상세 정보 설정 (선택적)
+                    userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                // Security Context에 Authentication 객체 설정
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                
+                logger.debug("SecurityContext에 인증 정보를 저장했습니다. userId: {}", userId);
+            } catch (Exception e) {
+                logger.error("JWT 토큰 처리 중 오류 발생", e);
+                SecurityContextHolder.clearContext();
             }
-        } catch (Exception ex) {
-            // 토큰 파싱 또는 검증 중 예외 발생 시
-            // 클라이언트에게 403 Forbidden 응답 반환 (Spring Security가 처리하도록 함)
-            logger.error("Could not set user authentication in security context", ex);
         }
-
+        
         filterChain.doFilter(request, response);
     }
 
     // Request Header에서 토큰 추출
-    private String resolveToken(HttpServletRequest request) {
+    private String extractToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);

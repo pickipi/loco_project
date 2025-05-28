@@ -9,7 +9,7 @@ import NotificationPanel from '../notification/notification'
 import styles from './hostheader.module.css'
 import api from '@/lib/axios'
 import { Notification } from '@/components/notification/notification'
-import { useAuth } from "@/app/host/layout"; // HostLayout에서 정의한 useAuth 훅 임포트
+import { useAuth } from '@/context/AuthContext'
 
 interface ApiResponse<T> {
   data: T;

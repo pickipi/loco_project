@@ -7,7 +7,7 @@ import Link from "next/link";
 import styles from "./page.module.css";
 import HostHeader from "@/components/header/hostheader";
 import api from "@/lib/axios";
-import { useAuth } from "@/app/host/layout";
+import { useAuth } from "@/context/AuthContext";
 
 interface User {
   isLoggedIn: boolean;

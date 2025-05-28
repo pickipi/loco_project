@@ -37,11 +37,18 @@ public class SpaceService {
     // 공간 생성
     @Transactional
     public SpaceResponseDto createSpace(SpaceCreateRequestDto dto) {
-        // SecurityContextHolder에서 현재 인증된 사용자 ID 가져오기
+        // SecurityContextHolder에서 현재 인증된 사용자 정보 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = null;
-        if (authentication != null && authentication.getPrincipal() instanceof Long) {
-            userId = (Long) authentication.getPrincipal();
+
+        if (authentication != null && authentication.getPrincipal() instanceof org.springframework.security.core.userdetails.UserDetails) {
+            org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal();
+            try {
+                userId = Long.parseLong(userDetails.getUsername());
+            } catch (NumberFormatException e) {
+                logger.error("Principal의 사용자 이름이 숫자로 변환할 수 없습니다: {}", userDetails.getUsername(), e);
+                throw new IllegalArgumentException("공간 등록 실패: 잘못된 사용자 정보 형식입니다.");
+            }
         }
 
         if (userId == null) {
