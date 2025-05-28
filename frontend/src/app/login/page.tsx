@@ -28,18 +28,22 @@ export default function LoginPage() {
       });
 
       if (response.ok) {
-        // 로그인 성공 시 처리
         const data = await response.json();
-        // 백엔드 응답 구조에 따라 토큰 필드 이름을 확인해야 합니다.
-        // 예시: data.token 또는 data.accessToken
-        if (data.token) { // 백엔드 응답에 'token' 필드가 있다고 가정
+        if (data.token) {
           localStorage.setItem('token', data.token);
-          localStorage.setItem('username', data.username); // 사용자 이름 저장
-          // localStorage.setItem('userId', data.id); // 사용자 ID 또는 호스트 ID 저장 (필요하다면)
-          alert('로그인 성공!');
-          router.push('/'); // 메인 페이지로 이동
+          localStorage.setItem('role', data.role);
+          localStorage.setItem('userId', data.userId.toString());
+          localStorage.setItem('username', data.username || '');
+          
+          // role에 따라 다른 페이지로 리다이렉트
+          if (data.role === 'HOST') {
+            router.push('/host');
+          } else {
+            router.push('/');
+          }
         } else {
-           setError('로그인 성공했지만 토큰이 응답에 없습니다.');
+          setError('로그인 성공했지만 토큰이 응답에 없습니다.');
+        }
       } else {
         const errorData = await response.json();
         setError(errorData.message || '로그인에 실패했습니다.');

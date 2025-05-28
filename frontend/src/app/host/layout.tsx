@@ -3,27 +3,9 @@
 import { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import HostHeader from '@/components/header/hostheader'
-import React, { createContext, useContext, useEffect, useState } from 'react';
-
-// 로그인 상태를 위한 Context 생성
-interface AuthContextType {
-  isLoggedIn: boolean;
-  userId: string | null;
-  userName: string | null;
-  login: (token: string, userId: string, userName: string) => void;
-  logout: () => void;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Context 훅 생성
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+import React, { useEffect, useState } from 'react';
+import HostNavbar from '../components/HostNavbar';
+import { AuthContext, AuthContextType } from '@/context/AuthContext';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -73,15 +55,16 @@ export default function HostLayout({
     setUserName(null);
   };
 
-  const authContextValue = { isLoggedIn, userId, userName, login, logout };
+  const authContextValue: AuthContextType = { isLoggedIn, userId, userName, login, logout };
 
   return (
     <AuthContext.Provider value={authContextValue}>
       <div className={`${inter.className} min-h-screen`}>
         <HostHeader />
-        <div className="pt-16" style={{ backgroundColor: '#2563EB' }}>
+        <HostNavbar />
+        <main className="container mx-auto px-4 py-8">
           {children}
-        </div>
+        </main>
       </div>
     </AuthContext.Provider>
   )

@@ -11,10 +11,17 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import com.likelion.loco_project.global.jwt.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
     /**
      * SecurityFilterChain Bean을 정의하여 HTTP 보안 설정을 구성
      * @param http HttpSecurity 객체
@@ -42,6 +49,11 @@ public class SecurityConfig {
                         // Swagger UI 관련 경로도 인증 없이 접근 가능하도록 설정
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
+                        // 이미지 업로드 관련 엔드포인트 허용
+                        .requestMatchers(HttpMethod.POST, "/api/v1/spaces/images/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/spaces/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/spaces/**").permitAll()
+
                         // 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated()
                 )
@@ -55,7 +67,10 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
 
                 // 기본 HTTP Basic 인증 비활성화
-                .httpBasic(AbstractHttpConfigurer::disable);
+                .httpBasic(AbstractHttpConfigurer::disable)
+
+                // JWT 인증 필터를 UsernamePasswordAuthenticationFilter 이전에 추가
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

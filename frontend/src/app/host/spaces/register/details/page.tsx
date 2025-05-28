@@ -8,7 +8,7 @@ import AddressSearch from "@/components/AddressSearch";
 import dynamic from "next/dynamic";
 import api from "@/lib/axios";
 import { SpaceCreateRequestDto } from "@/types/space";
-import { useAuth } from "@/app/host/layout"; // HostLayout에서 정의한 useAuth 훅 임포트
+import { useAuth } from '@/context/AuthContext'; // import 경로 수정
 
 // DaumPostcode를 dynamic import로 불러오기
 const DaumPostcode = dynamic(() => import("@/components/DaumPostcode"), {
@@ -118,7 +118,7 @@ export default function RegisterSpacePage() {
           spaceName: formData.name,
           spaceType: formData.type,
           description: formData.description,
-          address: formData.address + (formData.detailAddress ? ' ' + formData.detailAddress : ''),
+          address: formData.address,
           price: parseInt(formData.price),
           maxCapacity: parseInt(formData.capacity),
           openTime: formData.openTime,
@@ -128,19 +128,20 @@ export default function RegisterSpacePage() {
           imageUrls: imageUrls,
       };
 
-      // TODO: 실제 호스트 ID를 Local Storage 등에서 가져오도록 수정 필요
-      const hostId = localStorage.getItem('userId');
-
-      // localStorage에서 가져온 userId를 숫자로 변환하고 유효성 검사
-      const parsedHostId = hostId ? Number(hostId) : null;
-
-      if (parsedHostId === null || isNaN(parsedHostId)) {
-        alert('호스트 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
-        return;
+      // 3. 백엔드 공간 생성 API 호출
+      const token = localStorage.getItem('token');
+      if (!token) {
+         alert('로그인 토큰이 없습니다. 다시 로그인해주세요.');
+         router.push('/host/login');
+         return;
       }
 
-      // 3. 백엔드 공간 생성 API 호출
-      const response = await api.post(`/api/v1/spaces/${parsedHostId}/register`, spaceData);
+      const response = await api.post(`${API_BASE_URL}/api/v1/spaces`, spaceData, {
+         headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+         }
+      });
 
       if (response.status === 200) {
         alert("공간이 성공적으로 등록되었습니다!");
