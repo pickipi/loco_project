@@ -21,17 +21,45 @@ import java.util.List;
 public class ApiV1SpaceImageController {
     private final S3Service s3Service;
 
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    private static final List<String> ALLOWED_IMAGE_TYPES = List.of(
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp"
+    );
+
     @PostMapping("/upload")
     @Operation(summary = "이미지 업로드", description = "공간의 이미지를 업로드합니다.")
     public ResponseEntity<RsData<List<String>>> uploadImages(
             @RequestParam("files") List<MultipartFile> files) {
         List<String> imageUrls = new ArrayList<>();
+        List<String> errors = new ArrayList<>();
         
         try {
             for (MultipartFile file : files) {
+                // 파일 크기 검증
+                if (file.getSize() > MAX_FILE_SIZE) {
+                    errors.add(file.getOriginalFilename() + ": 파일 크기가 5MB를 초과합니다.");
+                    continue;
+                }
+
+                // 파일 타입 검증
+                String contentType = file.getContentType();
+                if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType)) {
+                    errors.add(file.getOriginalFilename() + ": 지원하지 않는 이미지 형식입니다. (지원 형식: JPEG, PNG, GIF, WEBP)");
+                    continue;
+                }
+
                 String imageUrl = s3Service.uploadFile(file);
                 imageUrls.add(imageUrl);
             }
+
+            if (!errors.isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(RsData.of("F-1", "일부 이미지 업로드 실패: " + String.join(", ", errors), imageUrls));
+            }
+
             return ResponseEntity.ok(RsData.of("S-1", "이미지 업로드 성공", imageUrls));
         } catch (Exception e) {
             return ResponseEntity.badRequest()
