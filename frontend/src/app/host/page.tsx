@@ -16,6 +16,7 @@ interface User {
 export default function HostMainPage() {
   const router = useRouter();
   const { isLoggedIn, userName, userId } = useAuth();
+  const [notifications, setNotifications] = useState([]);
 
   // 보호된 경로 접근 핸들러
   const handleProtectedRoute = (path: string) => {
@@ -26,6 +27,35 @@ export default function HostMainPage() {
     }
     router.push(path);
   };
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.log('토큰이 없습니다.');
+          return;
+        }
+
+        const response = await api.get('/api/v1/notifications', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.data.resultCode === 'S-1') {
+          setNotifications(response.data.data);
+        }
+      } catch (error) {
+        console.error('알림 조회 실패:', error);
+      }
+    };
+
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className={styles.container}>

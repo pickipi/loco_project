@@ -47,7 +47,16 @@ export default function NotificationToggle() {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const response = await api.get('/api/v1/users/me');
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('인증 정보가 없습니다.');
+        }
+
+        const response = await api.get('/api/v1/users/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
         setUserInfo(response.data.data);
       } catch (error) {
         console.error('사용자 정보 조회 실패:', error);
@@ -64,7 +73,16 @@ export default function NotificationToggle() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await api.get('/api/v1/notifications/settings');
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('인증 정보가 없습니다.');
+        }
+
+        const response = await api.get('/api/v1/notifications/settings', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
         setSettings(response.data.data);
       } catch (error) {
         console.error('알림 설정 조회 실패:', error);
@@ -81,15 +99,22 @@ export default function NotificationToggle() {
    */
   const handleToggle = async (type: keyof NotificationSettings) => {
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('인증 정보가 없습니다.');
+      }
+
       const newSettings = { ...settings, [type]: !settings[type] };
       
-      // 서버에 설정 변경 요청
       await api.post('/api/v1/notifications/settings', {
         type,
         enabled: newSettings[type]
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
-      // 로컬 상태 업데이트
       setSettings(newSettings);
     } catch (error) {
       console.error('알림 설정 변경 실패:', error);

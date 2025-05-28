@@ -31,10 +31,9 @@ public class ApiV1SpaceController {
     @PostMapping
     @Operation(summary = "공간 등록", description = "새로운 공간을 등록합니다.")
     public ResponseEntity<RsData<SpaceResponseDto>> createSpace(
-            @AuthenticationPrincipal User user,
-            @RequestBody SpaceCreateRequestDto dto) {
+            @RequestBody SpaceCreateRequestDto spaceCreateRequestDto) {
         try {
-            SpaceResponseDto response = spaceService.createSpace(user.getId(), dto);
+            SpaceResponseDto response = spaceService.createSpace(spaceCreateRequestDto);
             return ResponseEntity.ok(RsData.of("S-1", "공간 등록 성공", response));
         } catch (Exception e) {
             return ResponseEntity.badRequest()

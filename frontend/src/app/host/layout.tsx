@@ -4,6 +4,7 @@ import { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import HostHeader from '@/components/header/hostheader'
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import HostNavbar from '../components/HostNavbar';
 
 // 로그인 상태를 위한 Context 생성
 interface AuthContextType {
@@ -79,9 +80,10 @@ export default function HostLayout({
     <AuthContext.Provider value={authContextValue}>
       <div className={`${inter.className} min-h-screen`}>
         <HostHeader />
-        <div className="pt-16" style={{ backgroundColor: '#2563EB' }}>
+        <HostNavbar />
+        <main className="container mx-auto px-4 py-8">
           {children}
-        </div>
+        </main>
       </div>
     </AuthContext.Provider>
   )

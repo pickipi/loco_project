@@ -54,10 +54,15 @@ logging:
   level:
     com.likelion.loco: DEBUG
     org.hibernate.SQL: DEBUG
-    org.hibernate.orm.jdbc.bind: TRACE
-    org.hibernate.orm.jdbc.extract: TRACE
-    org.springframework.transaction.interceptor: TRACE
-#    org.springframework.security: DEBUG
+    org.hibernate.orm.jdbc.bind: DEBUG
+    org.hibernate.orm.jdbc.extract: DEBUG
+    org.springframework.transaction.interceptor: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security.web: DEBUG
+    org.springframework.security.web.FilterChainProxy: DEBUG
+    org.springframework.security.web.access.intercept.FilterSecurityInterceptor: DEBUG
+
 custom:
   dev: # dev환경에서의 설정
     cookieDomain: localhost
