@@ -5,6 +5,7 @@ import com.likelion.loco_project.domain.user.dto.*;
 import com.likelion.loco_project.domain.user.entity.User;
 import com.likelion.loco_project.domain.user.entity.UserType;
 import com.likelion.loco_project.domain.user.service.UserService;
+import com.likelion.loco_project.global.jwt.JwtTokenProvider;
 import com.likelion.loco_project.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class ApiV1UserController {
     private final UserService userService;
     private final EmailAuthManager emailAuthManager;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다.")
     @PostMapping
@@ -40,8 +42,8 @@ public class ApiV1UserController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
         User user = userService.loginAndValidate(loginRequest.getEmail(), loginRequest.getPassword());
-        String token = jwtUtil.generateToken(user.getEmail());
-        return ResponseEntity.ok(new LoginResponseDto(token, user.getId()));
+        String token = jwtTokenProvider.generateAccessToken(user.getId(), "USER");
+        return ResponseEntity.ok(new LoginResponseDto(token, "로그인 성공", user.getId(), "USER"));
     }
 
     @Operation(summary = "사용자 정보 수정", description = "기존 사용자의 정보를 수정합니다.")
