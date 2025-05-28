@@ -1,0 +1,48 @@
+:root {
+  /* Light theme variables */
+  --background: #ffffff;
+  --text: #000000;
+  --border: #e5e5e5;
+  --header-bg: #ffffff;
+  --header-text: #4a5568;
+  --header-hover: #2d3748;
+  --input-bg: #ffffff;
+  --input-border: #e2e8f0;
+  --button-primary-bg: #3182ce;
+  --button-primary-hover: #2c5282;
+}
+
+.dark {
+  /* Dark theme variables */
+  --background: #1a1a1a;
+  --text: #ffffff;
+  --border: #2d3748;
+  --header-bg: #1a202c;
+  --header-text: #e2e8f0;
+  --header-hover: #ffffff;
+  --input-bg: #2d3748;
+  --input-border: #4a5568;
+  --button-primary-bg: #4299e1;
+  --button-primary-hover: #3182ce;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* 기본 버튼 스타일 */
+button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background-color: var(--background);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  opacity: 0.8;
+} 

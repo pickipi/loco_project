@@ -1,25 +1,42 @@
-import { Metadata } from 'next'
+'use client'
+
 import { Inter } from 'next/font/google'
 import HostHeader from '@/components/header/hostheader'
+import { ThemeProvider } from '@/components/darkmode/ThemeContext'
+import { usePathname } from 'next/navigation'
 
 const inter = Inter({ subsets: ['latin'] })
-
-export const metadata: Metadata = {
-  title: 'LOCO Host - 공간 호스트를 위한 공간',
-  description: '당신의 공간을 LOCO와 함께 공유해보세요',
-}
 
 export default function HostLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const pathname = usePathname()
+  const isMainPage = pathname === '/host'
+
   return (
-    <div className={`${inter.className} min-h-screen`}>
-      <HostHeader />
-      <div className="pt-16" style={{ backgroundColor: '#2563EB' }}>
-        {children}
+    <ThemeProvider>
+      <div className={inter.className} style={{ 
+        backgroundColor: 'var(--bg-primary)',
+        minHeight: '100vh',
+        color: 'var(--text-primary)'
+      }}>
+        <HostHeader />
+        <main style={{ 
+          paddingTop: '64px',
+          backgroundColor: 'var(--bg-primary)',
+          minHeight: 'calc(100vh - 64px)'
+        }}>
+          <div style={{
+            maxWidth: isMainPage ? '100%' : '1200px',
+            margin: '0 auto',
+            padding: isMainPage ? '0' : '24px'
+          }}>
+            {children}
+          </div>
+        </main>
       </div>
-    </div>
+    </ThemeProvider>
   )
 } 

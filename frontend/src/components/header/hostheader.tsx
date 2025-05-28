@@ -8,6 +8,7 @@ import { IoNotifications } from 'react-icons/io5'
 import NotificationPanel from '../notification/notification'
 import styles from './hostheader.module.css'
 import api from '@/lib/axios'
+import ThemeToggle from '../darkmode/ThemeToggle'
 
 interface ApiResponse<T> {
   data: T;
@@ -158,8 +159,8 @@ export default function HostHeader() {
             </button>
           </nav>
 
-          {/* Auth Buttons */}
-          <div className={styles.authContainer}>
+          <div className={styles.rightSection}>
+            {/* Auth Buttons */}
             {isLoggedIn ? (
               <>
                 {/* 알림 아이콘 추가 */}
@@ -206,6 +207,7 @@ export default function HostHeader() {
                 로그인
               </Link>
             )}
+            <ThemeToggle />
           </div>
 
           {/* Mobile menu button */}
