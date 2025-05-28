@@ -69,4 +69,15 @@ public class ApiV1HostController {
         return ResponseEntity.ok("호스트 회원가입 완료");
     }
 
+    @Operation(summary = "호스트 로그인", description = "이메일과 비밀번호로 호스트 로그인을 합니다.")
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
+        User user = userService.loginAndValidate(loginRequest.getEmail(), loginRequest.getPassword());
+        // 호스트 여부 확인
+        if (!hostService.isHost(user.getId())) {
+            throw new IllegalArgumentException("호스트 계정이 아닙니다.");
+        }
+        String token = jwtUtil.generateToken(user.getEmail());
+        return ResponseEntity.ok(new LoginResponseDto(token, user.getId()));
+    }
 }

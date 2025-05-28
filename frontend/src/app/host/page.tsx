@@ -7,6 +7,7 @@ import Link from "next/link";
 import styles from "./page.module.css";
 import HostHeader from "@/components/header/hostheader";
 import api from "@/lib/axios";
+import { useAuth } from "@/app/host/layout";
 
 interface User {
   isLoggedIn: boolean;
@@ -14,42 +15,17 @@ interface User {
 
 export default function HostMainPage() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // 로그인 상태 확인
-    const checkLoginStatus = async () => {
-      try {
-        const { data } = await api.get("/api/auth/check");
-        setUser(data);
-      } catch (error) {
-        setUser({ isLoggedIn: false });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkLoginStatus();
-  }, []);
+  const { isLoggedIn, userName, userId } = useAuth();
 
   // 보호된 경로 접근 핸들러
   const handleProtectedRoute = (path: string) => {
-    if (!user?.isLoggedIn) {
+    if (!isLoggedIn) {
       alert("로그인이 필요한 서비스입니다.");
       router.push("/host/login?redirect=" + encodeURIComponent(path));
       return;
     }
     router.push(path);
   };
-
-  if (isLoading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner}></div>
-      </div>
-    );
-  }
 
   return (
     <div className={styles.container}>
@@ -62,7 +38,7 @@ export default function HostMainPage() {
           새로운 호스팅의 시작, LOCO와 함께하세요
         </p>
         <button
-          onClick={() => handleProtectedRoute("/host/spaces")}
+          onClick={() => handleProtectedRoute("/host/spaces/register")}
           className={styles.button}
         >
           호스트 시작하기
@@ -122,7 +98,7 @@ export default function HostMainPage() {
           전문적인 호스트 매니저가 당신의 성공적인 호스팅을 도와드립니다
         </p>
         <button
-          onClick={() => handleProtectedRoute("/host/spaces")}
+          onClick={() => handleProtectedRoute("/host/spaces/register")}
           className={styles.button}
         >
           무료로 시작하기

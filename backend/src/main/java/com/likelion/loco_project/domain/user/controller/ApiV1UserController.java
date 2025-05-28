@@ -36,6 +36,14 @@ public class ApiV1UserController {
         return ResponseEntity.ok(user);
     }
 
+    @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
+        User user = userService.loginAndValidate(loginRequest.getEmail(), loginRequest.getPassword());
+        String token = jwtUtil.generateToken(user.getEmail());
+        return ResponseEntity.ok(new LoginResponseDto(token, user.getId()));
+    }
+
     @Operation(summary = "사용자 정보 수정", description = "기존 사용자의 정보를 수정합니다.")
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDto> updateUser(
