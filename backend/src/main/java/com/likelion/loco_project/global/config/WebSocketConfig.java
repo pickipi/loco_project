@@ -1,7 +1,8 @@
 package com.likelion.loco_project.global.config;
 
+import com.likelion.loco_project.domain.user.repository.UserRepository;
 import com.likelion.loco_project.global.jwt.JwtHandshakeInterceptor;
-import com.likelion.loco_project.global.jwt.JwtProvider;
+import com.likelion.loco_project.global.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -14,14 +15,15 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    private final JwtProvider jwtProvider;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .addInterceptors(new JwtHandshakeInterceptor(jwtProvider))
-                .setAllowedOriginPatterns("*")  // 운영 시 도메인 제한 권장
-                .withSockJS();  // 또는 .withoutSockJS()
+                .addInterceptors(new JwtHandshakeInterceptor(jwtTokenProvider, userRepository))
+                .setAllowedOriginPatterns("*")
+                .withSockJS();
     }
 
     @Override

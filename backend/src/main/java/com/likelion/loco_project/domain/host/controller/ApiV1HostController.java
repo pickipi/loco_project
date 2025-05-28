@@ -1,5 +1,6 @@
 package com.likelion.loco_project.domain.host.controller;
 
+
 import com.likelion.loco_project.domain.host.dto.HostRequestDto;
 import com.likelion.loco_project.domain.host.dto.HostResponseDto;
 import com.likelion.loco_project.domain.host.entity.Host;
@@ -8,7 +9,6 @@ import com.likelion.loco_project.domain.user.dto.LoginRequestDto;
 import com.likelion.loco_project.domain.user.dto.LoginResponseDto;
 import com.likelion.loco_project.domain.user.dto.UserRequestDto;
 import com.likelion.loco_project.domain.user.service.UserService;
-import com.likelion.loco_project.global.jwt.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/v1/hosts")
@@ -27,7 +28,6 @@ public class ApiV1HostController {
 
     private final HostService hostService;
     private final UserService userService;
-    private final JwtUtil jwtUtil;
 
     @Operation(summary = "전체 호스트 조회", description = "등록된 모든 호스트 정보를 조회합니다.")
     @GetMapping
@@ -69,12 +69,4 @@ public class ApiV1HostController {
         return ResponseEntity.ok("호스트 회원가입 완료");
     }
 
-    @Operation(summary = "호스트 로그인", description = "이메일과 비밀번호로 호스트 로그인을 합니다.")
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
-        Host host = hostService.loginAndValidate(loginRequest.getEmail(), loginRequest.getPassword());
-        String token = jwtUtil.generateToken(host.getUser().getEmail());
-        LoginResponseDto response = new LoginResponseDto(token, "로그인 완료!", host.getId(), host.getUser().getUsername());
-        return ResponseEntity.ok(response);
-    }
 }
