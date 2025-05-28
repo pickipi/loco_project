@@ -8,13 +8,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
-
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/mypage")
+@Tag(name = "마이페이지", description = "마이페이지 관련 API, 예약 조회 / 결제 조회")
 public class MyPageController {
 
     private final MyPageService myPageService;

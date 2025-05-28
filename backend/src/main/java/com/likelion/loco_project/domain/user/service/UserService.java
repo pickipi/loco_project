@@ -13,6 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -20,6 +22,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder; // 비밀번호 인코더 주입
     private final EmailAuthManager emailAuthManager;
+
 
     //새로운 유저를 생성하고 저장하는 메서드 (회원가입 기능)
     @Transactional
@@ -97,15 +100,22 @@ public class UserService {
 //                .rating(user.getRating())
 //                .build();
 //    }
-    public User loginAndValidate(String email, String rawPassword) {
+    public User loginAndValidate(String email, String password) {
         User user = userRepository.findByEmail(email)
-                .filter(u -> !u.isDeleted())
-                .orElseThrow(() -> new RuntimeException("해당 이메일의 사용자가 없습니다."));
-
-        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
-            throw new RuntimeException("비밀번호가 일치하지 않습니다.");
+                .orElseThrow(() -> new IllegalArgumentException("이메일 또는 비밀번호가 일치하지 않습니다."));
+        
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new IllegalArgumentException("이메일 또는 비밀번호가 일치하지 않습니다.");
         }
+        
+        return user;
+    }
 
+    public User loginAndValidate(String email, String password, UserType requiredType) {
+        User user = loginAndValidate(email, password);
+        if (user.getUserType() != requiredType) {
+            throw new IllegalArgumentException(requiredType + " 계정이 아닙니다.");
+        }
         return user;
     }
 
@@ -170,4 +180,16 @@ public class UserService {
     public boolean verifyCode(String email, String code) {
         return emailAuthManager.verifyCode(email, code);
     }
+
+    public void resetPasswordByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+
+        String tempPassword = UUID.randomUUID().toString().substring(0, 8);
+        user.changePassword(passwordEncoder.encode(tempPassword));
+        userRepository.save(user);
+
+        emailAuthManager.sendTemporaryPassword(email, tempPassword);
+    }
+
 }

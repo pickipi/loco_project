@@ -21,30 +21,25 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8090/api/v1/users/login', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          password
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
       });
 
       if (response.ok) {
         // 로그인 성공 시 처리
         const data = await response.json();
-        // TODO: 토큰 저장 로직 추가
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userId', data.userId); // userId 저장
-        // 로컬 스토리지에 저장된 사용자 이름 가져오기 (선택 사항)
-        // const userName = localStorage.getItem('userName');
-        // if (userName) {
-        //   // 상단바 등에 사용자 이름 표시 로직 추가
-        // }
-        alert('로그인 성공!');
-        router.push('/host'); // 호스트 대시보드 페이지로 이동
+        // 백엔드 응답 구조에 따라 토큰 필드 이름을 확인해야 합니다.
+        // 예시: data.token 또는 data.accessToken
+        if (data.token) { // 백엔드 응답에 'token' 필드가 있다고 가정
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('username', data.username); // 사용자 이름 저장
+          // localStorage.setItem('userId', data.id); // 사용자 ID 또는 호스트 ID 저장 (필요하다면)
+          alert('로그인 성공!');
+          router.push('/'); // 메인 페이지로 이동
+        } else {
+           setError('로그인 성공했지만 토큰이 응답에 없습니다.');
       } else {
         const errorData = await response.json();
         setError(errorData.message || '로그인에 실패했습니다.');
@@ -142,7 +137,7 @@ export default function LoginPage() {
                     로그인 기억하기
                   </label>
                 </div>
-                <Link href="/forgot-password" className="text-sm text-gray-600 hover:text-gray-900">
+                <Link href="/login/forgot-password" className="text-sm text-gray-600 hover:text-gray-900">
                   비밀번호 찾기
                 </Link>
               </div>

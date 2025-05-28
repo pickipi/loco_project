@@ -1,14 +1,13 @@
 package com.likelion.loco_project.domain.user.controller;
 
-import com.likelion.loco_project.domain.user.dto.LoginRequestDto;
-import com.likelion.loco_project.domain.user.dto.LoginResponseDto;
-import com.likelion.loco_project.domain.user.dto.UserRequestDto;
-import com.likelion.loco_project.domain.user.dto.UserResponseDto;
+import com.likelion.loco_project.domain.auth.EmailAuthManager;
+import com.likelion.loco_project.domain.user.dto.*;
 import com.likelion.loco_project.domain.user.entity.User;
+import com.likelion.loco_project.domain.user.entity.UserType;
 import com.likelion.loco_project.domain.user.service.UserService;
-import com.likelion.loco_project.global.jwt.JwtUtil;
 import com.likelion.loco_project.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +17,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
+@Tag(name = "유저", description = "유저 관련 API")
 public class ApiV1UserController {
     private final UserService userService;
-    private final JwtUtil jwtUtil;
+    private final EmailAuthManager emailAuthManager;
 
     @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다.")
     @PostMapping
@@ -36,12 +36,6 @@ public class ApiV1UserController {
         return ResponseEntity.ok(user);
     }
 
-    //    @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
-//    @PostMapping("/login")
-//    public ResponseEntity<UserResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
-//        UserResponseDto user = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
-//        return ResponseEntity.ok(user);
-//    }
     @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다.")
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
@@ -66,6 +60,7 @@ public class ApiV1UserController {
     }
 
     //유저 알림 기능 끄기(채팅, 예약상태 선택가능)
+    @Operation(summary = "유저 알림 기능 끄기", description = "유저 알림 기능 끄기(채팅, 예약상태 선택가능)")
     @PutMapping("/me/notifications/toggle")
     public ResponseEntity<RsData<Boolean>> toggleNotification(@AuthenticationPrincipal User user) {
         boolean updated = userService.toggleNotification(user.getId());
@@ -73,6 +68,7 @@ public class ApiV1UserController {
     }
 
     // 유저 알림 상태 조회
+    @Operation(summary = "유저 알림 상태 조회", description = "유저 알림 상태 조회")
     @GetMapping("/me/notifications/enabled")
     public ResponseEntity<RsData<Boolean>> isNotificationEnabled(@AuthenticationPrincipal User user) {
         boolean enabled = userService.isNotificationEnabled(user.getId());
@@ -96,5 +92,23 @@ public class ApiV1UserController {
     ) {
         boolean verified = userService.verifyCode(email, code);
         return ResponseEntity.ok(RsData.of("S-1", "이메일 인증 결과", verified));
+    }
+
+    // 게스트용
+    @PostMapping("/guests/forgot-password")
+    public ResponseEntity<RsData<String>> resetGuestPassword(
+            @RequestBody @Valid PasswordResetRequestDto dto
+    ) {
+        emailAuthManager.resetPasswordByEmail(dto.getEmail(), UserType.GUEST);
+        return ResponseEntity.ok(RsData.of("S-1", "임시 비밀번호가 이메일로 전송되었습니다.", null));
+    }
+
+    // 호스트용
+    @PostMapping("/hosts/forgot-password")
+    public ResponseEntity<RsData<String>> resetHostPassword(
+            @RequestBody @Valid PasswordResetRequestDto dto
+    ) {
+        emailAuthManager.resetPasswordByEmail(dto.getEmail(), UserType.HOST);
+        return ResponseEntity.ok(RsData.of("S-1", "임시 비밀번호가 이메일로 전송되었습니다.", null));
     }
 }

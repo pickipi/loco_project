@@ -1,13 +1,16 @@
 package com.likelion.loco_project.global.config;
 
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.http.HttpMethod;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -21,34 +24,31 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**")) // H2 콘솔 경로는 CSRF 보호를 무시
-                        // 그 외 모든 경로(=전역)에 대해 CSRF 보호를 비활성화
-                        .disable()
-                )
+                // 스프링 시큐리티 단계에서 CORS 허용
+                .cors().and()
+
+                // CSRF 완전히 비활성화 (REST API는 보통 disable)
+                .csrf(AbstractHttpConfigurer::disable)
 
                 // HTTP 요청에 대한 인가(Authorization) 설정
                 .authorizeHttpRequests(authorize -> authorize
                         // H2 콘솔 경로는 모든 사용자에게 접근을 허용
-                        .requestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**")).permitAll()
+                        .requestMatchers("/h2-console/**").permitAll()
 
-                        // /api/v1/users 에 대한 POST 요청은 인증 없이도 허용
+                        // 회원가입 및 로그인 엔드포인트는 인증 없이도 허용
                         .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
 
                         // Swagger UI 관련 경로도 인증 없이 접근 가능하도록 설정
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
-                        // 모든 요청 ("/**")에 대해 인증 없이 접근을 허용
-                        .anyRequest().permitAll()
-//                        .anyRequest().authenticated() // 허용한 경로 외의 모든 요청은 인증 필요 (기본 설정)
+                        // 그 외 모든 요청은 인증 필요
+                        .anyRequest().authenticated()
                 )
 
-                // H2 콘솔의 프레임 표시를 허용하도록 설정
-                // Spring Security가 기본적으로 X-Frame-Options 헤더를 DENY로 설정하는 것을 재정의
+                // H2 콘솔의 프레임 표시를 허용
                 .headers(headers -> headers
-                        .frameOptions(frameOptions -> frameOptions
-                                .sameOrigin()
-                        )
+                        .frameOptions(frameOptions -> frameOptions.sameOrigin())
                 )
 
                 // 기본 폼 로그인 비활성화
@@ -57,7 +57,22 @@ public class SecurityConfig {
                 // 기본 HTTP Basic 인증 비활성화
                 .httpBasic(AbstractHttpConfigurer::disable);
 
-        // 설정된 HttpSecurity 객체를 기반으로 SecurityFilterChain 객체 생성 및 반환
         return http.build();
+    }
+
+    /**
+     * CORS 설정을 스프링 시큐리티 레이어에도 적용하기 위한 Bean
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration cors = new CorsConfiguration();
+        cors.setAllowedOrigins(List.of("http://localhost:3000"));                  // 프론트엔드 주소 허용
+        cors.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));   // 허용할 HTTP 메서드
+        cors.setAllowedHeaders(List.of("*"));                                     // 모든 헤더 허용
+        cors.setAllowCredentials(true);                                           // 인증 정보(Cookie 등) 허용
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", cors);
+        return source;
     }
 }
