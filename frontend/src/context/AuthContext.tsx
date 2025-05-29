@@ -8,6 +8,7 @@ export interface AuthContextType {
   userId: string | null;
   userName: string | null;
   userRole: string | null;
+  isLoading: boolean;
   login: (token: string, id: string, name: string, role: string) => void;
   logout: () => void;
 }
@@ -18,54 +19,69 @@ export const AuthContext = createContext<AuthContextType>({
   userId: null,
   userName: null,
   userRole: null,
+  isLoading: true,
   login: () => {},
   logout: () => {},
 });
 
 // Context Provider 컴포넌트 (필요하다면 사용)
-// export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-//   const [isLoggedIn, setIsLoggedIn] = useState(false);
-//   const [userId, setUserId] = useState<string | null>(null);
-//   const [userName, setUserName] = useState<string | null>(null);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-//   useEffect(() => {
-//     const token = localStorage.getItem('token');
-//     const storedUserId = localStorage.getItem('userId');
-//     const storedUserName = localStorage.getItem('userName');
+  useEffect(() => {
+    console.log("AuthProvider useEffect triggered");
+    const token = localStorage.getItem('token');
+    const storedUserId = localStorage.getItem('userId');
+    const storedUserName = localStorage.getItem('userName');
+    const storedUserRole = localStorage.getItem('userRole');
 
-//     if (token && storedUserId) {
-//       setIsLoggedIn(true);
-//       setUserId(storedUserId);
-//       setUserName(storedUserName);
-//     } else {
-//       setIsLoggedIn(false);
-//       setUserId(null);
-//       setUserName(null);
-//     }
-//   }, []);
+    if (token && storedUserId && storedUserRole) {
+      setIsLoggedIn(true);
+      setUserId(storedUserId);
+      setUserName(storedUserName);
+      setUserRole(storedUserRole);
+    } else {
+      setIsLoggedIn(false);
+      setUserId(null);
+      setUserName(null);
+      setUserRole(null);
+    }
+    setIsLoading(false);
+    console.log("AuthProvider initialization finished. isLoggedIn:", isLoggedIn, "userRole:", userRole);
+  }, []);
 
-//   const login = (token: string, id: string, name: string) => {
-//     localStorage.setItem('token', token);
-//     localStorage.setItem('userId', id);
-//     localStorage.setItem('userName', name);
-//     setIsLoggedIn(true);
-//     setUserId(id);
-//     setUserName(name);
-//   };
+  const login = (token: string, id: string, name: string, role: string) => {
+    console.log("AuthContext Login called", { id, name, role });
+    localStorage.setItem('token', token);
+    localStorage.setItem('userId', id);
+    localStorage.setItem('userName', name);
+    localStorage.setItem('userRole', role);
+    setIsLoggedIn(true);
+    setUserId(id);
+    setUserName(name);
+    setUserRole(role);
+  };
 
-//   const logout = () => {
-//     localStorage.removeItem('token');
-//     localStorage.removeItem('userId');
-//     localStorage.removeItem('userName');
-//     setIsLoggedIn(false);
-//     setUserId(null);
-//     setUserName(null);
-//   };
+  const logout = () => {
+    console.log("AuthContext Logout called");
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userRole');
+    setIsLoggedIn(false);
+    setUserId(null);
+    setUserName(null);
+    setUserRole(null);
+  };
 
-//   const authContextValue = { isLoggedIn, userId, userName, login, logout };
+  const authContextValue: AuthContextType = { isLoggedIn, userId, userName, userRole, isLoading, login, logout };
 
-//   return <AuthContext.Provider value={authContextValue}>{children}</AuthContext.Provider>;
-// };
+  return <AuthContext.Provider value={authContextValue}>{children}</AuthContext.Provider>;
+};
 
 // Context 훅 생성
 export const useAuth = () => {

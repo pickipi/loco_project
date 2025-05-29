@@ -103,35 +103,71 @@ export default function RegisterSpacePage() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // 토큰 유효성 검사 함수 수정
+  const validateToken = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return false;
+    }
+
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+
+      const payload = JSON.parse(jsonPayload);
+      const expirationTime = payload.exp * 1000;
+      
+      if (Date.now() >= expirationTime) {
+        // 토큰 만료 시 모달 표시
+        toast.error('인증이 만료되었습니다. 다시 로그인해주세요.', {
+          onClose: () => {
+            localStorage.removeItem('token');
+            router.push('/host/login');
+          }
+        });
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('토큰 검증 중 오류:', error);
+      return false;
+    }
+  };
+
+  // 이미지 업로드 함수 수정
+  const handleImageUpload = async (): Promise<string[] | null> => {
     setIsLoading(true);
     setError(null);
 
     try {
-      // 1. 이미지 업로드
+      // 1. 이미지 유효성 검사
       if (formDataState.images.length === 0) {
         const errorMessage = '이미지를 선택해주세요.';
         setError(errorMessage);
         toast.error(errorMessage);
         setIsLoading(false);
-        return;
+        return null;
       }
 
+      // 2. 토큰 유효성 검사
+      if (!validateToken()) {
+        const errorMessage = '로그인이 만료되었습니다. 다시 로그인해주세요.';
+        setError(errorMessage);
+        toast.error(errorMessage);
+        setIsLoading(false);
+        router.push('/login'); // 로그인 페이지로 리다이렉트
+        return null;
+      }
+
+      const token = localStorage.getItem('token');
       const uploadFormData = new FormData();
       formDataState.images.forEach(file => {
         uploadFormData.append('files', file);
       });
-
-      // JWT 토큰 가져오기
-      const token = localStorage.getItem('token');
-      if (!token) {
-        const errorMessage = '로그인 정보가 없습니다. 다시 로그인 해주세요.';
-        setError(errorMessage);
-        toast.error(errorMessage);
-        setIsLoading(false);
-        return;
-      }
 
       console.log("Uploading images...");
 
@@ -143,81 +179,174 @@ export default function RegisterSpacePage() {
         body: uploadFormData,
       });
 
+      // 응답 상태 코드에 따른 처리
+      if (uploadResponse.status === 401) {
+        const errorMessage = '인증이 만료되었습니다. 다시 로그인해주세요.';
+        setError(errorMessage);
+        toast.error(errorMessage);
+        localStorage.removeItem('token');
+        router.push('/login');
+        setIsLoading(false);
+        return null;
+      }
+
       if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json();
-        console.error("Image upload failed response:", errorData);
-        const errorMessage = '이미지 업로드 실패: ' + (errorData.msg || uploadResponse.statusText);
+        let errorMessage = '이미지 업로드 실패';
+        try {
+          const errorData = await uploadResponse.json();
+          errorMessage += ': ' + (errorData.msg || uploadResponse.statusText);
+        } catch (e) {
+          errorMessage += ': ' + uploadResponse.statusText;
+        }
         setError(errorMessage);
         toast.error(errorMessage);
         setIsLoading(false);
-        return;
+        return null;
       }
 
-      const uploadResult = await uploadResponse.json();
-      console.log("Image upload result:", uploadResult);
+      // 응답 데이터 처리
+      let uploadResult;
+      try {
+        uploadResult = await uploadResponse.json();
+      } catch (e) {
+        console.error('JSON 파싱 오류:', e);
+        setError('서버 응답 처리 중 오류가 발생했습니다.');
+        toast.error('서버 응답 처리 중 오류가 발생했습니다.');
+        setIsLoading(false);
+        return null;
+      }
+
+      if (!uploadResult.data || !Array.isArray(uploadResult.data)) {
+        setError('서버 응답 형식이 올바르지 않습니다.');
+        toast.error('서버 응답 형식이 올바르지 않습니다.');
+        setIsLoading(false);
+        return null;
+      }
 
       const imageUrls: string[] = uploadResult.data;
-
       console.log("Uploaded Image URLs:", imageUrls);
 
-      toast.success("이미지 업로드 성공! 다음 단계로 이동하세요.");
+      toast.success("이미지 업로드 성공!");
+      return imageUrls;
     } catch (error) {
       console.error('이미지 업로드 오류:', error);
       const errorMessage = error instanceof Error ? error.message : '이미지 업로드 중 오류가 발생했습니다.';
       setError(errorMessage);
       toast.error(errorMessage);
+      return null;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const nextStep = () => {
-    // 현재 단계의 필수 필드만 검증 후 다음 단계로 이동
-    if (activeStep === 2) { // 기본 정보 탭
-      if (!formDataState.name || !formDataState.description || formDataState.description.length < 20 || !formDataState.address) {
-        alert('공간 이름, 공간 소개(20자 이상), 주소는 필수 입력 항목입니다.');
-        return;
-      }
-    } else if (activeStep === 3) { // 공간 정보 탭
-      if (!formDataState.capacity || !formDataState.price || parseInt(formDataState.price) < 1000 || formDataState.images.length === 0) {
-        alert('수용 인원, 시간당 가격(1000원 이상), 공간 사진은 필수 입력 항목입니다.');
-        return;
-      }
-    }
-    // 단계 4 (이용 규칙)에서는 현재 필수 필드 없음
+  // 최종 공간 등록 함수 (이미지 업로드 후 호출)
+  const handleFinalSubmit = async (e: React.FormEvent) => {
+      e.preventDefault(); // 기본 폼 제출 방지
+      setIsLoading(true);
+      setError(null);
 
-    setActiveStep((prev) => prev + 1);
-  };
+      // 이미지 URL이 없으면 최종 제출 불가 (이미지 업로드 단계에서 처리됨)
+      if (formDataState.imageUrls.length === 0) {
+          const errorMessage = '이미지 업로드가 완료되지 않았습니다.';
+          setError(errorMessage);
+          toast.error(errorMessage);
+          setIsLoading(false);
+          return;
+      }
 
-  const prevStep = () => {
-    setActiveStep((prev) => prev - 1);
+      try {
+          const token = localStorage.getItem('token');
+          if (!token) {
+              const errorMessage = '로그인 정보가 없습니다. 다시 로그인 해주세요.';
+              setError(errorMessage);
+              toast.error(errorMessage);
+              setIsLoading(false);
+              return;
+          }
+
+          const submitPayload = {
+              name: formDataState.name,
+              type: formDataState.type,
+              description: formDataState.description,
+              address: formDataState.address,
+              detailAddress: formDataState.detailAddress,
+              capacity: parseInt(formDataState.capacity, 10), // 숫자로 변환
+              price: parseInt(formDataState.price, 10), // 숫자로 변환
+              imageUrls: formDataState.imageUrls, // 업로드된 이미지 URL 사용
+              openTime: formDataState.openTime,
+              closeTime: formDataState.closeTime,
+              minTime: parseInt(formDataState.minTime, 10), // 숫자로 변환
+              maxTime: parseInt(formDataState.maxTime, 10), // 숫자로 변환
+              refundPolicy: formDataState.refundPolicy,
+              spaceRules: formDataState.spaceRules,
+              // agreedRefundPolicy와 agreedSpaceRules는 백엔드 전송에 필요 없을 수 있지만, 필요하다면 추가
+          };
+
+          console.log("Submitting final space data:", submitPayload);
+
+          const submitResponse = await fetch(`${API_BASE_URL}/api/v1/spaces`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify(submitPayload),
+          });
+
+          if (!submitResponse.ok) {
+              const errorData = await submitResponse.json();
+              console.error("Final submission failed response:", errorData);
+              const errorMessage = '공간 등록 실패: ' + (errorData.msg || submitResponse.statusText);
+              setError(errorMessage);
+              toast.error(errorMessage);
+              setIsLoading(false);
+              return;
+          }
+
+          const submitResult = await submitResponse.json();
+          console.log("Final submission result:", submitResult);
+
+          toast.success("공간이 성공적으로 등록되었습니다!");
+          // 성공 후 리다이렉션
+          router.push('/host/spaces'); // 호스트 공간 목록 페이지로 이동 예시
+
+      } catch (error) {
+          console.error('공간 등록 중 오류 발생:', error);
+          const errorMessage = error instanceof Error ? error.message : '공간 등록 중 오류가 발생했습니다.';
+          setError(errorMessage);
+          toast.error(errorMessage);
+      } finally {
+          setIsLoading(false);
+      }
   };
 
   const handleNextButtonClick = async () => {
-    // 현재 단계에 따른 유효성 검사
+    // 현재 단계에 따른 유효성 검사 및 다음 단계 이동 로직
     if (activeStep === 2) { // 기본 정보 탭
       if (!formDataState.name || !formDataState.description || formDataState.description.length < 20 || !formDataState.address) {
         toast.error('공간 이름, 공간 소개(20자 이상), 주소는 필수 입력 항목입니다.');
         return;
       }
+      // 유효성 검사 통과 시 다음 단계로 이동
+      setActiveStep(3); // 3단계(공간 정보)로 이동
     } else if (activeStep === 3) { // 공간 정보 탭
       if (!formDataState.capacity || !formDataState.price || parseInt(formDataState.price) < 1000 || formDataState.images.length === 0) {
         toast.error('수용 인원, 시간당 가격(1000원 이상), 공간 사진은 필수 입력 항목입니다.');
         return;
       }
+
+      // 유효성 검사 통과 시 이미지 업로드 시도
+      const uploadedImageUrls = await handleImageUpload();
+
+      // 이미지 업로드 성공 시 (uploadedImageUrls가 null이 아닌 경우)
+      if (uploadedImageUrls !== null) {
+        // 업로드된 이미지 URL을 formDataState에 저장하고 다음 단계로 이동
+        setFormDataState(prevState => ({ ...prevState, imageUrls: uploadedImageUrls }));
+        setActiveStep(4); // 4단계(이용 규칙)로 이동
+      }
+      // 이미지 업로드 실패 시 로직은 handleImageUpload 내에서 처리됨
     }
-    
-    // 유효성 검사 통과 시 이미지 업로드 시도
-    const uploadedImageUrls = await handleSubmit(new Event('submit'));
-    
-    // 이미지 업로드 성공 시 (uploadedImageUrls가 null이 아닌 경우)
-    if (uploadedImageUrls) {
-      // 업로드된 이미지 URL을 formDataState에 저장하고 다음 단계로 이동
-      setFormDataState(prevState => ({ ...prevState, imageUrls: uploadedImageUrls }));
-      setActiveStep(4); // 4단계(이용 규칙)로 이동
-    } else {
-      // 이미지 업로드 실패 시 로딩 상태 해제는 handleSubmit에서 처리됨
-    }
+    // 4단계에서는 '다음' 버튼이 없습니다. '등록하기' 버튼이 최종 제출을 처리합니다.
   };
 
   // '등록하기' 버튼 활성화 조건
@@ -227,7 +356,9 @@ export default function RegisterSpacePage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-800 py-8">
       <div className="container mx-auto px-4 max-w-3xl">
         <div className="bg-white rounded-lg shadow-sm p-8">
-          <h1 className="text-2xl font-bold text-center mb-8">공간 등록하기</h1>
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-2xl font-bold">공간 등록하기</h1>
+          </div>
 
           {/* 단계 표시 */}
           <div className="flex justify-between items-center mb-10">
@@ -766,7 +897,7 @@ export default function RegisterSpacePage() {
                 {activeStep > 2 ? (
                   <button
                     type="button"
-                    onClick={prevStep}
+                    onClick={() => setActiveStep(activeStep - 1)}
                     className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
                   >
                     이전
@@ -782,12 +913,12 @@ export default function RegisterSpacePage() {
                        disabled={isLoading}
                        className={`px-6 py-2 rounded-md ${isLoading ? 'bg-indigo-300 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
                    >
-                       {activeStep === 2 ? '다음 (기본 정보 입력)' : '이미지 업로드 및 다음'}
+                       {activeStep === 2 ? '다음' : '이미지 업로드 및 다음'}
                    </button>
                 ) : (
                    <button
                       type="button"
-                       onClick={handleSubmit}
+                       onClick={handleFinalSubmit}
                        disabled={!isSubmitButtonEnabled}
                        className={`px-6 py-2 rounded-md ${!isSubmitButtonEnabled ? 'bg-green-300 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700'}`}
                    >
@@ -797,6 +928,9 @@ export default function RegisterSpacePage() {
               </div>
             )}
           </form>
+
+          {error && <div className="text-red-500 mt-4 text-center">{error}</div>}
+
         </div>
       </div>
     </div>

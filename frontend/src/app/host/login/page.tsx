@@ -37,6 +37,7 @@ export default function LoginPage() {
         login(data.token, data.userId.toString(), data.userName, data.role);
         
         alert('로그인 성공!');
+        router.push('/host');
       } else {
         const errorData = await response.json();
         setError(errorData.message || '로그인에 실패했습니다.');
