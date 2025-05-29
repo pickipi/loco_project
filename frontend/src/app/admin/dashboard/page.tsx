@@ -94,20 +94,34 @@ export default function AdminDashboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log("useEffect is running");
     const fetchDashboardData = async () => {
+      console.log("fetchDashboardData function started");
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        console.log("No token found");
+        setLoading(false);
+        setError('로그인이 필요합니다.');
+        return;
+      }
+
+      console.log("Token found, attempting API calls");
       try {
         setLoading(true);
-        // TODO: 실제 API 엔드포인트로 변경
+        const headers = {
+          'Authorization': `Bearer ${token}`
+        };
+
         const [statsRes, reservationsRes, spacesRes, salesRes, reservationStatsRes, spaceTypeRes] = await Promise.all([
-          fetch('/api/v1/admin/dashboard/summary'),
-          fetch('/api/v1/admin/dashboard/recent-reservations'),
-          fetch('/api/v1/admin/dashboard/pending-spaces'),
-          fetch('/api/v1/admin/dashboard/sales-data'),
-          fetch('/api/v1/admin/dashboard/reservation-stats'),
-          fetch('/api/v1/admin/dashboard/space-type-distribution')
+          fetch('/api/v1/admin/dashboard/summary', { headers }),
+          fetch('/api/v1/admin/dashboard/recent-reservations', { headers }),
+          fetch('/api/v1/admin/dashboard/pending-spaces', { headers }),
+          fetch('/api/v1/admin/dashboard/sales-data', { headers }),
+          fetch('/api/v1/admin/dashboard/reservation-stats', { headers }),
+          fetch('/api/v1/admin/dashboard/space-type-distribution', { headers })
         ]);
 
-        // 각 응답의 성공 여부를 개별적으로 확인
         const statsData = statsRes.ok ? await statsRes.json() : null;
         const reservationsData = reservationsRes.ok ? await reservationsRes.json() : [];
         const spacesData = spacesRes.ok ? await spacesRes.json() : [];
@@ -122,14 +136,11 @@ export default function AdminDashboardPage() {
         setReservationData(reservationStatsData);
         setSpaceTypeDistributionData(spaceTypeDistributionData);
 
-        // 모든 API가 실패한 경우에만 전체 에러 메시지 표시 (혹은 다른 방식으로 처리)
-        // 현재는 각 컴포넌트에서 null/[] 상태를 처리하도록 유도
-        setError(null); // 데이터 일부 실패는 에러로 간주하지 않음
+        setError(null);
 
       } catch (err) {
-        // 네트워크 오류 등 심각한 경우에만 전체 에러 메시지 설정
         console.error('대시보드 데이터 로딩 중 오류 발생:', err);
-        setError('대시보드 데이터를 불러오는데 실패했습니다.'); // 전체 페이지 오류 표시
+        setError('대시보드 데이터를 불러오는데 실패했습니다.');
       } finally {
         setLoading(false);
       }
@@ -261,7 +272,6 @@ export default function AdminDashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {/* recentReservations가 빈 배열이면 map이 실행되지 않음 */}
                   {recentReservations.map((r) => (
                     <tr key={r.id} className="border-b hover:bg-gray-50">
                       <td className="py-2">{r.user}</td>
@@ -298,7 +308,6 @@ export default function AdminDashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {/* pendingSpaces가 빈 배열이면 map이 실행되지 않음 */}
                   {pendingSpaces.map((s) => (
                     <tr key={s.id} className="border-b hover:bg-gray-50">
                       <td className="py-2">{s.name}</td>

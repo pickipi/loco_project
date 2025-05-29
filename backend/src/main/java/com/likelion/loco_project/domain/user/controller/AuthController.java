@@ -30,21 +30,21 @@ public class AuthController {
         // 1) 사용자 인증
         User user = userService.loginAndValidate(req.getEmail(), req.getPassword());
 
-        // 2) 호스트 여부 확인
-        boolean isHost = hostService.isHost(user.getId());
+        // 2) 사용자의 실제 역할 가져오기
+        String userRole = user.getUserType().name(); // UserType enum 값을 문자열로 변환
 
-        // 3) 토큰 발급 (role 클레임 포함)
+        // 3) 토큰 발급 (실제 역할 클레임 포함)
         String token = jwtTokenProvider.generateAccessToken(
                 user.getId(),
-                isHost ? "HOST" : "GUEST"
+                userRole // 실제 사용자의 역할을 토큰에 포함
         );
 
-        // 4) 응답에 userId와 role 포함
+        // 4) 응답에 userId와 실제 역할 포함
         LoginResponseDto resDto = new LoginResponseDto(
                 token,
                 "로그인 완료!",
                 user.getId(),
-                isHost ? "HOST" : "GUEST"
+                userRole // 실제 사용자의 역할을 응답에 포함
         );
         return ResponseEntity.ok(resDto);
     }

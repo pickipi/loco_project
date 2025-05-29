@@ -22,7 +22,12 @@ export default function UserManagement() {
 
   const fetchUsers = async () => {
     try {
-      const response = await api.get("/api/v1/admin/users");
+      const token = localStorage.getItem('token');
+      const response = await api.get("/api/v1/admin/users", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       setUsers(response.data);
     } catch (error) {
       console.error("Failed to fetch users:", error);
@@ -35,7 +40,12 @@ export default function UserManagement() {
   const handleRoleToggle = async (userId: number, currentRole: string) => {
     const newRole = currentRole === "GUEST" ? "HOST" : "GUEST";
     try {
-      await api.patch(`/api/v1/admin/users/${userId}/role`, { role: newRole });
+      const token = localStorage.getItem('token');
+      await api.patch(`/api/v1/admin/users/${userId}/role`, { role: newRole }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       setUsers(
         users.map((user) =>
           user.id === userId ? { ...user, userType: newRole } : user
