@@ -70,11 +70,11 @@ public class ApiV1SpaceController {
     @GetMapping("/all")
     public ResponseEntity<RsData<Page<SpaceListResponseDto>>> getAllSpaces(
             @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(name = "page", defaultValue = "0") Integer page,
             @Parameter(description = "페이지당 항목 수", example = "12")
-            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(name = "size", defaultValue = "12") Integer size,
             @Parameter(description = "정렬 기준 필드", example = "id")
-            @RequestParam(defaultValue = "id") String sort) {
+            @RequestParam(name = "sort", defaultValue = "id") String sort) {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(sort));
         Page<SpaceListResponseDto> spaces = spaceService.getAllSpacesWithPagination(pageRequest);
         return ResponseEntity.ok(RsData.of("S-1", "모든 공간 목록을 조회했습니다.", spaces));
@@ -120,7 +120,29 @@ public class ApiV1SpaceController {
     // 공간 검색
     @GetMapping("/search")
     @Operation(summary = "공간 검색", description = "조건에 맞는 공간을 검색합니다.")
-    public ResponseEntity<Page<SpaceResponseDto>> searchSpaces(SpaceSearchDto searchDto) {
+    public ResponseEntity<Page<SpaceResponseDto>> searchSpaces(
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) Integer minPrice,
+            @RequestParam(required = false) Integer maxPrice,
+            @RequestParam(required = false) Integer capacity,
+            @RequestParam(required = false) List<String> spaceTypes,
+            @RequestParam(required = false) List<String> facilities,
+            @RequestParam(required = false, defaultValue = "id") String sortBy,
+            @RequestParam(required = false, defaultValue = "DESC") String sortDirection,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "10") int size) {
+        SpaceSearchDto searchDto = new SpaceSearchDto();
+        searchDto.setLocation(location);
+        searchDto.setMinPrice(minPrice);
+        searchDto.setMaxPrice(maxPrice);
+        searchDto.setCapacity(capacity);
+        searchDto.setSpaceTypes(spaceTypes);
+        searchDto.setFacilities(facilities);
+        searchDto.setSortBy(sortBy);
+        searchDto.setSortDirection(sortDirection);
+        searchDto.setPage(page);
+        searchDto.setSize(size);
+        
         return ResponseEntity.ok(spaceService.searchSpaces(searchDto));
     }
 

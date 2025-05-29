@@ -314,7 +314,7 @@ export default function RegisterSpacePage() {
 
           toast.success("공간이 성공적으로 등록되었습니다!");
           // 성공 후 리다이렉션
-          router.push('/host/spaces'); // 호스트 공간 목록 페이지로 이동 예시
+          router.push('/spaces'); // 모든 공간 목록 페이지로 이동
 
       } catch (error) {
           console.error('공간 등록 중 오류 발생:', error);

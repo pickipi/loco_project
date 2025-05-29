@@ -101,9 +101,15 @@ public class SpaceService {
     }
 
     // 모든 공간 목록 조회 (페이징 처리)
+    @Transactional(readOnly = true)
     public Page<SpaceListResponseDto> getAllSpacesWithPagination(Pageable pageable) {
         Page<Space> spacePage = spaceRepository.findAll(pageable);
-        return spacePage.map(SpaceListResponseDto::from);
+        // 지연 로딩 컬렉션 미리 초기화
+        spacePage.getContent().forEach(space -> {
+            space.getAdditionalImageUrls().size(); // 컬렉션에 접근하여 초기화
+        });
+        
+        return spacePage.map(SpaceListResponseDto::from); // 초기화된 엔티티를 DTO로 매핑
     }
 
     // 공간 수정

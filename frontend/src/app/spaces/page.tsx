@@ -1,13 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import SearchForm from "@/components/space/SearchForm";
 import SpaceCard from "@/components/space/SpaceCard";
 import MainHeader from "@/components/header/MainHeader";
+import { SpaceListResponseDto } from "@/types/space";
+import { toast } from 'react-toastify';
 
+//로컬 url 머지하면서 추가
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8090";
+
+// FeaturedSpace 인터페이스는 더 이상 필요하지 않습니다. SpaceListResponseDto 사용
+/*
 interface FeaturedSpace {
   id: string;
   title: string;
@@ -17,53 +25,46 @@ interface FeaturedSpace {
   rating: number;
   imageUrl: string;
 }
+*/
 
 export default function SpacesPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(true); // 데이터 로딩 상태 추가
+  const [spaces, setSpaces] = useState<SpaceListResponseDto[]>([]); // 공간 데이터 상태 추가
 
-  // Mock data
-  const featuredSpaces: FeaturedSpace[] = [
-    {
-      id: "1",
-      title: "모던한 회의실",
-      location: "서울 강남구",
-      capacity: "10",
-      price: 20000,
-      rating: 4.5,
-      imageUrl: "/sample-space-1.jpg",
-    },
-    {
-      id: "2",
-      title: "스튜디오",
-      location: "서울 마포구",
-      capacity: "15",
-      price: 35000,
-      rating: 4.7,
-      imageUrl: "/sample-space-2.jpg",
-    },
-    {
-      id: "3",
-      title: "파티룸",
-      location: "서울 용산구",
-      capacity: "20",
-      price: 45000,
-      rating: 4.8,
-      imageUrl: "/sample-space-3.jpg",
-    },
-  ];
+  // 백엔드에서 공간 목록을 가져오는 함수
+  const fetchSpaces = async () => {
+    setIsLoading(true); // 로딩 시작
+    try {
+      // /api/v1/spaces/all 엔드포인트는 permitAll() 설정이므로 인증 헤더가 필요 없습니다.
+      const response = await fetch(`${API_BASE_URL}/api/v1/spaces/all`);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/spaces/search?query=${encodeURIComponent(searchQuery)}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log('공간 데이터 가져오기 성공:', data);
+
+      // 백엔드 응답 구조에 맞게 데이터 설정
+      // RsData 객체 안에 실제 데이터가 있을 것으로 가정
+      if (data.resultCode === 'S-1' && data.data && data.data.content) {
+          setSpaces(data.data.content);
+      } else {
+          console.error('데이터 구조가 예상과 다릅니다:', data);
+          setSpaces([]); // 비어있는 배열로 설정
+      }
+
+    } catch (error) {
+      console.error('공간 데이터 가져오기 오류:', error);
+      toast.error('공간 목록을 불러오는데 실패했습니다.');
+    } finally {
+      setIsLoading(false); // 로딩 종료
     }
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
+  useEffect(() => {
+    fetchSpaces();
+  }, []); // 컴포넌트 마운트 시 한 번만 실행
 
   return (
     <main className="min-h-screen bg-white">
@@ -111,11 +112,19 @@ export default function SpacesPage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredSpaces.map((space) => (
-            <SpaceCard key={space.id} {...space} />
-          ))}
-        </div>
+        {isLoading ? (
+          <p>공간 목록을 불러오는 중...</p>
+        ) : (
+          spaces.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {spaces.map((space) => (
+                <SpaceCard key={space.id} {...space} />
+              ))}
+            </div>
+          ) : (
+            <p>등록된 공간이 없습니다.</p>
+          )
+        )}
       </div>
 
       {/* Space Categories */}
