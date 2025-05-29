@@ -91,10 +91,10 @@ export default function HostLayout({
               padding: isMainPage ? "0" : "24px",
             }}
           >
-            {children}
-          </div>
+          {children}
+        </div>
         </main>
       </div>
     </AuthProvider>
   );
-}
+} 

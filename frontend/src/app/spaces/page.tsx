@@ -120,11 +120,11 @@ export default function SpacesPage() {
           <p>공간 목록을 불러오는 중...</p>
         ) : (
           spaces.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {spaces.map((space) => (
-                <SpaceCard key={space.id} {...space} />
-              ))}
-            </div>
+            <SpaceCard key={space.id} {...space} />
+          ))}
+        </div>
           ) : (
             <p>등록된 공간이 없습니다.</p>
           )

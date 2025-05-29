@@ -24,9 +24,7 @@ export default function SpaceCard({
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             priority={true}
-            quality={85}
-            style={{ objectFit: "cover" }}
-            className="transition-transform duration-200 hover:scale-105"
+            className="object-cover"
           />
         </div>
 

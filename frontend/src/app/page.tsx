@@ -68,9 +68,9 @@ export default function Home() {
           <Image
             src="/placeholder.svg" // 임시 placeholder 이미지
             alt="할인 배너"
-            layout="fill"
-            objectFit="cover"
-            className="z-0"
+            fill
+            className="z-0 object-cover"
+            style={{ filter: 'grayscale(0%)' }}
           />
           <div className="absolute inset-0 bg-black opacity-40 z-10"></div> {/* 오버레이 */}
 
@@ -152,9 +152,9 @@ export default function Home() {
             <Image
               src="/placeholder.svg" // 임시 placeholder 이미지
               alt="스튜디오 추천 배너"
-              layout="fill"
-              objectFit="cover"
-              className="z-0"
+              fill
+              className="z-0 object-cover"
+              style={{ filter: 'grayscale(0%)' }}
             />
             <div className="absolute inset-0 bg-black opacity-30 z-10"></div> {/* 오버레이 */}
 
@@ -195,6 +195,7 @@ export default function Home() {
                       fill
                       sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
                       className="object-cover"
+                      style={{ filter: 'grayscale(0%)' }}
                     />
                     {space.isHot && (
                       <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded">
