@@ -1,88 +1,15 @@
-"use client";
+'use client';
 
 import Image from "next/image";
 import Link from "next/link";
-import { FiMenu, FiSearch, FiBell, FiUser } from "react-icons/fi";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { FaInstagram, FaTwitter, FaYoutube } from "react-icons/fa";
-import { useEffect, useState } from 'react';
+import Header from "@/components/header/header";
 
 export default function Home() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState('');
-
-  useEffect(() => {
-    // 클라이언트 사이드에서만 Local Storage 접근
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
-      const storedUsername = localStorage.getItem('username');
-      if (token && storedUsername) {
-        setIsLoggedIn(true);
-        setUsername(storedUsername);
-      } else {
-        setIsLoggedIn(false);
-        setUsername('');
-      }
-    }
-  }, []); // 컴포넌트 마운트 시 한 번만 실행
-
-  const handleLogout = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('token');
-      localStorage.removeItem('username');
-      setIsLoggedIn(false);
-      setUsername('');
-      alert('로그아웃되었습니다.');
-      // 필요한 경우 로그아웃 후 리다이렉트
-      // window.location.href = '/login';
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
-        <div className="mx-auto px-4 md:px-6 lg:px-8 max-w-7xl py-3 md:py-4 flex items-center justify-between">
-          <button className="p-2">
-            <FiMenu className="text-gray-600 text-xl" />
-          </button>
-          
-          <Link href="/" className="font-bold text-2xl md:text-3xl">
-            LoCo
-          </Link>
-          
-          <div className="flex items-center gap-3">
-            <div className="relative hidden sm:flex items-center bg-gray-100 rounded-full px-4 py-2">
-              <FiSearch className="text-gray-500 mr-2 text-lg" />
-              <input 
-                type="text" 
-                placeholder="어떤 공간을 찾으세요?" 
-                className="bg-transparent border-none outline-none text-base w-48"
-              />
-            </div>
-            
-            {isLoggedIn ? (
-              // 로그인 상태일 때 표시
-              <div className="flex items-center gap-2">
-                <span className="text-base font-medium text-gray-700">{username}님 환영합니다!</span>
-                <button 
-                  onClick={handleLogout} 
-                  className="text-base font-medium text-gray-600 hover:text-gray-900"
-                >
-                  로그아웃
-                </button>
-              </div>
-            ) : (
-              // 로그인 상태가 아닐 때 표시
-              <Link href="/login" className="ml-2 text-base font-medium hover:text-blue-500">로그인</Link>
-            )}
-            
-            <button className="p-2">
-              <FiBell className="text-gray-600 text-xl" />
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-white relative overflow-x-hidden">
+      <Header />
 
       <main className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
         {/* Carousel Section */}
@@ -91,7 +18,7 @@ export default function Home() {
             <button className="absolute left-2 bg-white/20 rounded-full p-2 z-10">
               <IoIosArrowBack className="text-white" />
             </button>
-            
+
             <div className="flex-1 z-0 ml-8">
               <div className="flex items-center mb-2">
                 <span className="bg-white text-red-500 rounded-full w-6 h-6 flex items-center justify-center mr-2">i</span>
@@ -99,7 +26,7 @@ export default function Home() {
               </div>
               <p className="text-sm">지금 제휴 혜택을 확인하기</p>
             </div>
-            
+
             <div className="w-20 h-20 bg-white/20 rounded-md"></div>
           </div>
           <div className="absolute bottom-2 right-4 text-xs text-white">

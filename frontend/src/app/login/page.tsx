@@ -86,7 +86,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={handleNaver}
-              className="w-full py-3 px-4 flex items-center justify-center bg-[#03C75A] text-white rounded-md hover:bg-opacity-90"
+              className="w-full py-3 px-4 flex items-center justify-center bg-[#03C75A] text-white rounded-md transition-all duration-200 hover:bg-[#02b351] hover:scale-[1.02] active:scale-[0.98]"
             >
               <SiNaver className="mr-2" size={20} />
               네이버로 로그인
@@ -94,18 +94,10 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={handleKakao}
-              className="w-full py-3 px-4 flex items-center justify-center bg-[#FEE500] text-black rounded-md hover:bg-opacity-90"
+              className="w-full py-3 px-4 flex items-center justify-center bg-[#FEE500] text-black rounded-md transition-all duration-200 hover:bg-[#f4db00] hover:scale-[1.02] active:scale-[0.98]"
             >
               <SiKakaotalk className="mr-2" size={20} />
               카카오로 로그인
-            </button>
-            <button
-              type="button"
-              onClick={handleApple}
-              className="w-full py-3 px-4 flex items-center justify-center bg-black text-white rounded-md hover:bg-opacity-90"
-            >
-              <FaApple className="mr-2" size={20} />
-              Apple로 로그인
             </button>
           </div>
           
