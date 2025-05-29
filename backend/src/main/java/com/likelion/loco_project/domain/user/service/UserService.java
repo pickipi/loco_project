@@ -1,6 +1,9 @@
 package com.likelion.loco_project.domain.user.service;
 
 import com.likelion.loco_project.domain.auth.EmailAuthManager;
+import com.likelion.loco_project.domain.space.dto.SpaceResponseDto;
+import com.likelion.loco_project.domain.space.entity.Space;
+import com.likelion.loco_project.domain.user.dto.UserProfileResponseDto;
 import com.likelion.loco_project.domain.user.dto.UserRequestDto;
 import com.likelion.loco_project.domain.user.dto.UserResponseDto;
 import com.likelion.loco_project.domain.user.entity.User;
@@ -13,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -214,4 +218,18 @@ public class UserService {
         emailAuthManager.sendTemporaryPassword(email, tempPassword);
     }
 
+    @Transactional
+    public UserProfileResponseDto updateProfileImage(Long userId, String imageUrl) {
+        if (imageUrl == null || imageUrl.trim().isEmpty()) {
+            throw new IllegalArgumentException("이미지 URL이 제공되지 않았습니다.");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+
+        user.setImageUrl(imageUrl);  // 기존 이미지 덮어쓰기
+
+        User savedUser = userRepository.save(user);
+        return UserProfileResponseDto.fromEntity(savedUser);
+    }
 }
