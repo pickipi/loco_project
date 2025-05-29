@@ -8,8 +8,17 @@ import { IoNotifications } from "react-icons/io5";
 import NotificationPanel from "../notification/notification";
 import styles from "./hostheader.module.css";
 import api from "@/lib/axios";
-import { Notification } from "@/components/notification/notification";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from 'react-toastify';
+
+// Notification 인터페이스 정의
+interface Notification {
+  id: number;
+  content: string;
+  isRead: boolean;
+  type: string;
+  createdAt: string;
+}
 
 interface ApiResponse<T> {
   data: T;
@@ -49,11 +58,51 @@ export default function HostHeader() {
     };
   }, []);
 
-  // 읽지 않은 알림 개수를 가져오는 함수
+  // 토큰 유효성 검사 함수 추가
+  const validateToken = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return false;
+    }
+
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+
+      const payload = JSON.parse(jsonPayload);
+      const expirationTime = payload.exp * 1000;
+      
+      if (Date.now() >= expirationTime) {
+        localStorage.removeItem('token');
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('토큰 검증 중 오류:', error);
+      return false;
+    }
+  };
+
+  // 읽지 않은 알림 개수를 가져오는 함수 수정
   const fetchNotificationsAndCountUnread = async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) return;
+      if (!token) {
+        console.log('토큰이 없습니다.');
+        setUnreadCount(0);
+        return;
+      }
+
+      // 토큰 유효성 검사
+      if (!validateToken()) {
+        console.log('토큰이 유효하지 않습니다. (fetchNotificationsAndCountUnread)');
+        setUnreadCount(0);
+        return;
+      }
 
       // 기존 알림 목록 엔드포인트 호출
       const response = await api.get<ApiResponse<Notification[]>>(
@@ -64,36 +113,47 @@ export default function HostHeader() {
           },
         }
       );
+
       // 읽지 않은 알림 개수 계산
       const unread = response.data.data.filter((noti) => !noti.isRead).length;
       setUnreadCount(unread);
-      // NotificationPanel에 전달하기 위해 전체 알림 목록도 상태로 관리할 수 있지만, 현재 개수만 필요하므로 개수만 업데이트
-      // 필요하다면 setNotifications(response.data.data) 와 같이 전체 알림 목록도 업데이트하도록 수정 가능
-    } catch (error) {
+    } catch (error: any) {
       console.error("알림 목록 및 읽지 않은 개수 조회 실패:", error);
+      
+      // 401 에러 처리
+      if (error.response && error.response.status === 401) {
+        console.log('알림 조회 중 인증 만료 (401).');
+        localStorage.removeItem('token');
+        setUnreadCount(0);
+        toast.error('인증이 만료되었습니다. 다시 로그인해주세요.', {
+          onClose: () => {
+            router.push('/host/login');
+          }
+        });
+      } else {
+        // 기타 에러 처리
+        console.error('알림 조회 중 기타 에러:', error);
+        // 필요에 따라 사용자에게 에러 알림을 표시할 수 있습니다.
+      }
     }
   };
 
   // 초기 읽지 않은 알림 개수 조회 및 주기적 업데이트
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.warn("No token found. Skipping notification fetch.");
-      setUnreadCount(0); // 토큰이 없으면 읽지 않은 알림 개수를 0으로 설정
-      return;
-    }
-
-    // useAuth의 isLoggedIn과 userId가 유효할 때만 호출 (추가적인 안전 장치)
-    if (isLoggedIn && authUserId) {
+    // isLoggedIn이 true이고, userId와 userName이 유효한 값일 때만 알림 조회 로직 실행
+    if (isLoggedIn && authUserId && authUserName) {
+      console.log('로그인 상태 확인됨. 알림 조회 시작.');
       fetchNotificationsAndCountUnread(); // 초기 로드
       const interval = setInterval(fetchNotificationsAndCountUnread, 30000); // 30초마다 갱신
-      return () => clearInterval(interval);
+      return () => {
+        console.log('알림 조회 인터벌 클리어.');
+        clearInterval(interval);
+      } // 컴포넌트 언마운트 시 인터벌 정리
     } else {
-       // isLoggedIn 또는 authUserId가 없는데 토큰은 있는 경우 (발생 가능성은 낮지만 처리)
-       setUnreadCount(0);
+      console.log('로그인 상태 아님. 알림 조회 중단.');
+      setUnreadCount(0); // 로그인 상태가 아니면 알림 카운트 0으로 초기화
     }
-
-  }, [isLoggedIn, authUserId, fetchNotificationsAndCountUnread]); // 의존성 배열에 fetchNotificationsAndCountUnread 추가 (stable function이 아니면 lint 경고 발생 가능)
+  }, [isLoggedIn, authUserId, authUserName]); // isLoggedIn, authUserId, authUserName가 변경될 때마다 실행
 
   // 보호된 경로 접근 핸들러
   const handleProtectedRoute = (path: string) => {

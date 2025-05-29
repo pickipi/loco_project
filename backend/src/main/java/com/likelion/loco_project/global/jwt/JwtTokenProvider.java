@@ -6,9 +6,13 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.util.Collections;
 import java.util.Date;
 
 /**
@@ -84,6 +88,21 @@ public class JwtTokenProvider {
     public String getRoleFromToken(String token) {
         Claims claims = parseClaims(token);
         return claims.get("role", String.class);
+    }
+
+    /**
+     * 토큰에서 인증 정보 추출
+     */
+    public Authentication getAuthentication(String token) {
+        Claims claims = parseClaims(token);
+        Long userId = Long.parseLong(claims.getSubject());
+        String role = claims.get("role", String.class);
+        
+        return new UsernamePasswordAuthenticationToken(
+            userId,
+            null,
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))
+        );
     }
 
     private Claims parseClaims(String token) {

@@ -1,0 +1,86 @@
+/* 모달 오버레이 - 전체 화면을 덮는 반투명 배경 */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* 모달 컨텐츠 - 실제 모달 창 */
+.modalContent {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* 모달 제목 스타일 */
+.modalTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #1a1a1a;
+  text-align: center;
+}
+
+/* 모달 텍스트 스타일 */
+.modalText {
+  text-align: center;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+/* 버튼 그룹 컨테이너 */
+.modalButtons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+/* 공통 버튼 스타일 */
+.modalButtons button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+/* 비활성화된 버튼 스타일 */
+.modalButtons button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 취소 버튼 스타일 */
+.cancelButton {
+  background: #f3f4f6;
+  border: none;
+  color: #4b5563;
+}
+
+/* 취소 버튼 호버 효과 */
+.cancelButton:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+/* 삭제(탈퇴) 버튼 스타일 */
+.deleteButton {
+  background: #dc2626;
+  border: none;
+  color: white;
+}
+
+/* 삭제(탈퇴) 버튼 호버 효과 */
+.deleteButton:hover:not(:disabled) {
+  background: #b91c1c;
+} 

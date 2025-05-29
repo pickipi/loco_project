@@ -48,9 +48,14 @@ public class User extends BaseEntity {
     @Comment("평점")
     private Double rating;
 
+    @Column
+    @Comment("이미지")
+    private String imageUrl; //이미지
+
     // 유저 삭제를 물리삭제가 아닌 논리삭제로 변경하는데에 필요한 엔티티
     @Column(name = "is_deleted", nullable = false)
     @Comment("삭제 여부")
+    @Builder.Default
     private boolean isDeleted = false;
 
     // 논리 삭제 메서드
@@ -71,6 +76,7 @@ public class User extends BaseEntity {
 
     // 알림 수신 여부 (기본값: true)
     @Column(nullable = false)
+    @Builder.Default
     private boolean notificationEnabled = true;
 
     //찜하기
@@ -80,6 +86,7 @@ public class User extends BaseEntity {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "space_id")
     )
+    @Builder.Default
     private Set<Space> favoriteSpaces = new HashSet<>();
 
 

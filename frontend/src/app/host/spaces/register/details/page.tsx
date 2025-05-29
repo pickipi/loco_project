@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { Building2, Camera, PartyPopper, Coffee, Upload } from "lucide-react";
 import AddressSearch from "@/components/AddressSearch";
 import dynamic from "next/dynamic";
+import { useAuth } from "@/context/AuthContext";
+import { toast } from 'react-toastify';
 
 // DaumPostcode를 dynamic import로 불러오기
 const DaumPostcode = dynamic(() => import("@/components/DaumPostcode"), {
@@ -25,17 +27,24 @@ interface SpaceFormData {
   capacity: string;
   price: string;
   images: File[];
+  imageUrls: string[];
   openTime: string;
   closeTime: string;
   minTime: string;
   maxTime: string;
+  refundPolicy: string;
+  spaceRules: string;
+  agreedRefundPolicy: boolean;
+  agreedSpaceRules: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export default function RegisterSpacePage() {
   const router = useRouter();
   const [activeStep, setActiveStep] = useState(2);
   const [showAddressSearch, setShowAddressSearch] = useState(false);
-  const [formData, setFormData] = useState<SpaceFormData>({
+  const [formDataState, setFormDataState] = useState<SpaceFormData>({
     name: "",
     type: "",
     description: "",
@@ -44,11 +53,19 @@ export default function RegisterSpacePage() {
     capacity: "",
     price: "",
     images: [],
+    imageUrls: [],
     openTime: "",
     closeTime: "",
     minTime: "1",
     maxTime: "4",
+    refundPolicy: "",
+    spaceRules: "",
+    agreedRefundPolicy: false,
+    agreedSpaceRules: false,
   });
+  const { userId } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // localStorage에서 선택된 공간 유형 가져오기
   useEffect(() => {
@@ -56,19 +73,19 @@ export default function RegisterSpacePage() {
     if (selectedTypes) {
       const types = JSON.parse(selectedTypes);
       if (types.length > 0) {
-        setFormData(prev => ({ ...prev, type: types[0] }));
+        setFormDataState(prev => ({ ...prev, type: types[0] }));
       }
     }
   }, []);
 
   // 주소 검색 완료 핸들러
   const handleAddressComplete = (data: any) => {
-    setFormData((prev) => ({
+    setFormDataState((prev) => ({
       ...prev,
       address: data.address,
       zonecode: data.zonecode,
-      latitude: data.latitude,
-      longitude: data.longitude,
+      latitude: 37.5665, // 임시 위도 값
+      longitude: 126.9780, // 임시 경도 값
     }));
   };
 
@@ -78,106 +95,276 @@ export default function RegisterSpacePage() {
     >
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormDataState((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // 체크박스 변경 핸들러
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setFormDataState(prevState => ({
+      ...prevState,
+      [name]: checked
+    }));
+  };
 
-    // 최종 제출 전 모든 필수 필드 검증
-    if (!formData.name || !formData.description || formData.description.length < 20 || !formData.address) {
-      alert('공간 이름, 공간 소개(20자 이상), 주소는 필수 입력 항목입니다.');
-      return;
-    }
-    if (!formData.capacity || !formData.price || parseInt(formData.price) < 1000 || formData.images.length === 0) {
-      alert('수용 인원, 시간당 가격(1000원 이상), 공간 사진은 필수 입력 항목입니다.');
-      return;
+  // 토큰 유효성 검사 함수 수정
+  const validateToken = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return false;
     }
 
     try {
-      // 이미지 업로드 먼저 진행
-      const imageUrls = [];
-      for (const image of formData.images) {
-        const formData = new FormData();
-        formData.append('file', image);
-        
-        const uploadResponse = await fetch(`${API_BASE_URL}/api/v1/spaces/images/upload`, {
-          method: 'POST',
-          body: formData,
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+
+      const payload = JSON.parse(jsonPayload);
+      const expirationTime = payload.exp * 1000;
+      
+      if (Date.now() >= expirationTime) {
+        // 토큰 만료 시 모달 표시
+        toast.error('인증이 만료되었습니다. 다시 로그인해주세요.', {
+          onClose: () => {
+            localStorage.removeItem('token');
+            router.push('/host/login');
+          }
         });
-        
-        if (!uploadResponse.ok) {
-          throw new Error('이미지 업로드 실패');
-        }
-        
-        const uploadData = await uploadResponse.json();
-        imageUrls.push(uploadData.data[0]); // 업로드된 이미지 URL
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('토큰 검증 중 오류:', error);
+      return false;
+    }
+  };
+
+  // 이미지 업로드 함수 수정
+  const handleImageUpload = async (): Promise<string[] | null> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // 1. 이미지 유효성 검사
+      if (formDataState.images.length === 0) {
+        const errorMessage = '이미지를 선택해주세요.';
+        setError(errorMessage);
+        toast.error(errorMessage);
+        setIsLoading(false);
+        return null;
       }
 
-      // 공간 등록 API 호출
-      const response = await fetch(`${API_BASE_URL}/api/v1/spaces`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({
-          spaceName: formData.name,
-          spaceType: formData.type,
-          description: formData.description,
-          address: formData.address,
-          detailAddress: formData.detailAddress,
-          maxCapacity: parseInt(formData.capacity),
-          price: parseInt(formData.price),
-          imageUrls: imageUrls,
-          openTime: formData.openTime,
-          closeTime: formData.closeTime,
-          minTime: parseInt(formData.minTime),
-          maxTime: parseInt(formData.maxTime),
-        }),
+      // 2. 토큰 유효성 검사
+      if (!validateToken()) {
+        const errorMessage = '로그인이 만료되었습니다. 다시 로그인해주세요.';
+        setError(errorMessage);
+        toast.error(errorMessage);
+        setIsLoading(false);
+        router.push('/host/login');
+        return null;
+      }
+
+      const token = localStorage.getItem('token');
+      const uploadFormData = new FormData();
+      formDataState.images.forEach(file => {
+        uploadFormData.append('files', file);
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || '공간 등록에 실패했습니다.');
+      console.log("Uploading images...");
+
+      const uploadResponse = await fetch(`${API_BASE_URL}/api/v1/spaces/images/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: uploadFormData,
+      });
+
+      // 응답 상태 코드에 따른 처리
+      if (uploadResponse.status === 401) {
+        const errorMessage = '인증이 만료되었습니다. 다시 로그인해주세요.';
+        setError(errorMessage);
+        toast.error(errorMessage);
+        localStorage.removeItem('token');
+        router.push('/host/login');
+        setIsLoading(false);
+        return null;
       }
 
-      const data = await response.json();
-      alert('공간이 성공적으로 등록되었습니다!');
-      router.push('/host/spaces/register/complete');
+      if (!uploadResponse.ok) {
+        let errorMessage = '이미지 업로드 실패';
+        try {
+          const errorData = await uploadResponse.json();
+          errorMessage += ': ' + (errorData.msg || uploadResponse.statusText);
+        } catch (e) {
+          errorMessage += ': ' + uploadResponse.statusText;
+        }
+        setError(errorMessage);
+        toast.error(errorMessage);
+        setIsLoading(false);
+        return null;
+      }
+
+      // 응답 데이터 처리
+      let uploadResult;
+      try {
+        uploadResult = await uploadResponse.json();
+      } catch (e) {
+        console.error('JSON 파싱 오류:', e);
+        setError('서버 응답 처리 중 오류가 발생했습니다.');
+        toast.error('서버 응답 처리 중 오류가 발생했습니다.');
+        setIsLoading(false);
+        return null;
+      }
+
+      if (!uploadResult.data || !Array.isArray(uploadResult.data)) {
+        setError('서버 응답 형식이 올바르지 않습니다.');
+        toast.error('서버 응답 형식이 올바르지 않습니다.');
+        setIsLoading(false);
+        return null;
+      }
+
+      const imageUrls: string[] = uploadResult.data;
+      console.log("Uploaded Image URLs:", imageUrls);
+
+      toast.success("이미지 업로드 성공!");
+      return imageUrls;
     } catch (error) {
-      console.error('공간 등록 오류:', error);
-      alert(error instanceof Error ? error.message : '공간 등록 중 오류가 발생했습니다.');
+      console.error('이미지 업로드 오류:', error);
+      const errorMessage = error instanceof Error ? error.message : '이미지 업로드 중 오류가 발생했습니다.';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      return null;
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const nextStep = () => {
-    // 현재 단계의 필수 필드만 검증 후 다음 단계로 이동
+  // 최종 공간 등록 함수 (이미지 업로드 후 호출)
+  const handleFinalSubmit = async (e: React.FormEvent) => {
+      e.preventDefault(); // 기본 폼 제출 방지
+      setIsLoading(true);
+      setError(null);
+
+      // 이미지 URL이 없으면 최종 제출 불가 (이미지 업로드 단계에서 처리됨)
+      if (formDataState.imageUrls.length === 0) {
+          const errorMessage = '이미지 업로드가 완료되지 않았습니다.';
+          setError(errorMessage);
+          toast.error(errorMessage);
+          setIsLoading(false);
+          return;
+      }
+
+      try {
+          const token = localStorage.getItem('token');
+          if (!token) {
+              const errorMessage = '로그인 정보가 없습니다. 다시 로그인 해주세요.';
+              setError(errorMessage);
+              toast.error(errorMessage);
+              setIsLoading(false);
+              return;
+          }
+
+          const submitPayload = {
+              name: formDataState.name,
+              type: formDataState.type,
+              description: formDataState.description,
+              address: formDataState.address,
+              detailAddress: formDataState.detailAddress,
+              capacity: parseInt(formDataState.capacity, 10), // 숫자로 변환
+              price: parseInt(formDataState.price, 10), // 숫자로 변환
+              imageUrls: formDataState.imageUrls, // 업로드된 이미지 URL 사용
+              openTime: formDataState.openTime,
+              closeTime: formDataState.closeTime,
+              minTime: parseInt(formDataState.minTime, 10), // 숫자로 변환
+              maxTime: parseInt(formDataState.maxTime, 10), // 숫자로 변환
+              refundPolicy: formDataState.refundPolicy,
+              spaceRules: formDataState.spaceRules,
+              latitude: formDataState.latitude, // 위도 추가
+              longitude: formDataState.longitude, // 경도 추가
+              // agreedRefundPolicy와 agreedSpaceRules는 백엔드 전송에 필요 없을 수 있지만, 필요하다면 추가
+          };
+
+          console.log("Submitting final space data:", submitPayload);
+
+          const submitResponse = await fetch(`${API_BASE_URL}/api/v1/spaces`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify(submitPayload),
+          });
+
+          if (!submitResponse.ok) {
+              const errorData = await submitResponse.json();
+              console.error("Final submission failed response:", errorData);
+              const errorMessage = '공간 등록 실패: ' + (errorData.msg || submitResponse.statusText);
+              setError(errorMessage);
+              toast.error(errorMessage);
+              setIsLoading(false);
+              return;
+          }
+
+          const submitResult = await submitResponse.json();
+          console.log("Final submission result:", submitResult);
+
+          toast.success("공간이 성공적으로 등록되었습니다!");
+          // 성공 후 리다이렉션
+          router.push('/host/spaces'); // 호스트 공간 목록 페이지로 이동 예시
+
+      } catch (error) {
+          console.error('공간 등록 중 오류 발생:', error);
+          const errorMessage = error instanceof Error ? error.message : '공간 등록 중 오류가 발생했습니다.';
+          setError(errorMessage);
+          toast.error(errorMessage);
+      } finally {
+          setIsLoading(false);
+      }
+  };
+
+  const handleNextButtonClick = async () => {
+    // 현재 단계에 따른 유효성 검사 및 다음 단계 이동 로직
     if (activeStep === 2) { // 기본 정보 탭
-      if (!formData.name || !formData.description || formData.description.length < 20 || !formData.address) {
-        alert('공간 이름, 공간 소개(20자 이상), 주소는 필수 입력 항목입니다.');
+      if (!formDataState.name || !formDataState.description || formDataState.description.length < 20 || !formDataState.address) {
+        toast.error('공간 이름, 공간 소개(20자 이상), 주소는 필수 입력 항목입니다.');
         return;
       }
+      // 유효성 검사 통과 시 다음 단계로 이동
+      setActiveStep(3); // 3단계(공간 정보)로 이동
     } else if (activeStep === 3) { // 공간 정보 탭
-      if (!formData.capacity || !formData.price || parseInt(formData.price) < 1000 || formData.images.length === 0) {
-        alert('수용 인원, 시간당 가격(1000원 이상), 공간 사진은 필수 입력 항목입니다.');
+      if (!formDataState.capacity || !formDataState.price || parseInt(formDataState.price) < 1000 || formDataState.images.length === 0) {
+        toast.error('수용 인원, 시간당 가격(1000원 이상), 공간 사진은 필수 입력 항목입니다.');
         return;
       }
+
+      // 유효성 검사 통과 시 이미지 업로드 시도
+      const uploadedImageUrls = await handleImageUpload();
+
+      // 이미지 업로드 성공 시 (uploadedImageUrls가 null이 아닌 경우)
+      if (uploadedImageUrls !== null) {
+        // 업로드된 이미지 URL을 formDataState에 저장하고 다음 단계로 이동
+        setFormDataState(prevState => ({ ...prevState, imageUrls: uploadedImageUrls }));
+        setActiveStep(4); // 4단계(이용 규칙)로 이동
+      }
+      // 이미지 업로드 실패 시 로직은 handleImageUpload 내에서 처리됨
     }
-    // 단계 4 (이용 규칙)에서는 현재 필수 필드 없음
-
-    setActiveStep((prev) => prev + 1);
+    // 4단계에서는 '다음' 버튼이 없습니다. '등록하기' 버튼이 최종 제출을 처리합니다.
   };
 
-  const prevStep = () => {
-    setActiveStep((prev) => prev - 1);
-  };
+  // '등록하기' 버튼 활성화 조건
+  const isSubmitButtonEnabled = activeStep === 4 && formDataState.agreedRefundPolicy && formDataState.agreedSpaceRules && !isLoading;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-800 py-8">
       <div className="container mx-auto px-4 max-w-3xl">
         <div className="bg-white rounded-lg shadow-sm p-8">
-          <h1 className="text-2xl font-bold text-center mb-8">공간 등록하기</h1>
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-2xl font-bold">공간 등록하기</h1>
+          </div>
 
           {/* 단계 표시 */}
           <div className="flex justify-between items-center mb-10">
@@ -269,7 +456,7 @@ export default function RegisterSpacePage() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleNextButtonClick}>
             {/* 단계 1: 기본 정보 */}
             {activeStep === 2 && (
               <div className="space-y-6">
@@ -284,7 +471,7 @@ export default function RegisterSpacePage() {
                     type="text"
                     id="name"
                     name="name"
-                    value={formData.name}
+                    value={formDataState.name}
                     onChange={handleInputChange}
                     placeholder="공간의 특징이 잘 드러나는 이름을 입력해주세요"
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -302,7 +489,7 @@ export default function RegisterSpacePage() {
                   <textarea
                     id="description"
                     name="description"
-                    value={formData.description}
+                    value={formDataState.description}
                     onChange={handleInputChange}
                     placeholder="공간의 특징, 장점, 주요 시설 등을 자세히 소개해주세요"
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px]"
@@ -320,7 +507,7 @@ export default function RegisterSpacePage() {
                     type="text"
                     id="address"
                     name="address"
-                    value={formData.address}
+                    value={formDataState.address}
                     onChange={handleInputChange}
                     placeholder="주소를 입력해주세요"
                     className="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -342,7 +529,7 @@ export default function RegisterSpacePage() {
                     type="text"
                     id="detailAddress"
                     name="detailAddress"
-                    value={formData.detailAddress}
+                    value={formDataState.detailAddress}
                     onChange={handleInputChange}
                     placeholder="상세 주소를 입력해주세요"
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -366,7 +553,7 @@ export default function RegisterSpacePage() {
                       type="number"
                       id="capacity"
                       name="capacity"
-                      value={formData.capacity}
+                      value={formDataState.capacity}
                       onChange={handleInputChange}
                       placeholder="최대 수용 가능한 인원"
                       className="w-24 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -389,7 +576,7 @@ export default function RegisterSpacePage() {
                       type="number"
                       id="price"
                       name="price"
-                      value={formData.price}
+                      value={formDataState.price}
                       onChange={handleInputChange}
                       placeholder="시간당 가격을 입력해주세요"
                       className="w-40 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -437,10 +624,11 @@ export default function RegisterSpacePage() {
                       const files = Array.from(e.dataTransfer.files);
                       const imageFiles = files.filter((file) => {
                         if (!file.type.startsWith("image/")) {
+                          toast.error('이미지 파일만 업로드할 수 있습니다.');
                           return false;
                         }
                         if (file.size > 3 * 1024 * 1024) {
-                          // 3MB 제한
+                          toast.error('각 이미지는 3MB를 초과할 수 없습니다.');
                           return false;
                         }
                         return true;
@@ -448,12 +636,12 @@ export default function RegisterSpacePage() {
 
                       if (imageFiles.length > 0) {
                         const totalImages =
-                          formData.images.length + imageFiles.length;
+                          formDataState.images.length + imageFiles.length;
                         if (totalImages > 10) {
-                          alert("최대 10장까지만 업로드 가능합니다.");
+                          toast.error("최대 10장까지만 업로드 가능합니다.");
                           return;
                         }
-                        setFormData((prev) => ({
+                        setFormDataState((prev) => ({
                           ...prev,
                           images: [...prev.images, ...imageFiles],
                         }));
@@ -472,20 +660,24 @@ export default function RegisterSpacePage() {
                       onChange={(e) => {
                         const files = Array.from(e.target.files || []);
                         const validFiles = files.filter((file) => {
+                          if (!file.type.startsWith("image/")) {
+                            toast.error('이미지 파일만 업로드할 수 있습니다.');
+                            return false;
+                          }
                           if (file.size > 3 * 1024 * 1024) {
-                            alert("각 이미지는 3MB를 초과할 수 없습니다.");
+                            toast.error("각 이미지는 3MB를 초과할 수 없습니다.");
                             return false;
                           }
                           return true;
                         });
 
-                        const totalImages = formData.images.length + validFiles.length;
+                        const totalImages = formDataState.images.length + validFiles.length;
                          if (totalImages > 10) {
-                          alert("최대 10장까지만 업로드 가능합니다.");
+                          toast.error("최대 10장까지만 업로드 가능합니다.");
                           return;
                         }
 
-                        setFormData((prev) => ({
+                        setFormDataState((prev) => ({
                           ...prev,
                           images: [...prev.images, ...validFiles],
                         }));
@@ -507,13 +699,13 @@ export default function RegisterSpacePage() {
                   </div>
 
                   {/* 업로드된 이미지 미리보기 */}
-                  {formData.images.length > 0 && (
+                  {formDataState.images.length > 0 && (
                     <div className="mt-4">
                       <div className="mb-2 text-sm text-gray-600">
-                        업로드된 이미지 ({formData.images.length}/10)
+                        업로드된 이미지 ({formDataState.images.length}/10)
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {formData.images.map((image, index) => (
+                        {formDataState.images.map((image, index) => (
                           <div
                             key={index}
                             className="relative group aspect-square"
@@ -527,7 +719,7 @@ export default function RegisterSpacePage() {
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setFormData((prev) => ({
+                                setFormDataState((prev) => ({
                                   ...prev,
                                   images: prev.images.filter(
                                     (_, i) => i !== index
@@ -579,7 +771,7 @@ export default function RegisterSpacePage() {
                   <div className="flex items-center gap-2">
                     <select
                       name="openTime"
-                      value={formData.openTime}
+                      value={formDataState.openTime}
                       onChange={handleInputChange}
                       className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
@@ -596,7 +788,7 @@ export default function RegisterSpacePage() {
                     <span>~</span>
                     <select
                       name="closeTime"
-                      value={formData.closeTime}
+                      value={formDataState.closeTime}
                       onChange={handleInputChange}
                       className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
@@ -620,7 +812,7 @@ export default function RegisterSpacePage() {
                   <div className="flex items-center gap-2">
                     <input
                       type="text"
-                      value={formData.price}
+                      value={formDataState.price}
                       readOnly
                       className="w-40 px-4 py-2 border border-gray-300 rounded-md bg-gray-50"
                     />
@@ -635,7 +827,7 @@ export default function RegisterSpacePage() {
                   <div className="flex items-center gap-2">
                     <select
                       name="minTime"
-                      value={formData.minTime}
+                      value={formDataState.minTime}
                       onChange={handleInputChange}
                       className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
@@ -647,7 +839,7 @@ export default function RegisterSpacePage() {
                     <span>~</span>
                     <select
                       name="maxTime"
-                      value={formData.maxTime}
+                      value={formDataState.maxTime}
                       onChange={handleInputChange}
                       className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
@@ -666,51 +858,113 @@ export default function RegisterSpacePage() {
                   <div className="flex items-center gap-2">
                     <input
                       type="text"
-                      value={`최소 인원: 1명 ~ 최대 인원: ${formData.capacity}명`}
+                      value={`최소 인원: 1명 ~ 최대 인원: ${formDataState.capacity}명`}
                       readOnly
                       className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50"
                     />
                   </div>
                 </div>
-              </div>
-            )}
 
-            {/* 버튼 영역 */}
-            {activeStep >= 2 && activeStep <= 4 && (
-              <div className="flex justify-between mt-10">
-                {activeStep > 2 ? (
-                  <button
+                {/* 환불 규정 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    환불 규정
+                  </label>
+                  {/* 스크롤 가능한 환불 규정 안내문 */}
+                  <div className="border border-gray-300 rounded-md p-4 h-40 overflow-y-auto text-sm text-gray-600">
+                    {/* 환불 규정 내용 (임시) */}
+                    <p>• 예약 후 24시간 이내 취소 시: 100% 환불</p>
+                    <p>• 이용 예정일 7일 전까지 취소 시: 90% 환불</p>
+                    <p>• 이용 예정일 3일 전까지 취소 시: 50% 환불</p>
+                    <p>• 이용 예정일 3일 이내 취소 시: 환불 불가</p>
+                    <p className="mt-2">* 천재지변 등 불가항력으로 인한 취소 시 전액 환불됩니다.</p>
+                    <p>* 상세 환불 규정은 예약 시 확인 가능합니다.</p>
+                  </div>
+                  {/* 환불 규정 동의 체크박스 */}
+                  <div className="flex items-center mt-2">
+                    <input
+                      type="checkbox"
+                      id="agreedRefundPolicy"
+                      name="agreedRefundPolicy"
+                      checked={formDataState.agreedRefundPolicy}
+                      onChange={handleCheckboxChange}
+                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                      required
+                    />
+                    <label
+                      htmlFor="agreedRefundPolicy"
+                      className="ml-2 block text-sm text-gray-900"
+                    >
+                      위 환불 규정을 읽고 동의합니다.
+                    </label>
+                  </div>
+                </div>
+
+                {/* 이용 규정 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    이용 규정
+                  </label>
+                   {/* 스크롤 가능한 이용 규정 안내문 */}
+                  <div className="border border-gray-300 rounded-md p-4 h-40 overflow-y-auto text-sm text-gray-600">
+                    {/* 이용 규정 내용 (임시) */}
+                    <p>• 공간 이용 시간은 예약 시간에 맞춰주세요.</p>
+                    <p>• 시설물 훼손 시 배상 책임이 발생할 수 있습니다.</p>
+                    <p>• 예약 인원을 초과하여 공간을 이용할 수 없습니다.</p>
+                    <p>• 공간 내 금연입니다.</p>
+                    <p className="mt-2">* 상세 이용 규정은 예약 확정 후 안내됩니다.</p>
+                  </div>
+                  {/* 이용 규정 동의 체크박스 */}
+                   <div className="flex items-center mt-2">
+                    <input
+                      type="checkbox"
+                      id="agreedSpaceRules"
+                      name="agreedSpaceRules"
+                      checked={formDataState.agreedSpaceRules}
+                      onChange={handleCheckboxChange}
+                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                      required
+                    />
+                    <label
+                      htmlFor="agreedSpaceRules"
+                      className="ml-2 block text-sm text-gray-900"
+                    >
+                      위 이용 규정을 읽고 동의합니다.
+                    </label>
+                  </div>
+                </div>
+
+                {/* 등록하기 버튼 */}
+                <div className="mt-8">
+                   <button
                     type="button"
-                    onClick={prevStep}
-                    className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                    onClick={handleFinalSubmit}
+                    disabled={!isSubmitButtonEnabled}
+                    className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white ${isSubmitButtonEnabled ? 'bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500' : 'bg-gray-400 cursor-not-allowed'}`}
                   >
-                    이전
+                    {isLoading ? '등록 중...' : '등록하기'}
                   </button>
-                ) : (
-                  <div></div>
-                )}
-
-                <button
-                   type={activeStep === 4 ? "submit" : "button"}
-                   onClick={activeStep === 4 ? handleSubmit : nextStep}
-                   className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-                 >
-                   {activeStep === 4 ? "등록 하기" : "다음"}
-                 </button>
+                </div>
               </div>
             )}
-            {activeStep === 1 && (
-                 <div className="flex justify-end mt-10">
-                     <button
-                         type="button"
-                         onClick={nextStep}
-                          className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-                      >
-                          다음
-                      </button>
-                 </div>
+
+            {/* 단계 이동 버튼 */}
+            {activeStep < 4 && (
+              <div className="mt-8 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleNextButtonClick}
+                  disabled={isLoading} // 이미지 업로드 중에는 다음 버튼 비활성화
+                  className="ml-auto flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  다음
+                </button>
+              </div>
             )}
           </form>
+
+          {error && <div className="text-red-500 mt-4 text-center">{error}</div>}
+
         </div>
       </div>
     </div>

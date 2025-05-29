@@ -7,6 +7,7 @@ import Link from "next/link";
 import styles from "./page.module.css";
 import HostHeader from "@/components/header/hostheader";
 import api from "@/lib/axios";
+import { useAuth } from "@/context/AuthContext";
 
 interface User {
   isLoggedIn: boolean;
@@ -14,46 +15,22 @@ interface User {
 
 export default function HostMainPage() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { isLoggedIn, userRole } = useAuth();
 
-  useEffect(() => {
-    // 로그인 상태 확인
-    const checkLoginStatus = async () => {
-      try {
-        const { data } = await api.get("/api/auth/check");
-        setUser(data);
-      } catch (error) {
-        setUser({ isLoggedIn: false });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkLoginStatus();
-  }, []);
-
-  // 보호된 경로 접근 핸들러
+  // 보호된 경로 접근 핸들러 (useAuth 상태 사용)
   const handleProtectedRoute = (path: string) => {
-    if (!user?.isLoggedIn) {
-      alert("로그인이 필요한 서비스입니다.");
+    if (!isLoggedIn || userRole !== "HOST") {
+      alert("호스트 로그인이 필요한 서비스입니다.");
       router.push("/host/login?redirect=" + encodeURIComponent(path));
       return;
     }
     router.push(path);
   };
 
-  if (isLoading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner}></div>
-      </div>
-    );
-  }
-
   return (
     <div className={styles.container}>
-      <HostHeader />
+      {/* HostHeader는 HostLayout에 포함되므로 여기서 렌더링하지 않습니다. */}
+      {/* <HostHeader /> */}
 
       {/* Hero Section */}
       <section className={styles.heroSection}>

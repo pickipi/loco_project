@@ -12,6 +12,8 @@ spring:
   profiles:
     active: dev
     include: secret
+  main:
+    allow-bean-definition-overriding: true # RequestLoggingFilter 빈 재정의 허용
 
   datasource:
     url: jdbc:mysql://localhost:3308/loco_db
@@ -35,6 +37,13 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 20MB
+    filter:
+      request-logging:
+        include-query-string: true
+        include-client-info: true
+        include-headers: true
+        include-payload: true
+        max-payload-length: 10000 # 요청 페이로드 최대 로깅 길이 (필요에 따라 조정)
 
   mail:
     host: smtp.gmail.com
@@ -80,7 +89,9 @@ logging:
     org.hibernate.orm.jdbc.bind: TRACE
     org.hibernate.orm.jdbc.extract: TRACE
     org.springframework.transaction.interceptor: TRACE
-#    org.springframework.security: DEBUG
+    org.springframework.security: DEBUG # 상세 HTTP 요청 로깅 설정 추가
+    org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
+
 custom:
   dev: # dev환경에서의 설정
     cookieDomain: localhost

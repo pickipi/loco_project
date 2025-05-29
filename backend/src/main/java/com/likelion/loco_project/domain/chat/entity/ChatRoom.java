@@ -41,13 +41,16 @@ public class ChatRoom extends BaseEntity {
 
     //게스트가 채팅방에 남아있으면 유지
     @Column(name = "guest_exited", nullable = false)
+    @Builder.Default
     private boolean guestExited = false;
 
     //호스트가 채팅방에 남아있으면 유지
     @Column(name = "host_exited", nullable = false)
+    @Builder.Default
     private boolean hostExited = false;
 
     //채팅룸을 지우기 (둘다 채팅방에 나가있으면)
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<ChatMessage> messages = new ArrayList<>();
 }

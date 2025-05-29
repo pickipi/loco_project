@@ -103,4 +103,15 @@ public class ApiV1UserController {
         emailAuthManager.resetPasswordByEmail(dto.getEmail(), UserType.HOST);
         return ResponseEntity.ok(RsData.of("S-1", "임시 비밀번호가 이메일로 전송되었습니다.", null));
     }
+
+    //이미지
+    @Operation(summary = "프로필 이미지 업데이트", description = "사용자의 프로필 이미지를 업데이트합니다.")
+    @PutMapping("/{userId}/profile-image")
+    public ResponseEntity<RsData<UserProfileResponseDto>> updateProfileImage(
+            @PathVariable Long userId,
+            @RequestBody UserProfileImageUpdateRequestDto request
+    ) {
+        UserProfileResponseDto dto = userService.updateProfileImage(userId, request.getImageUrl());
+        return ResponseEntity.ok(RsData.of("S-1", "프로필 이미지가 업데이트되었습니다.", dto));
+    }
 }
