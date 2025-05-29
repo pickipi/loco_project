@@ -1,8 +1,12 @@
 .container {
   min-height: 100vh;
-  background-color: #f9fafb;
+  background-color: white;
   padding: 3rem 1rem;
   padding-top: 7rem;
+}
+
+[data-theme='dark'] .container {
+  background-color: var(--bg-primary);
 }
 
 .formContainer {
@@ -14,12 +18,21 @@
   padding: 2rem;
 }
 
+[data-theme='dark'] .formContainer {
+  background-color: var(--button-bg);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
 .title {
   font-size: 2rem;
   font-weight: bold;
   text-align: center;
   margin-bottom: 2rem;
   color: #1a1a1a;
+}
+
+[data-theme='dark'] .title {
+  color: var(--text-primary);
 }
 
 .errorMessage {
@@ -50,12 +63,18 @@
   margin-bottom: 0.25rem;
 }
 
+[data-theme='dark'] .label {
+  color: var(--text-primary);
+}
+
 .input {
   width: 100%;
   padding: 0.5rem 0.75rem;
   border: 1px solid #d1d5db;
   border-radius: 0.375rem;
   transition: all 0.2s;
+  background-color: white;
+  color: #1a1a1a;
 }
 
 .input:focus {
@@ -68,6 +87,10 @@
   margin-top: 0.25rem;
   font-size: 0.875rem;
   color: #6b7280;
+}
+
+[data-theme='dark'] .helpText {
+  color: var(--text-secondary);
 }
 
 .buttonContainer {
@@ -84,8 +107,16 @@
   transition: color 0.2s;
 }
 
+[data-theme='dark'] .backButton {
+  color: var(--text-secondary);
+}
+
 .backButton:hover {
   color: #374151;
+}
+
+[data-theme='dark'] .backButton:hover {
+  color: var(--text-primary);
 }
 
 .submitButton {
@@ -95,6 +126,13 @@
   border-radius: 0.375rem;
   font-weight: 500;
   transition: all 0.2s;
+  border: none;
+}
+
+[data-theme='dark'] .submitButton {
+  background-color: var(--button-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .submitButton:hover:not(:disabled) {
@@ -113,14 +151,26 @@
   color: #6b7280;
 }
 
+[data-theme='dark'] .loginText {
+  color: var(--text-secondary);
+}
+
 .loginLink {
   color: #7047EB;
   text-decoration: none;
   transition: color 0.2s;
 }
 
+[data-theme='dark'] .loginLink {
+  color: var(--text-primary);
+}
+
 .loginLink:hover {
   color: #8561ED;
+}
+
+[data-theme='dark'] .loginLink:hover {
+  opacity: 0.9;
 }
 
 .emailVerificationContainer {
