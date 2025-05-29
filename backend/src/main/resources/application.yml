@@ -4,8 +4,8 @@ spring:
   config:
     import: optional:classpath:application-secret.yml
   thymeleaf:
-    cache: false    # 개발 환경에서 템플릿 캐시 비활성화 (실시간 변경 반영)
-    prefix: file:src/main/resources/templates/    # 템플릿 파일 위치 지정, file: 접두사로 실시간 반영
+    cache: false # 개발 환경에서 템플릿 캐시 비활성화 (실시간 변경 반영)
+    prefix: file:src/main/resources/templates/ # 템플릿 파일 위치 지정, file: 접두사로 실시간 반영
   output:
     ansi:
       enabled: ALWAYS
@@ -58,7 +58,7 @@ spring:
       client:
         registration:
           kakao:
-            client-id: ${KAKAO_CLIENT_ID}          # application-secret.yml 에 정의
+            client-id: ${KAKAO_CLIENT_ID} # application-secret.yml 에 정의
             client-name: Kakao
             authorization-grant-type: authorization_code
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
@@ -95,11 +95,12 @@ custom:
     cookieDomain: "${custom.dev.cookieDomain}"
     frontUrl: "${custom.dev.frontUrl}"
     backUrl: "${custom.dev.backUrl}"
-toss:                           # 토스페이먼츠 파트
+toss: # 토스페이먼츠 파트
   payments:
-    secret-key: NEED_TO_INPUT    # 테스트 키 필요 시 기재 예정
+    secret-key: NEED_TO_INPUT # 테스트 키 필요 시 기재 예정
     success-url: "http://localhost:8090/api/v1/payments/success"
     fail-url: "http://localhost:8090/api/v1/payments/fail"
+
 #카카오 맵
 kakao:
   map:
@@ -108,7 +109,7 @@ kakao:
 # JWT 설정
 jwt:
   secret: ${JWT_SECRET:your-256-bit-secret-key-here-must-be-at-least-32-characters}
-  expiration: 86400000  # 24시간 (밀리초 단위)
+  expiration: 86400000 # 24시간 (밀리초 단위)
 
 # AWS S3 설정
 cloud:

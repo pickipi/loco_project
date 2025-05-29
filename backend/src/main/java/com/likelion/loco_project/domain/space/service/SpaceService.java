@@ -31,7 +31,7 @@ public class SpaceService {
     private final Logger logger = LoggerFactory.getLogger(SpaceService.class);
     private final UserRepository userRepository;
 
-    // 공간 생성
+    // 공간 등록
     @Transactional
     public SpaceResponseDto createSpace(Long hostId, SpaceCreateRequestDto dto) {
         try {

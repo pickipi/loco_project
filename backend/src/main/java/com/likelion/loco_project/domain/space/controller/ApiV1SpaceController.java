@@ -5,15 +5,13 @@ import com.likelion.loco_project.domain.space.service.SpaceService;
 import com.likelion.loco_project.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.Parameter;
+
 import java.util.List;
 
 @RestController
@@ -25,12 +23,11 @@ public class ApiV1SpaceController {
 
     private final SpaceService spaceService;
 
-    // 공간 생성
-    @Operation(summary = "공간 생성", description = "새로운 공간을 등록합니다.")
-    @PostMapping("/{hostId}/register")
-    public ResponseEntity<SpaceResponseDto> createSpace(
-            @PathVariable("hostId") Long hostId,
-            @RequestBody SpaceCreateRequestDto dto) {
+    // 공간 등록
+    @PostMapping
+    @Operation(summary = "공간 등록", description = "새로운 공간을 등록합니다.")
+    public ResponseEntity<RsData<SpaceResponseDto>> createSpace(
+            @RequestBody SpaceCreateRequestDto spaceCreateRequestDto) {
         try {
             SpaceResponseDto response = spaceService.createSpace(hostId, dto);
             return ResponseEntity.ok(response);

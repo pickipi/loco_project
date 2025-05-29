@@ -1,10 +1,9 @@
 package com.likelion.loco_project.domain.user.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-public class LoginResponseDto {
+public class LoginResponseDto { // 로그인에 성공했을 때 반환되는 DTO
     private String token;
     private String message;
     private Long userId;

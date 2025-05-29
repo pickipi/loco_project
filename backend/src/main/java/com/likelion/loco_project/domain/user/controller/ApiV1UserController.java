@@ -51,7 +51,7 @@ public class ApiV1UserController {
         return ResponseEntity.noContent().build();
     }
 
-    //유저 알림 기능 끄기(채팅, 예약상태 선택가능)
+    //유저 알림 기능 끄기(채팅, 예약상태 선택 가능)
     @Operation(summary = "유저 알림 기능 끄기", description = "유저 알림 기능 끄기(채팅, 예약상태 선택가능)")
     @PutMapping("/me/notifications/toggle")
     public ResponseEntity<RsData<Boolean>> toggleNotification(@AuthenticationPrincipal User user) {

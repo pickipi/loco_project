@@ -29,6 +29,19 @@ public class ApiV1SpaceImageController {
         
         try {
             for (MultipartFile file : files) {
+                // 파일 크기 검증 필요
+                if (file.getSize() > MAX_FILE_SIZE) {
+                    errors.add(file.getOriginalFilename() + ": 파일 크기가 5MB를 초과합니다.");
+                    continue;
+                }
+
+                // 파일 타입 검증
+                String contentType = file.getContentType();
+                if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType)) {
+                    errors.add(file.getOriginalFilename() + ": 지원하지 않는 이미지 형식입니다. (지원 형식: JPEG, PNG, GIF, WEBP)");
+                    continue;
+                }
+
                 String imageUrl = s3Service.uploadFile(file);
                 imageUrls.add(imageUrl);
             }

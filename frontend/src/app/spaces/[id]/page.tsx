@@ -1,17 +1,31 @@
-"use client"
+"use client";
 
-import { useState, useEffect, use } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { MapPin, Clock, Users, Star, Share2, Heart, Calendar, ChevronLeft, ChevronRight } from "lucide-react"
-import { ThemeToggle } from "../../components/ThemeToggle"
+import { useState, useEffect, use } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import {
+  MapPin,
+  Clock,
+  Users,
+  Star,
+  Share2,
+  Heart,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { ThemeToggle } from "../../components/ThemeToggle";
 
-export default function SpaceDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
-  const [space, setSpace] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
-  const [selectedTime, setSelectedTime] = useState<string | null>(null)
+export default function SpaceDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
+  const [space, setSpace] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSpaceDetail = async () => {
@@ -21,7 +35,7 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
         // const data = await response.json()
         // setSpace(data)
 
-        // 임시 데이터
+        // 임시 데이터를 넣어놨습니다.
         setSpace({
           id: id,
           name: "강남 프리미엄 회의실",
@@ -88,41 +102,51 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
                 "위치도 좋고 시설도 좋았어요. 다만 냉방시설이 조금 약해서 오후에는 더웠습니다. 그래도 전체적으로 만족스러운 공간이었습니다.",
             },
           ],
-        })
-        setLoading(false)
+        });
+        setLoading(false);
       } catch (error) {
-        console.error("Error fetching space details:", error)
-        setLoading(false)
+        console.error("Error fetching space details:", error);
+        setLoading(false);
       }
-    }
+    };
 
-    fetchSpaceDetail()
-  }, [id])
+    fetchSpaceDetail();
+  }, [id]);
 
   const handleDateSelect = (date: Date) => {
-    setSelectedDate(date)
-  }
+    setSelectedDate(date);
+  };
 
   const handleTimeSelect = (time: string) => {
-    setSelectedTime(time)
-  }
+    setSelectedTime(time);
+  };
 
   const handleReservation = () => {
     if (!selectedDate || !selectedTime) {
-      alert("날짜와 시간을 선택해주세요.")
-      return
+      alert("날짜와 시간을 선택해주세요.");
+      return;
     }
 
     // 예약 처리 로직
-    alert(`${selectedDate.toLocaleDateString()} ${selectedTime}에 예약이 완료되었습니다.`)
-  }
+    alert(
+      `${selectedDate.toLocaleDateString()} ${selectedTime}에 예약이 완료되었습니다.`
+    );
+  };
 
   if (loading) {
-    return <div className="flex justify-center items-center min-h-screen">로딩 중...</div>
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        로딩 중...
+      </div>
+    );
   }
 
   if (!space) {
-    return <div className="flex justify-center items-center min-h-screen">공간 정보를 찾을 수 없습니다.</div>
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        공간 정보를 찾을 수 없습니다.
+      </div>
+    );
   }
 
   return (
@@ -143,7 +167,9 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
                 <div className="flex items-center mr-4">
                   <Star className="w-5 h-5 text-yellow-500 mr-1" />
                   <span className="font-medium">{space.rating}</span>
-                  <span className="text-gray-500 ml-1">({space.reviewCount})</span>
+                  <span className="text-gray-500 ml-1">
+                    ({space.reviewCount})
+                  </span>
                 </div>
                 <div className="flex items-center mr-4">
                   <Users size={16} className="mr-1" />
@@ -162,9 +188,17 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
               <h2 className="text-xl font-bold mb-4">공간 특징</h2>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 {space.amenities.map((amenity: any, index: number) => (
-                  <div key={index} className="flex flex-col items-center justify-center p-4 border rounded-lg">
+                  <div
+                    key={index}
+                    className="flex flex-col items-center justify-center p-4 border rounded-lg"
+                  >
                     <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mb-2">
-                      <Image src={`/placeholder.svg?height=24&width=24`} alt={amenity.name} width={24} height={24} />
+                      <Image
+                        src={`/placeholder.svg?height=24&width=24`}
+                        alt={amenity.name}
+                        width={24}
+                        height={24}
+                      />
                     </div>
                     <span className="text-sm">{amenity.name}</span>
                   </div>
@@ -201,7 +235,9 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
             {/* 리뷰 */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">후기 {space.reviewCount}개</h2>
+                <h2 className="text-xl font-bold">
+                  후기 {space.reviewCount}개
+                </h2>
                 <Link href="#" className="text-indigo-600 text-sm">
                   더보기 &gt;
                 </Link>
@@ -217,12 +253,18 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
                           <Star
                             key={i}
                             size={14}
-                            className={i < review.rating ? "text-yellow-500" : "text-gray-300"}
+                            className={
+                              i < review.rating
+                                ? "text-yellow-500"
+                                : "text-gray-300"
+                            }
                             fill={i < review.rating ? "currentColor" : "none"}
                           />
                         ))}
                       </div>
-                      <div className="ml-auto text-sm text-gray-500">{review.date}</div>
+                      <div className="ml-auto text-sm text-gray-500">
+                        {review.date}
+                      </div>
                     </div>
                     <p className="text-gray-700">{review.content}</p>
                   </div>
@@ -237,17 +279,25 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
               <div className="mb-4">
                 <div className="text-2xl font-bold text-indigo-600 mb-1">
                   ₩{space.price.toLocaleString()}
-                  <span className="text-gray-500 text-base font-normal">/시간</span>
+                  <span className="text-gray-500 text-base font-normal">
+                    /시간
+                  </span>
                 </div>
               </div>
 
               {/* 날짜 선택 */}
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">날짜 선택</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  날짜 선택
+                </label>
                 <button className="w-full flex items-center justify-between px-4 py-2 border rounded-md">
                   <div className="flex items-center">
                     <Calendar size={18} className="mr-2 text-gray-500" />
-                    <span>{selectedDate ? selectedDate.toLocaleDateString() : "날짜를 선택하세요"}</span>
+                    <span>
+                      {selectedDate
+                        ? selectedDate.toLocaleDateString()
+                        : "날짜를 선택하세요"}
+                    </span>
                   </div>
                   <ChevronRight size={18} className="text-gray-500" />
                 </button>
@@ -255,19 +305,23 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
 
               {/* 시간 선택 */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">시간 선택</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  시간 선택
+                </label>
                 <div className="grid grid-cols-2 gap-2">
                   {space.availableTimes.map((timeSlot: any) => (
                     <button
                       key={timeSlot.time}
-                      onClick={() => timeSlot.available && handleTimeSelect(timeSlot.time)}
+                      onClick={() =>
+                        timeSlot.available && handleTimeSelect(timeSlot.time)
+                      }
                       disabled={!timeSlot.available}
                       className={`px-3 py-2 rounded-md text-center ${
                         selectedTime === timeSlot.time
                           ? "bg-indigo-600 text-white"
                           : timeSlot.available
-                            ? "border hover:bg-gray-50"
-                            : "border bg-gray-100 text-gray-400 cursor-not-allowed"
+                          ? "border hover:bg-gray-50"
+                          : "border bg-gray-100 text-gray-400 cursor-not-allowed"
                       }`}
                     >
                       {timeSlot.time}
@@ -297,7 +351,10 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
                   </div>
                   <div>
                     <div className="font-medium">{space.host.name}</div>
-                    <Link href={`/host/${space.host.id}`} className="text-sm text-indigo-600">
+                    <Link
+                      href={`/host/${space.host.id}`}
+                      className="text-sm text-indigo-600"
+                    >
                       호스트 프로필 보기
                     </Link>
                   </div>
@@ -308,5 +365,5 @@ export default function SpaceDetailPage({ params }: { params: Promise<{ id: stri
         </div>
       </div>
     </div>
-  )
+  );
 }

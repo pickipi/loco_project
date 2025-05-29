@@ -19,10 +19,6 @@ import java.util.List;
 @AllArgsConstructor
 @Schema(description = "공간 생성 요청 DTO")
 public class SpaceCreateRequestDto {
-
-//    @Schema(description = "호스트Id", example = "1")
-//    private Long hostId;
-
     @Schema(description = "공간 유형", example = "MEETING")
     private SpaceType type;
 
@@ -56,7 +52,7 @@ public class SpaceCreateRequestDto {
     @Schema(description = "가격", example = "15000")
     private Long price;
 
-    // ✅ DTO → Entity (Host 주입)
+    // DTO → Entity (Host 주입)
     public Space toEntity(Host host) {
         List<String> additionalUrls = new ArrayList<>();
         String mainImageUrl = null;
