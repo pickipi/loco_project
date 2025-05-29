@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import styles from './page.module.css'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/context/AuthContext'
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,6 +12,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -31,20 +33,10 @@ export default function LoginPage() {
 
       if (response.ok) {
         const data = await response.json();
-        // 토큰을 로컬 스토리지에 저장
-        localStorage.setItem('token', data.token);
         
-        // 토큰이 제대로 저장되었는지 확인
-        const savedToken = localStorage.getItem('token');
-        if (!savedToken) {
-          throw new Error('토큰 저장에 실패했습니다.');
-        }
-
-        // 커스텀 이벤트 발생
-        window.dispatchEvent(new Event('tokenChange'));
+        login(data.token, data.userId.toString(), data.userName, data.role);
         
         alert('로그인 성공!');
-        router.push('/host/dashboard');
       } else {
         const errorData = await response.json();
         setError(errorData.message || '로그인에 실패했습니다.');
