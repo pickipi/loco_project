@@ -17,4 +17,5 @@ public class LoginResponseDto {
         this.userId = userId;
         this.role = role;
     }
+    // getters
 }

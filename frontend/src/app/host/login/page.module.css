@@ -1,6 +1,6 @@
 .container {
   min-height: 100vh;
-  background-color: var(--bg-primary);
+  background-color: #f9fafb;
   padding: 3rem 1rem;
   padding-top: 7rem;
 }
@@ -8,9 +8,9 @@
 .formContainer {
   max-width: 28rem;
   margin: 0 auto;
-  background-color: var(--button-bg);
+  background-color: white;
   border-radius: 0.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 2rem;
 }
 
@@ -19,7 +19,7 @@
   font-weight: bold;
   text-align: center;
   margin-bottom: 2rem;
-  color: var(--text-primary);
+  color: #1a1a1a;
 }
 
 .errorMessage {
@@ -46,18 +46,16 @@
   display: block;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--text-primary);
+  color: #374151;
   margin-bottom: 0.25rem;
 }
 
 .input {
   width: 100%;
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid #d1d5db;
   border-radius: 0.375rem;
   transition: all 0.2s;
-  background-color: var(--input-bg);
-  color: var(--input-text);
 }
 
 .input:focus {
@@ -82,9 +80,8 @@
   width: 1rem;
   height: 1rem;
   border-radius: 0.25rem;
-  border-color: var(--border-color);
+  border-color: #d1d5db;
   color: #7047EB;
-  background-color: var(--input-bg);
 }
 
 .checkboxInput:focus {
@@ -93,7 +90,7 @@
 
 .checkboxLabel {
   font-size: 0.875rem;
-  color: var(--text-primary);
+  color: #374151;
 }
 
 .forgotPassword {
@@ -130,7 +127,7 @@
   margin-top: 1rem;
   text-align: center;
   font-size: 0.875rem;
-  color: var(--text-secondary);
+  color: #6b7280;
 }
 
 .signupLink {
@@ -154,15 +151,15 @@
   top: 50%;
   left: 0;
   right: 0;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid #e5e7eb;
 }
 
 .dividerText {
   position: relative;
   display: inline-block;
   padding: 0 0.5rem;
-  background-color: var(--button-bg);
-  color: var(--text-secondary);
+  background-color: white;
+  color: #6b7280;
   font-size: 0.875rem;
 }
 
@@ -179,17 +176,17 @@
   gap: 0.5rem;
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid #d1d5db;
   border-radius: 0.375rem;
-  background-color: var(--input-bg);
-  color: var(--input-text);
+  background-color: white;
+  color: #374151;
   font-size: 0.875rem;
   font-weight: 500;
   transition: all 0.2s;
 }
 
 .socialButton:hover:not(:disabled) {
-  background-color: var(--button-bg);
+  background-color: #f9fafb;
 }
 
 .socialButton:disabled {
