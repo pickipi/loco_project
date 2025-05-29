@@ -35,7 +35,7 @@ export default function HostHeader() {
     logout,
   } = useAuth(); // useAuth 훅으로 로그인 상태와 정보, 로그아웃 함수 가져오기
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+  
   // 알림 관련 상태 추가
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -108,7 +108,7 @@ export default function HostHeader() {
       const response = await api.get<ApiResponse<Notification[]>>(
         "/api/v1/notifications",
         {
-          headers: {
+        headers: {
             Authorization: `Bearer ${token}`,
           },
         }
@@ -134,8 +134,8 @@ export default function HostHeader() {
         // 기타 에러 처리
         console.error('알림 조회 중 기타 에러:', error);
         // 필요에 따라 사용자에게 에러 알림을 표시할 수 있습니다.
-      }
     }
+  }
   };
 
   // 초기 읽지 않은 알림 개수 조회 및 주기적 업데이트
@@ -185,13 +185,13 @@ export default function HostHeader() {
 
           {/* Desktop Navigation */}
           <nav className={styles.desktopNav}>
-            <button
+            <button 
               onClick={() => handleProtectedRoute("/host/spaces/register")}
               className={styles.navLink}
             >
               공간작성
             </button>
-            <button
+            <button 
               onClick={() => handleProtectedRoute("/host/spaces")}
               className={styles.navLink}
             >
@@ -220,7 +220,7 @@ export default function HostHeader() {
                   className={styles.notificationContainer}
                   ref={notificationRef}
                 >
-                  <button
+                  <button 
                     className={styles.notificationButton}
                     onClick={() => setIsNotificationOpen(!isNotificationOpen)}
                   >
@@ -233,7 +233,7 @@ export default function HostHeader() {
                   </button>
                   {isNotificationOpen && (
                     <div className={styles.notificationPanel}>
-                      <NotificationPanel
+                      <NotificationPanel 
                         userId={authUserId ? Number(authUserId) : 0}
                         jwtToken={localStorage.getItem("token") || ""}
                       />
@@ -312,7 +312,7 @@ export default function HostHeader() {
             {isLoggedIn ? (
               <>
                 {/* 모바일 알림 메뉴 아이템 */}
-                <button
+                <button 
                   className={styles.mobileMenuItem}
                   onClick={() => setIsNotificationOpen(!isNotificationOpen)}
                 >

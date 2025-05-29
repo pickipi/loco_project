@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ["example.com", "ui-avatars.com"],
+    domains: ["example.com", "ui-avatars.com", "localhost"],
   },
   // API 라우트 리다이렉션 설정
   async rewrites() {

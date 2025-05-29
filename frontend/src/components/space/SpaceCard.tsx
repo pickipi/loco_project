@@ -11,12 +11,15 @@ export default function SpaceCard({
   spaceRating,
   imageUrl,
 }: SpaceListResponseDto) {
+  // 백엔드 이미지 경로를 프론트엔드에서 접근 가능한 URL로 변환
+  const backendImageUrl = imageUrl ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/${imageUrl}` : "/default-space.jpg";
+
   return (
     <Link href={`/spaces/${id}`}>
       <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-200">
         <div className="relative h-48">
           <Image
-            src={imageUrl || "/default-space.jpg"}
+            src={backendImageUrl}
             alt={spaceName}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
