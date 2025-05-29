@@ -23,16 +23,33 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`${API}/api/v1/auth/login`, {
+      const response = await fetch(`${API}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || '로그인 실패');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('role', data.role);
+          localStorage.setItem('userId', data.userId.toString());
+          localStorage.setItem('username', data.username || '');
+          
+          // role에 따라 다른 페이지로 리다이렉트
+          if (data.role === 'HOST') {
+            router.push('/host');
+          } else {
+            router.push('/');
+          }
+        } else {
+          setError('로그인 성공했지만 토큰이 응답에 없습니다.');
+        }
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || '로그인에 실패했습니다.');
       }
 
       const data = await res.json();

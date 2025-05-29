@@ -31,20 +31,23 @@ export default function LoginPage() {
 
       if (response.ok) {
         const data = await response.json();
-        // 토큰을 로컬 스토리지에 저장
-        localStorage.setItem('token', data.token);
-        
-        // 토큰이 제대로 저장되었는지 확인
-        const savedToken = localStorage.getItem('token');
-        if (!savedToken) {
-          throw new Error('토큰 저장에 실패했습니다.');
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('role', data.role);
+          localStorage.setItem('userId', data.userId.toString());
+          localStorage.setItem('username', data.username || '');
+          
+          // 로그인 성공 팝업 표시
+          alert('로그인에 성공했습니다!');
+          
+          // 로그인 상태 변경 이벤트 발생
+          window.dispatchEvent(new Event('loginStateChange'));
+          
+          // 호스트 로그인 성공 시 호스트 대시보드로 이동
+          router.push('/host');
+        } else {
+          setError('로그인 성공했지만 토큰이 응답에 없습니다.');
         }
-
-        // 커스텀 이벤트 발생
-        window.dispatchEvent(new Event('tokenChange'));
-        
-        alert('로그인 성공!');
-        router.push('/host/dashboard');
       } else {
         const errorData = await response.json();
         setError(errorData.message || '로그인에 실패했습니다.');
