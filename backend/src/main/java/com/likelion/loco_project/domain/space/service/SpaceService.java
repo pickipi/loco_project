@@ -16,12 +16,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,37 +33,13 @@ public class SpaceService {
 
     // 공간 등록
     @Transactional
-    public SpaceResponseDto createSpace(SpaceCreateRequestDto dto) {
-        // SecurityContextHolder에서 현재 인증된 사용자 정보 가져오기
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Long userId = null;
-
-        if (authentication != null && authentication.getPrincipal() instanceof org.springframework.security.core.userdetails.UserDetails) {
-            org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal();
-            try {
-                userId = Long.parseLong(userDetails.getUsername());
-            } catch (NumberFormatException e) {
-                logger.error("Principal의 사용자 이름이 숫자로 변환할 수 없습니다: {}", userDetails.getUsername(), e);
-                throw new IllegalArgumentException("공간 등록 실패: 잘못된 사용자 정보 형식입니다.");
-            }
-        }
-
-        if (userId == null) {
-            throw new IllegalArgumentException("공간 등록 실패: 인증된 사용자 정보를 찾을 수 없습니다.");
-        }
-
-        // effectively final 변수로 복사
-        final Long effectiveUserId = userId;
-
-        User user = userRepository.findById(effectiveUserId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
+    public SpaceResponseDto createSpace(Long hostId, SpaceCreateRequestDto dto) {
         try {
-            logger.info("공간 등록 시작. Host ID: {}", effectiveUserId);
+            logger.info("공간 등록 시작. Host ID: {}", hostId);
             logger.debug("받은 DTO 데이터: {}", dto);
 
-            Host host = hostRepository.findByUserId(effectiveUserId)
-                    .orElseThrow(() -> new IllegalArgumentException("호스트를 찾을 수 없습니다. User ID: " + effectiveUserId));
+            Host host = hostRepository.findById(hostId)
+                    .orElseThrow(() -> new IllegalArgumentException("호스트를 찾을 수 없습니다. ID: " + hostId));
             logger.debug("호스트 찾음: {}", host.getId());
 
             // 이미지 URL 유효성 검사 수정
@@ -77,13 +50,7 @@ public class SpaceService {
 
             // DTO를 Entity로 변환
             Space space = dto.toEntity(host);
-
-            // TODO: 주소를 이용한 지오코딩으로 실제 위도/경도 설정
-            // 임시로 더미 위도/경도 설정
-            space.setLatitude(BigDecimal.valueOf(37.5665));
-            space.setLongitude(BigDecimal.valueOf(126.9780));
-
-            logger.debug("생성된 Space 엔티티 (더미 좌표 설정): {}", space);
+            logger.debug("생성된 Space 엔티티: {}", space);
 
             // DB 저장
             Space savedSpace = spaceRepository.save(space);
@@ -91,7 +58,7 @@ public class SpaceService {
 
             return SpaceResponseDto.fromEntity(savedSpace);
         } catch (Exception e) {
-            logger.error("공간 등록 실패. Host ID: {}, 에러: {}", effectiveUserId, e.getMessage(), e);
+            logger.error("공간 등록 실패. Host ID: {}, 에러: {}", hostId, e.getMessage(), e);
             throw new RuntimeException("공간 등록 중 오류가 발생했습니다: " + e.getMessage(), e);
         }
     }

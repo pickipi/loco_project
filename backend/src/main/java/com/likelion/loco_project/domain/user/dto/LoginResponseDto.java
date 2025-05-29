@@ -16,4 +16,5 @@ public class LoginResponseDto { // 로그인에 성공했을 때 반환되는 DT
         this.userId = userId;
         this.role = role;
     }
+    // getters
 }

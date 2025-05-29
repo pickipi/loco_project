@@ -6,15 +6,13 @@ import { useRouter } from "next/navigation";
 import { Building2, Camera, PartyPopper, Coffee, Upload } from "lucide-react";
 import AddressSearch from "@/components/AddressSearch";
 import dynamic from "next/dynamic";
-import api from "@/lib/axios";
-import { SpaceCreateRequestDto } from "@/types/space";
-import { useAuth } from '@/context/AuthContext'; // import 경로 수정
 
 // DaumPostcode를 dynamic import로 불러오기
 const DaumPostcode = dynamic(() => import("@/components/DaumPostcode"), {
   ssr: false,
 });
 
+//로컬 url 머지하면서 추가 --봉준님 확인하세요
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8090";
 
@@ -31,14 +29,10 @@ interface SpaceFormData {
   closeTime: string;
   minTime: string;
   maxTime: string;
-  zonecode?: string;
-  latitude?: number;
-  longitude?: number;
 }
 
 export default function RegisterSpacePage() {
   const router = useRouter();
-  const { isLoggedIn } = useAuth(); // AuthContext에서 로그인 상태 가져오기
   const [activeStep, setActiveStep] = useState(2);
   const [showAddressSearch, setShowAddressSearch] = useState(false);
   const [formData, setFormData] = useState<SpaceFormData>({
@@ -55,17 +49,9 @@ export default function RegisterSpacePage() {
     minTime: "1",
     maxTime: "4",
   });
-  const [rulesConfirmed, setRulesConfirmed] = useState(false);
 
   // localStorage에서 선택된 공간 유형 가져오기
   useEffect(() => {
-    // 페이지 로드 시 로그인 상태 확인 및 리다이렉트
-    if (!isLoggedIn) {
-      alert('로그인이 필요한 서비스입니다.');
-      router.push('/host/login');
-      return; // 리다이렉트 후 함수 종료
-    }
-
     const selectedTypes = localStorage.getItem("selectedSpaceTypes");
     if (selectedTypes) {
       const types = JSON.parse(selectedTypes);
@@ -110,93 +96,33 @@ export default function RegisterSpacePage() {
     // 단계 3 (이용 규칙)에서는 현재 필수 필드 없음
 
     try {
-      // 1. 이미지 S3 업로드
-      const imageUrls = await uploadImagesToS3(formData.images);
+      // 실제 API 호출 부분 (주석 해제 및 수정 필요)
+      // const response = await fetch('/api/v1/spaces', { // 엔드포인트 수정 필요
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     // 필요한 경우 인증 토큰 추가
+      //   },
+      //   body: JSON.stringify(formData), // 백엔드 DTO에 맞게 formData 구조 변경 필요
+      // })
 
-      // 2. 백엔드 SpaceCreateRequestDto 형식에 맞게 데이터 변환
-      const spaceData: SpaceCreateRequestDto = {
-          spaceName: formData.name,
-          spaceType: formData.type,
-          description: formData.description,
-          address: formData.address,
-          price: parseInt(formData.price),
-          maxCapacity: parseInt(formData.capacity),
-          openTime: formData.openTime,
-          closeTime: formData.closeTime,
-          minTime: parseInt(formData.minTime),
-          maxTime: parseInt(formData.maxTime),
-          imageUrls: imageUrls,
-      };
+      // if (response.ok) {
+      //   const data = await response.json()
+      //   router.push(`/spaces/${data.id}`) // 성공 후 이동할 페이지 수정 필요
+      // } else {
+      //    const errorData = await response.json(); // 오류 응답 처리
+      //    alert(`공간 등록 실패: ${errorData.message || response.statusText}`);
+      // }
 
-      // 3. 백엔드 공간 생성 API 호출
-      const token = localStorage.getItem('token');
-      if (!token) {
-         alert('로그인 토큰이 없습니다. 다시 로그인해주세요.');
-         router.push('/host/login');
-         return;
-      }
-
-      const response = await api.post(`${API_BASE_URL}/api/v1/spaces`, spaceData, {
-         headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-         }
-      });
-
-      if (response.status === 200) {
-        alert("공간이 성공적으로 등록되었습니다!");
-        router.push("/host/dashboard");
-      } else {
-         alert(`공간 등록 실패: ${response.data.message || response.statusText}`);
-      }
+      // 임시 처리 (API 연동 전까지 사용)
+      console.log("제출된 데이터:", formData);
+      alert("공간이 성공적으로 등록되었습니다!");
+      router.push("/host/dashboard"); // 등록 성공 후 이동할 페이지
 
     } catch (error) {
       console.error("공간 등록 오류:", error);
-      // Axios 에러 처리
-      if ((error as any).response) { // 타입 단언 사용
-        alert(`공간 등록 중 오류가 발생했습니다: ${(error as any).response.data.message || (error as any).message}`);
-      } else if ((error as any).request) { // 타입 단언 사용
-        alert('공간 등록 요청 중 오류가 발생했습니다. 서버 응답이 없습니다.');
-      } else {
-        alert('공간 등록 요청 설정 중 오류가 발생했습니다.');
-      }
+      alert("공간 등록 중 오류가 발생했습니다.");
     }
-  };
-
-  const uploadImagesToS3 = async (files: File[]): Promise<string[]> => {
-      const imageUrls: string[] = [];
-      const uploadUrl = `${API_BASE_URL}/api/v1/spaces/images/upload`;
-      
-      for (const file of files) {
-          const formData = new FormData();
-          formData.append('files', file);
-
-          try {
-              const uploadResponse = await api.post(uploadUrl, formData, {
-                  headers: {
-                      'Content-Type': 'multipart/form-data',
-                  },
-              });
-              if (uploadResponse.data && uploadResponse.data.data && uploadResponse.data.data.length > 0) {
-                   imageUrls.push(...uploadResponse.data.data);
-              } else {
-                  console.error('이미지 업로드 실패: 응답에 이미지 URL이 없습니다.', uploadResponse);
-                  throw new Error('이미지 업로드 실패');
-              }
-          } catch (uploadError) {
-              console.error('S3 이미지 업로드 오류:', uploadError);
-               // Axios 에러 처리
-              if ((uploadError as any).response) { // 타입 단언 사용
-                alert(`이미지 업로드 중 오류가 발생했습니다: ${(uploadError as any).response.data.message || (uploadError as any).message}`);
-              } else if ((uploadError as any).request) { // 타입 단언 사용
-                alert('이미지 업로드 요청 중 오류가 발생했습니다. 서버 응답이 없습니다.');
-              } else {
-                alert('이미지 업로드 요청 설정 중 오류가 발생했습니다.');
-              }
-              throw new Error('이미지 업로드 실패'); // 공간 등록 중단
-          }
-      }
-      return imageUrls;
   };
 
   const nextStep = () => {
@@ -600,37 +526,125 @@ export default function RegisterSpacePage() {
             {/* 단계 3: 이용 규칙 */}
             {activeStep === 4 && (
               <div className="space-y-6">
-                <h3 className="text-lg font-medium text-gray-700">이용 규칙 및 환불 규정</h3>
-                {/* 여기에 이용 규칙 및 환불 규정 내용을 표시합니다. */}
-                {/* 실제 내용을 채워 넣거나 백엔드에서 불러오도록 수정해야 합니다. */}
-                <div className="border p-4 rounded-md bg-gray-50 text-gray-700 text-sm max-h-60 overflow-y-auto">
-                  <p><strong>[이용 규칙]</strong></p>
-                  <p>1. 공간 내 흡연은 엄격히 금지됩니다.</p>
-                  <p>2. 시설물 훼손 시 손해배상이 청구될 수 있습니다.</p>
-                  <p>3. 사용 시간 초과 시 추가 요금이 발생합니다.</p>
-                  <p>4. 퇴실 시 다음 이용자를 위해 깨끗하게 정리해주세요.</p>
-                  <p>5. 분실물은 책임지지 않습니다.</p>
-                  <br/>
-                  <p><strong>[환불 규정]</strong></p>
-                  <p>- 이용 예정일 7일 전까지 취소 시: 100% 환불</p>
-                  <p>- 이용 예정일 5일 전까지 취소 시: 70% 환불</p>
-                  <p>- 이용 예정일 3일 전까지 취소 시: 50% 환불</p>
-                  <p>- 이용 예정일 2일 전 이내 취소 시: 환불 불가</p>
-                  <br/>
-                  <p>* 천재지변 등 불가항력적인 사유로 인한 취소는 협의 후 결정됩니다.</p>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    예약 단위
+                  </label>
+                  <div className="flex items-center">
+                    <button
+                      type="button"
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-md mr-2"
+                    >
+                      시간 단위
+                    </button>
+                    <button
+                      type="button"
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md"
+                    >
+                      일 단위
+                    </button>
+                  </div>
                 </div>
 
-                <div className="flex items-center mt-4">
-                  <input
-                    type="checkbox"
-                    id="confirmRules"
-                    checked={rulesConfirmed}
-                    onChange={(e) => setRulesConfirmed(e.target.checked)}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                  />
-                  <label htmlFor="confirmRules" className="ml-2 block text-sm text-gray-900">
-                    이용 규칙 및 환불 규정을 확인했으며 동의합니다.
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    운영 시간
                   </label>
+                  <div className="flex items-center gap-2">
+                    <select
+                      name="openTime"
+                      value={formData.openTime}
+                      onChange={handleInputChange}
+                      className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="">시작 시간</option>
+                      {Array.from({ length: 24 }).map((_, i) => (
+                        <option
+                          key={i}
+                          value={`${i.toString().padStart(2, "0")}:00`}
+                        >
+                          {i.toString().padStart(2, "0")}:00
+                        </option>
+                      ))}
+                    </select>
+                    <span>~</span>
+                    <select
+                      name="closeTime"
+                      value={formData.closeTime}
+                      onChange={handleInputChange}
+                      className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="">종료 시간</option>
+                      {Array.from({ length: 24 }).map((_, i) => (
+                        <option
+                          key={i}
+                          value={`${i.toString().padStart(2, "0")}:00`}
+                        >
+                          {i.toString().padStart(2, "0")}:00
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    시간당 가격
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={formData.price}
+                      readOnly
+                      className="w-40 px-4 py-2 border border-gray-300 rounded-md bg-gray-50"
+                    />
+                    <span>원</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    최소/최대 예약 시간
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <select
+                      name="minTime"
+                      value={formData.minTime}
+                      onChange={handleInputChange}
+                      className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="1">1시간</option>
+                      <option value="2">2시간</option>
+                      <option value="3">3시간</option>
+                      <option value="4">4시간</option>
+                    </select>
+                    <span>~</span>
+                    <select
+                      name="maxTime"
+                      value={formData.maxTime}
+                      onChange={handleInputChange}
+                      className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="4">4시간</option>
+                      <option value="6">6시간</option>
+                      <option value="8">8시간</option>
+                      <option value="12">12시간</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    수용 인원
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={`최소 인원: 1명 ~ 최대 인원: ${formData.capacity}명`}
+                      readOnly
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50"
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -650,28 +664,16 @@ export default function RegisterSpacePage() {
                   <div></div>
                 )}
 
-                {activeStep < 4 ? (
-                  <button
-                    type="button"
-                    onClick={nextStep}
-                    className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-                  >
-                    다음
-                  </button>
-                ) : ( // activeStep === 4
-                  <button
-                    type="submit"
-                    onClick={handleSubmit}
-                    disabled={!rulesConfirmed} // 체크박스가 체크되지 않으면 버튼 비활성화
-                    className={`px-6 py-2 rounded-md ${rulesConfirmed ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
-                  >
-                    공간 등록 하기
-                  </button>
-                )}
+                <button
+                   type={activeStep === 4 ? "submit" : "button"}
+                   onClick={activeStep === 4 ? handleSubmit : nextStep}
+                   className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                 >
+                   {activeStep === 4 ? "등록 하기" : "다음"}
+                 </button>
               </div>
             )}
-            {/* 단계 1 버튼은 유지 (activeStep === 1) */}
-             {activeStep === 1 && (
+            {activeStep === 1 && (
                  <div className="flex justify-end mt-10">
                      <button
                          type="button"
