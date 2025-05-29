@@ -24,10 +24,10 @@ public class SpaceCreateRequestDto {
 //    private Long hostId;
 
     @Schema(description = "공간 유형", example = "MEETING")
-    private SpaceType spaceType;
+    private SpaceType type;
 
     @Schema(description = "공간 이름", example = "서울 강남점 스터디룸 A")
-    private String spaceName;
+    private String name;
 
     @Schema(description = "공간 설명", example = "쾌적한 환경의 6인용 스터디룸입니다.")
     private String description;
@@ -36,7 +36,7 @@ public class SpaceCreateRequestDto {
     private List<String> imageUrls;
 
     @Schema(description = "최대 수용 인원", example = "6")
-    private Integer maxCapacity;
+    private Integer capacity;
 
     @Schema(description = "기본 주소", example = "서울시 강남구")
     private String address;
@@ -70,17 +70,17 @@ public class SpaceCreateRequestDto {
 
         return Space.builder()
                 .host(host)
-                .spaceName(this.spaceName)
+                .spaceName(this.name)
                 .description(description)
                 .uploadDate(LocalDateTime.now())
-                .spaceType(this.spaceType)
+                .spaceType(this.type)
                 .price(this.price)
                 .address(address)
                 .detailAddress(detailAddress)
                 .neighborhoodInfo(neighborhoodInfo)
                 .latitude(latitude)
                 .longitude(longitude)
-                .maxCapacity(this.maxCapacity)
+                .maxCapacity(this.capacity)
                 .isActive(true)
                 .imageUrl(mainImageUrl)
                 .additionalImageUrls(additionalUrls)
