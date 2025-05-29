@@ -15,15 +15,18 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const API = process.env.NEXT_PUBLIC_API_BASE_URL!;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/login`, {
+      const response = await fetch(`${API}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
 
@@ -48,12 +51,29 @@ export default function LoginPage() {
         const errorData = await response.json();
         setError(errorData.message || '로그인에 실패했습니다.');
       }
-    } catch (err) {
-      console.error('로그인 오류:', err);
-      setError('로그인 처리 중 오류가 발생했습니다.');
+
+      const data = await res.json();
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('username', data.username);
+      alert('로그인 성공!');
+      router.push('/');
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleKakao = () => {
+    window.location.href = `${API}/oauth2/authorization/kakao`;
+  };
+
+  const handleNaver = () => {
+    window.location.href = `${API}/oauth2/authorization/naver`;
+  };
+
+  const handleApple = () => {
+    window.location.href = `${API}/oauth2/authorization/apple`;
   };
 
   return (
@@ -80,15 +100,27 @@ export default function LoginPage() {
           
           {/* Social Login Buttons */}
           <div className="space-y-3 mb-6">
-            <button className="w-full py-3 px-4 flex items-center justify-center bg-[#03C75A] text-white rounded-md hover:bg-opacity-90">
+            <button
+              type="button"
+              onClick={handleNaver}
+              className="w-full py-3 px-4 flex items-center justify-center bg-[#03C75A] text-white rounded-md hover:bg-opacity-90"
+            >
               <SiNaver className="mr-2" size={20} />
               네이버로 로그인
             </button>
-            <button className="w-full py-3 px-4 flex items-center justify-center bg-[#FEE500] text-black rounded-md hover:bg-opacity-90">
+            <button
+              type="button"
+              onClick={handleKakao}
+              className="w-full py-3 px-4 flex items-center justify-center bg-[#FEE500] text-black rounded-md hover:bg-opacity-90"
+            >
               <SiKakaotalk className="mr-2" size={20} />
               카카오로 로그인
             </button>
-            <button className="w-full py-3 px-4 flex items-center justify-center bg-black text-white rounded-md hover:bg-opacity-90">
+            <button
+              type="button"
+              onClick={handleApple}
+              className="w-full py-3 px-4 flex items-center justify-center bg-black text-white rounded-md hover:bg-opacity-90"
+            >
               <FaApple className="mr-2" size={20} />
               Apple로 로그인
             </button>
