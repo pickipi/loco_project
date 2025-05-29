@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.likelion.loco_project.global.oauth.CustomOAuth2UserService;
 import com.likelion.loco_project.global.oauth.OAuth2AuthenticationSuccessHandler;
+import com.likelion.loco_project.global.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,10 +17,11 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -33,18 +35,39 @@ public class SecurityConfig {
      */
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler successHandler;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Bean
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.addAllowedOrigin("http://localhost:3000");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 1) CORS 설정
-                .cors().and()
+                // 1) CORS 설정 (CorsFilter는 addFilterBefore로 명시적으로 추가하여 순서 제어)
+                .cors(AbstractHttpConfigurer::disable)
 
                 // 2) CSRF 비활성화 (REST API)
                 .csrf(AbstractHttpConfigurer::disable)
 
+                // CorsFilter를 Spring Security 필터 체인 맨 앞에 추가
+                .addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class)
+
+                // JWT 인증 필터 추가: CorsFilter 이후, UsernamePasswordAuthenticationFilter 이전에 실행
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+
                 // 3) 인가 설정
                 .authorizeHttpRequests(authorize -> authorize
+                        // OPTIONS 요청은 모든 경로에 대해 허용 (CORS Preflight)
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // H2 콘솔
                         .requestMatchers("/h2-console/**").permitAll()
                         // 회원가입·로그인 API
@@ -63,7 +86,7 @@ public class SecurityConfig {
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 )
-                .headers(headers -> headers.frameOptions().sameOrigin())
+                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
 
@@ -73,7 +96,8 @@ public class SecurityConfig {
                 // 5) 폼로그인·기본 Basic 비활성화
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .headers(h -> h.frameOptions().sameOrigin())
+                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+
                 // 6) OAuth2 로그인 설정
                 .oauth2Login(oauth2 -> oauth2
                         // 사용자 로그인 진입 페이지

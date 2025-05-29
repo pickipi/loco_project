@@ -36,6 +36,7 @@ public class Review {
     @Column(length = 500)
     private String content;
 
+    @Builder.Default
     private boolean isDeleted = false;
 
     private LocalDateTime createdAt;

@@ -1,11 +1,13 @@
 package com.likelion.loco_project.domain.notification.entity;
 
+import com.likelion.loco_project.global.jpa.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import lombok.Builder;
 
 import java.time.LocalDateTime;
 
@@ -25,6 +27,7 @@ public class Notification {
 
     private String content; // 알림에 관한 메세지
 
+    @Builder.Default
     private Boolean isRead = false; // 읽지 않으면 빨간 점 표시
 
     private LocalDateTime createdDate; // 알람 생성 시간

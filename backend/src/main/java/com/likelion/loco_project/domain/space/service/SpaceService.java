@@ -38,8 +38,14 @@ public class SpaceService {
             logger.info("공간 등록 시작. Host ID: {}", hostId);
             logger.debug("받은 DTO 데이터: {}", dto);
 
-            Host host = hostRepository.findById(hostId)
-                    .orElseThrow(() -> new IllegalArgumentException("호스트를 찾을 수 없습니다. ID: " + hostId));
+            // 인증된 사용자의 ID (hostId로 넘어옴)를 사용하여 User 엔티티를 찾습니다.
+            User user = userRepository.findById(hostId)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + hostId));
+
+            // 해당 User 엔티티와 연결된 Host 엔티티를 찾습니다.
+            Host host = hostRepository.findByUser(user)
+                     .orElseThrow(() -> new IllegalArgumentException("호스트를 찾을 수 없습니다. User ID: " + hostId));
+
             logger.debug("호스트 찾음: {}", host.getId());
 
             // 이미지 URL 유효성 검사 수정

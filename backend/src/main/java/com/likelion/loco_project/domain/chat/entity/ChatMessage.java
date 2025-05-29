@@ -34,9 +34,11 @@ public class ChatMessage extends BaseEntity {
 
     // 읽음 표시(카카오톡 1 표시같은거)
     @Column(name = "is_read", nullable = false)
+    @Builder.Default
     private boolean isRead = false;
 
     // 소프트 딜리트
     @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
     private boolean isDeleted = false;
 }
