@@ -66,6 +66,9 @@ dependencies {
 	//Redis(이메일 인증번호)
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
+	//OAuth2 클라이언트
+	implementation ("org.springframework.boot:spring-boot-starter-oauth2-client")
+
 }
 
 tasks.withType<Test> {
