@@ -2,89 +2,132 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
-import { Search } from "lucide-react";
+import { FiMenu, FiSearch, FiBell } from "react-icons/fi";
+import { useEffect, useState } from "react";
 
 export default function Header() {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState("");
+  const [realName, setRealName] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    // TODO: Implement search functionality
-    console.log("Searching for:", searchQuery);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const storedUsername = localStorage.getItem("username");
+    const storedRealName = localStorage.getItem("realName");
+
+    if (token) {
+      setIsLoggedIn(true);
+      setUsername(storedUsername || "");
+      setRealName(storedRealName || "");
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.clear();
+    setIsLoggedIn(false);
+    setUsername("");
+    setRealName("");
+    alert("로그아웃되었습니다.");
+  };
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
   };
 
   return (
-    <header className="bg-white border-b">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          {/* Left section - Logo and Navigation */}
-          <div className="flex items-center gap-8">
-            {/* Logo */}
-            <Link href="/" className="font-bold text-2xl">
-              <Image
-                src="/logo.png"
-                alt="LoCo Logo"
-                width={80}
-                height={30}
-                className="object-contain"
-              />
-            </Link>
-
-            {/* Navigation */}
-            <nav className="hidden md:flex items-center gap-6">
-              <Link
-                href="/"
-                className="text-gray-600 hover:text-gray-900 transition"
-              >
-                홈
-              </Link>
-              <Link
-                href="/spaces"
-                className="text-gray-600 hover:text-gray-900 transition"
-              >
-                공간
-              </Link>
-            </nav>
+    <>
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
+        <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between relative">
+          {/* 왼쪽: 햄버거 메뉴 */}
+          <div className="flex items-center">
+            <button onClick={toggleSidebar}>
+              <FiMenu className="text-gray-600 text-xl" />
+            </button>
           </div>
 
-          {/* Right section - Search, Login, Sign up */}
+          {/* 가운데: 로고 (절대 위치로 중앙 고정) */}
           <div className="flex items-center gap-4">
-            {/* Search */}
-            <form onSubmit={handleSearch} className="relative hidden md:block">
+            <Link href="/">
+              <Image src="/logo.png" alt="로고" width={70} height={24} className="object-contain" />
+            </Link>
+          </div>
+
+          {/* 오른쪽: 검색창, 로그인/로그아웃, 알림 */}
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:flex items-center bg-gray-100 rounded-full px-4 py-2">
+              <FiSearch className="text-gray-500 mr-2 text-lg" />
               <input
                 type="text"
-                placeholder="공간 검색"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-[280px] pl-4 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="어떤 공간을 찾으세요?"
+                className="bg-transparent border-none outline-none text-base w-48"
               />
-              <button
-                type="submit"
-                className="absolute right-3 top-1/2 transform -translate-y-1/2"
-              >
-                <Search className="w-5 h-5 text-gray-400" />
-              </button>
-            </form>
+            </div>
 
-            {/* Auth buttons */}
-            <div className="flex items-center gap-3">
-              <Link
-                href="/login"
-                className="text-gray-600 hover:text-gray-900 transition"
-              >
+            {isLoggedIn ? (
+              <>
+                <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                  {realName || username}님
+                </span>
+                <button className="text-sm text-gray-600 hover:text-gray-900" onClick={handleLogout}>
+                  로그아웃
+                </button>
+              </>
+            ) : (
+              <Link href="/login" className="text-sm text-blue-600 hover:underline">
                 로그인
               </Link>
-              <Link
-                href="/signup"
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
-              >
-                회원가입
-              </Link>
-            </div>
+            )}
+
+            <FiBell className="text-gray-600 text-xl" />
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed top-0 left-0 h-full w-72 bg-white z-50 shadow-md transition-transform duration-300 ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="h-40 bg-yellow-400 flex items-center px-4 gap-4">
+          <div className="w-14 h-14 rounded-full bg-white text-yellow-500 font-bold flex items-center justify-center text-xl">
+            {realName ? realName.charAt(0).toUpperCase() : '?'}
+          </div>
+          <div className="flex flex-col">
+            <span className="text-white font-semibold text-base">{realName || username}</span>
+            <Link href="/mypage" className="text-white text-sm hover:underline">
+              프로필 관리 &gt;
+            </Link>
+          </div>
+        </div>
+
+        <div className="p-4 flex flex-col h-[calc(100%-160px)]">
+          <p className="text-xs text-gray-600 mb-4">누적 예약: 0회</p>
+          <button className="text-sm py-2 text-left">이벤트</button>
+          <button className="text-sm py-2 text-left">예약 리스트</button>
+          <button className="text-sm py-2 text-left">관심 공간</button>
+          <button className="text-sm py-2 text-left">스페이스클라우드 홈</button>
+
+          <Link
+            href="/host"
+            className="mt-auto text-center bg-indigo-600 text-white rounded-full py-2 px-4 text-sm font-medium hover:bg-indigo-700"
+          >
+            호스트 센터로 이동 →
+          </Link>
+        </div>
+      </aside>
+
+      {/* Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black opacity-30 z-40"
+          onClick={toggleSidebar}
+        />
+      )}
+    </>
   );
 }

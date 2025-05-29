@@ -76,13 +76,24 @@ export default function HostHeader() {
 
   // 초기 읽지 않은 알림 개수 조회 및 주기적 업데이트
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.warn("No token found. Skipping notification fetch.");
+      setUnreadCount(0); // 토큰이 없으면 읽지 않은 알림 개수를 0으로 설정
+      return;
+    }
+
+    // useAuth의 isLoggedIn과 userId가 유효할 때만 호출 (추가적인 안전 장치)
     if (isLoggedIn && authUserId) {
-      // useAuth의 isLoggedIn과 userId가 유효할 때만 호출
       fetchNotificationsAndCountUnread(); // 초기 로드
       const interval = setInterval(fetchNotificationsAndCountUnread, 30000); // 30초마다 갱신
       return () => clearInterval(interval);
+    } else {
+       // isLoggedIn 또는 authUserId가 없는데 토큰은 있는 경우 (발생 가능성은 낮지만 처리)
+       setUnreadCount(0);
     }
-  }, [isLoggedIn, authUserId]); // isLoggedIn과 authUserId가 변경될 때마다 실행
+
+  }, [isLoggedIn, authUserId, fetchNotificationsAndCountUnread]); // 의존성 배열에 fetchNotificationsAndCountUnread 추가 (stable function이 아니면 lint 경고 발생 가능)
 
   // 보호된 경로 접근 핸들러
   const handleProtectedRoute = (path: string) => {
