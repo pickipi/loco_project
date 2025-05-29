@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from "react";
 
-// 로그인 상태를 위한 Context 타입 정의
+// 로그인 상태를 위한 Context 타입 정의 - 로그인 상태 유지
 export interface AuthContextType {
   isLoggedIn: boolean;
   userId: string | null;
@@ -12,7 +12,9 @@ export interface AuthContextType {
 }
 
 // Context 생성
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined
+);
 
 // Context Provider 컴포넌트 (필요하다면 사용)
 // export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -63,7 +65,7 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-}; 
+};
