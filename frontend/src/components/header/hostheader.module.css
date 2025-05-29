@@ -4,26 +4,33 @@
   left: 0;
   right: 0;
   z-index: 50;
-  background-color: #2563eb;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-
-[data-theme='dark'] .header {
-  background-color: #1e40af;
-  border-bottom-color: rgba(255, 255, 255, 0.1);
+  background-color: #2563EB;
+  color: white;
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 80rem;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding: 0 2rem;
+  }
 }
 
 .headerContent {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  height: 4rem;
 }
 
 .logoContainer {
@@ -34,241 +41,199 @@
 .logoLink {
   display: flex;
   align-items: center;
-  text-decoration: none;
-  color: white;
-  transition: color 0.3s ease;
-}
-
-[data-theme='dark'] .logoLink {
-  color: white;
 }
 
 .logoText {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: bold;
-  margin-right: 0.5rem;
 }
 
 .logoSubtext {
-  font-size: 1.25rem;
-  color: inherit;
+  margin-left: 0.5rem;
+  font-size: 0.875rem;
 }
 
 .desktopNav {
-  display: flex;
-  gap: 2rem;
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .desktopNav {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
 }
 
 .navLink {
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.9);
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 0.5rem;
-  transition: color 0.3s ease;
-}
-
-[data-theme='dark'] .navLink {
-  color: rgba(255, 255, 255, 0.9);
+  color: white;
+  transition: color 0.2s;
 }
 
 .navLink:hover {
-  color: white;
+  color: #e5e7eb;
 }
 
-[data-theme='dark'] .navLink:hover {
-  color: white;
+.authContainer {
+  display: none;
 }
 
-.rightSection {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+@media (min-width: 768px) {
+  .authContainer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
 }
 
 .loginButton {
-  color: rgba(255, 255, 255, 0.9);
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-[data-theme='dark'] .loginButton {
-  color: rgba(255, 255, 255, 0.9);
+  background-color: white;
+  color: #2563EB;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: background-color 0.2s;
 }
 
 .loginButton:hover {
+  background-color: #f3f4f6;
+}
+
+.mobileMenuButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+}
+
+@media (min-width: 768px) {
+  .mobileMenuButton {
+    display: none;
+  }
+}
+
+.mobileMenuButton:hover {
+  color: #e5e7eb;
+  background-color: #3b82f6;
+}
+
+.mobileMenu {
+  display: none;
+}
+
+.mobileMenuOpen {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .mobileMenu {
+    display: none;
+  }
+}
+
+.mobileMenuItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
   color: white;
+  transition: background-color 0.2s;
 }
 
-[data-theme='dark'] .loginButton:hover {
-  color: white;
+.mobileMenuItem:hover {
+  background-color: #3b82f6;
 }
 
-.logoutButton {
-  background: none;
-  border: none;
-  color: #fecaca;
-  cursor: pointer;
-  transition: color 0.3s ease;
+.mobileMenuContainer {
+  padding: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
-.logoutButton:hover {
-  color: #fee2e2;
+.mobileLoginButton {
+  composes: mobileMenuItem;
+  background-color: white;
+  color: #2563EB;
 }
 
-.userEmail {
-  color: rgba(255, 255, 255, 0.9);
+.mobileLoginButton:hover {
+  background-color: #f3f4f6;
 }
 
-[data-theme='dark'] .userEmail {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-/* Notification styles */
 .notificationContainer {
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .notificationButton {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: rgba(255, 255, 255, 0.9);
-  padding: 0.5rem;
   display: flex;
   align-items: center;
-  transition: color 0.3s ease;
-}
-
-[data-theme='dark'] .notificationButton {
-  color: rgba(255, 255, 255, 0.9);
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 50%;
+  color: white;
+  transition: background-color 0.2s;
+  position: relative;
 }
 
 .notificationButton:hover {
-  color: white;
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .notificationBadge {
   position: absolute;
   top: 0;
   right: 0;
-  background-color: #ef4444;
+  background-color: #EF4444;
   color: white;
-  border-radius: 9999px;
-  padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
-  min-width: 1.5rem;
-  text-align: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.25rem;
 }
 
 .notificationPanel {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 0.5rem);
   right: 0;
-  width: 300px;
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   z-index: 50;
+  min-width: 320px;
+  max-width: 400px;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
 }
 
-[data-theme='dark'] .notificationPanel {
-  background-color: #1a1a1a;
-  border-color: #333;
+.mobileNotificationItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
 }
 
-/* Mobile styles */
-.mobileMenuButton {
-  display: none;
+.mobileMenuText {
+  flex: 1;
+  text-align: left;
+  margin-left: 0.5rem;
 }
 
-@media (max-width: 768px) {
-  .desktopNav {
-    display: none;
-  }
-
-  .mobileMenuButton {
-    display: block;
-    background: none;
-    border: none;
-    color: #4b5563;
-    cursor: pointer;
-  }
-
-  [data-theme='dark'] .mobileMenuButton {
-    color: #e5e7eb;
-  }
-
-  .mobileMenuContainer {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background-color: #ffffff;
-    border-top: 1px solid #e5e7eb;
-    padding: 1rem;
-  }
-
-  [data-theme='dark'] .mobileMenuContainer {
-    background-color: #1a1a1a;
-    border-color: #333;
-  }
-
-  .mobileMenuItem {
-    display: block;
-    width: 100%;
-    padding: 0.75rem;
-    text-align: left;
-    background: none;
-    border: none;
-    color: #4b5563;
-    cursor: pointer;
-    transition: color 0.3s ease;
-  }
-
-  [data-theme='dark'] .mobileMenuItem {
-    color: #e5e7eb;
-  }
-
-  .mobileMenuItem:hover {
-    color: #1a1a1a;
-  }
-
-  [data-theme='dark'] .mobileMenuItem:hover {
-    color: #ffffff;
-  }
-
-  .mobileLoginButton {
-    display: block;
-    width: 100%;
-    padding: 0.75rem;
-    text-align: center;
-    background-color: #2563eb;
-    color: white;
-    border-radius: 0.375rem;
-    text-decoration: none;
-    transition: background-color 0.3s ease;
-  }
-
-  .mobileLoginButton:hover {
-    background-color: #1d4ed8;
-  }
-
-  .mobileNotificationItem {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .mobileNotificationBadge {
-    background-color: #dc2626;
-    color: white;
-    border-radius: 9999px;
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
-    min-width: 1.5rem;
-    text-align: center;
-  }
+.mobileNotificationBadge {
+  background-color: #EF4444;
+  color: white;
+  font-size: 0.75rem;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.25rem;
 } 
