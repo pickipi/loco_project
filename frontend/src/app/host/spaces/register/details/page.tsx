@@ -159,7 +159,7 @@ export default function RegisterSpacePage() {
         setError(errorMessage);
         toast.error(errorMessage);
         setIsLoading(false);
-        router.push('/login'); // 로그인 페이지로 리다이렉트
+        router.push('/host/login');
         return null;
       }
 
@@ -185,7 +185,7 @@ export default function RegisterSpacePage() {
         setError(errorMessage);
         toast.error(errorMessage);
         localStorage.removeItem('token');
-        router.push('/login');
+        router.push('/host/login');
         setIsLoading(false);
         return null;
       }
@@ -859,72 +859,100 @@ export default function RegisterSpacePage() {
                   </div>
                 </div>
 
+                {/* 환불 규정 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     환불 규정
                   </label>
-                  <textarea
-                    id="refundPolicy"
-                    name="refundPolicy"
-                    value={formDataState.refundPolicy}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    rows={6}
-                    placeholder="환불 규정을 상세하게 입력해주세요."
-                  />
+                  {/* 스크롤 가능한 환불 규정 안내문 */}
+                  <div className="border border-gray-300 rounded-md p-4 h-40 overflow-y-auto text-sm text-gray-600">
+                    {/* 환불 규정 내용 (임시) */}
+                    <p>• 예약 후 24시간 이내 취소 시: 100% 환불</p>
+                    <p>• 이용 예정일 7일 전까지 취소 시: 90% 환불</p>
+                    <p>• 이용 예정일 3일 전까지 취소 시: 50% 환불</p>
+                    <p>• 이용 예정일 3일 이내 취소 시: 환불 불가</p>
+                    <p className="mt-2">* 천재지변 등 불가항력으로 인한 취소 시 전액 환불됩니다.</p>
+                    <p>* 상세 환불 규정은 예약 시 확인 가능합니다.</p>
+                  </div>
+                  {/* 환불 규정 동의 체크박스 */}
+                  <div className="flex items-center mt-2">
+                    <input
+                      type="checkbox"
+                      id="agreedRefundPolicy"
+                      name="agreedRefundPolicy"
+                      checked={formDataState.agreedRefundPolicy}
+                      onChange={handleCheckboxChange}
+                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                      required
+                    />
+                    <label
+                      htmlFor="agreedRefundPolicy"
+                      className="ml-2 block text-sm text-gray-900"
+                    >
+                      위 환불 규정을 읽고 동의합니다.
+                    </label>
+                  </div>
                 </div>
 
+                {/* 이용 규정 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     이용 규정
                   </label>
-                  <textarea
-                    id="spaceRules"
-                    name="spaceRules"
-                    value={formDataState.spaceRules}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    rows={6}
-                    placeholder="공간 이용 시 지켜야 할 규칙을 입력해주세요."
-                  />
+                   {/* 스크롤 가능한 이용 규정 안내문 */}
+                  <div className="border border-gray-300 rounded-md p-4 h-40 overflow-y-auto text-sm text-gray-600">
+                    {/* 이용 규정 내용 (임시) */}
+                    <p>• 공간 이용 시간은 예약 시간에 맞춰주세요.</p>
+                    <p>• 시설물 훼손 시 배상 책임이 발생할 수 있습니다.</p>
+                    <p>• 예약 인원을 초과하여 공간을 이용할 수 없습니다.</p>
+                    <p>• 공간 내 금연입니다.</p>
+                    <p className="mt-2">* 상세 이용 규정은 예약 확정 후 안내됩니다.</p>
+                  </div>
+                  {/* 이용 규정 동의 체크박스 */}
+                   <div className="flex items-center mt-2">
+                    <input
+                      type="checkbox"
+                      id="agreedSpaceRules"
+                      name="agreedSpaceRules"
+                      checked={formDataState.agreedSpaceRules}
+                      onChange={handleCheckboxChange}
+                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                      required
+                    />
+                    <label
+                      htmlFor="agreedSpaceRules"
+                      className="ml-2 block text-sm text-gray-900"
+                    >
+                      위 이용 규정을 읽고 동의합니다.
+                    </label>
+                  </div>
+                </div>
+
+                {/* 등록하기 버튼 */}
+                <div className="mt-8">
+                   <button
+                    type="button"
+                    onClick={handleFinalSubmit}
+                    disabled={!isSubmitButtonEnabled}
+                    className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white ${isSubmitButtonEnabled ? 'bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500' : 'bg-gray-400 cursor-not-allowed'}`}
+                  >
+                    {isLoading ? '등록 중...' : '등록하기'}
+                  </button>
                 </div>
               </div>
             )}
 
-            {/* 버튼 영역 */}
-            {activeStep >= 2 && activeStep <= 4 && (
-              <div className="flex justify-between mt-10">
-                {activeStep > 2 ? (
-                  <button
-                    type="button"
-                    onClick={() => setActiveStep(activeStep - 1)}
-                    className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-                  >
-                    이전
-                  </button>
-                ) : (
-                  <div></div>
-                )}
-
-                {activeStep < 4 ? (
-                   <button
-                      type="button"
-                       onClick={handleNextButtonClick}
-                       disabled={isLoading}
-                       className={`px-6 py-2 rounded-md ${isLoading ? 'bg-indigo-300 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
-                   >
-                       {activeStep === 2 ? '다음' : '이미지 업로드 및 다음'}
-                   </button>
-                ) : (
-                   <button
-                      type="button"
-                       onClick={handleFinalSubmit}
-                       disabled={!isSubmitButtonEnabled}
-                       className={`px-6 py-2 rounded-md ${!isSubmitButtonEnabled ? 'bg-green-300 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700'}`}
-                   >
-                       {isLoading ? '등록 중...' : '등록하기'}
-                   </button>
-                )}
+            {/* 단계 이동 버튼 */}
+            {activeStep < 4 && (
+              <div className="mt-8 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleNextButtonClick}
+                  disabled={isLoading} // 이미지 업로드 중에는 다음 버튼 비활성화
+                  className="ml-auto flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  다음
+                </button>
               </div>
             )}
           </form>

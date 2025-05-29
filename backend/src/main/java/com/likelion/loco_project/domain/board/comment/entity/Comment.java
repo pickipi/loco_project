@@ -4,9 +4,7 @@ import com.likelion.loco_project.domain.board.board.entity.Board;
 import com.likelion.loco_project.domain.user.entity.User;
 import com.likelion.loco_project.global.jpa.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Entity
@@ -29,6 +27,7 @@ public class Comment extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Builder.Default
     private boolean isDeleted = false;
 
     public void updateContent(String content) {

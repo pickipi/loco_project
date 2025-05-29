@@ -76,6 +76,7 @@ public class Space extends BaseEntity {
     @Column(name = "image_url", length = 512)
     private String imageUrl; // 대표 이미지 URL
 
+    @Builder.Default
     @ElementCollection
     @CollectionTable(
         name = "space_images",

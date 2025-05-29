@@ -41,6 +41,13 @@ dependencies {
 	// Spring Security Core (암호화)
 	implementation("org.springframework.boot:spring-boot-starter-security")
 
+	// Spring Security OAuth2 관련 의존성 추가
+	implementation("org.springframework.security:spring-security-oauth2-jose")
+	implementation("org.springframework.security:spring-security-oauth2-resource-server")
+	implementation("org.springframework.security:spring-security-oauth2-client")
+	implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+	implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+
 	//Swagger 라이브러리 추가
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
 
