@@ -48,6 +48,10 @@ public class User extends BaseEntity {
     @Comment("평점")
     private Double rating;
 
+    @Column
+    @Comment("이미지")
+    private String imageUrl; //이미지
+
     // 유저 삭제를 물리삭제가 아닌 논리삭제로 변경하는데에 필요한 엔티티
     @Column(name = "is_deleted", nullable = false)
     @Comment("삭제 여부")

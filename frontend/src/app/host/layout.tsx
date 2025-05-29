@@ -2,10 +2,8 @@
 
 import { Inter } from "next/font/google";
 import HostHeader from "@/components/header/hostheader";
-import { ThemeProvider } from "@/components/darkmode/ThemeContext";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import HostNavbar from "../components/HostNavbar";
 import { AuthContext, AuthContextType } from "@/context/AuthContext";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -73,34 +71,20 @@ export default function HostLayout({
 
   return (
     <AuthContext.Provider value={authContextValue}>
-      <ThemeProvider>
-        <div
-          className={`${inter.className} min-h-screen`}
-          style={{
-            backgroundColor: "var(--bg-primary)",
-            color: "var(--text-primary)",
-          }}
-        >
-          <HostHeader />
-          <HostNavbar />
-          <main
+      <div className={`${inter.className} min-h-screen bg-white`}>
+        <HostHeader />
+        <main className="min-h-[calc(100vh-64px)] bg-white">
+          <div
             style={{
-              backgroundColor: "var(--bg-primary)",
-              minHeight: "calc(100vh - 64px)",
+              maxWidth: isMainPage ? "100%" : "1200px",
+              margin: "0 auto",
+              padding: isMainPage ? "0" : "24px",
             }}
           >
-            <div
-              style={{
-                maxWidth: isMainPage ? "100%" : "1200px",
-                margin: "0 auto",
-                padding: isMainPage ? "0" : "24px",
-              }}
-            >
-              {children}
-            </div>
-          </main>
-        </div>
-      </ThemeProvider>
+            {children}
+          </div>
+        </main>
+      </div>
     </AuthContext.Provider>
   );
 }

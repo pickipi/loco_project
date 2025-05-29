@@ -1,0 +1,213 @@
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
+  text-align: center;
+  margin: 60px 0 40px 0;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #eee;
+}
+
+.header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #000;
+  margin: 0;
+  display: inline-block;
+  position: relative;
+  padding: 0 20px;
+}
+
+.header h1::after {
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #6366f1;
+}
+
+.passwordChangeTitle {
+  text-align: center;
+  margin: 60px 0 40px 0;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #eee;
+}
+
+.passwordChangeTitle h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #000;
+  margin: 0;
+  display: inline-block;
+  position: relative;
+  padding: 0 20px;
+}
+
+.passwordChangeTitle h2::after {
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #6366f1;
+}
+
+.profileContent {
+  background: white;
+  border-radius: 8px;
+  padding: 30px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.profileImage {
+  text-align: center;
+  margin: 0 auto 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  border-radius: 50%;
+  margin-bottom: 10px;
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+}
+
+.userName {
+  font-size: 18px;
+  font-weight: 700;
+  color: #000;
+}
+
+.userType {
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.userType:hover {
+  color: #6366f1;
+  text-decoration: underline;
+}
+
+.profileDetails {
+  margin-top: 30px;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.field label {
+  width: 120px;
+  font-weight: 600;
+  color: #000;
+}
+
+.value {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #000;
+  font-weight: 500;
+}
+
+.editButton {
+  background: none;
+  border: none;
+  color: #6366f1;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.editButton:hover {
+  text-decoration: underline;
+}
+
+.marketingSection {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.marketingSection h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #000;
+  margin-bottom: 15px;
+}
+
+.marketingOption {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.marketingOption label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-weight: 500;
+  color: #000;
+}
+
+.marketingOption span {
+  margin-right: 10px;
+}
+
+.marketingNote {
+  font-size: 12px;
+  color: #666;
+  margin-top: 10px;
+  font-weight: 500;
+}
+
+.footer {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.deleteButton {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.deleteButton:hover {
+  color: #333;
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  font-weight: 600;
+  color: #000;
+}
+
+.error {
+  text-align: center;
+  padding: 20px;
+  color: #dc2626;
+  font-weight: 600;
+} 

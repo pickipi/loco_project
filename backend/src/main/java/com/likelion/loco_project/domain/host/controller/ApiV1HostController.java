@@ -9,6 +9,7 @@ import com.likelion.loco_project.domain.user.dto.LoginRequestDto;
 import com.likelion.loco_project.domain.user.dto.LoginResponseDto;
 import com.likelion.loco_project.domain.user.dto.UserRequestDto;
 import com.likelion.loco_project.domain.user.service.UserService;
+import com.likelion.loco_project.global.jwt.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
