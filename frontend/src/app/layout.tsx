@@ -1,6 +1,9 @@
+'use client'
+
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/components/darkmode/ThemeContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
