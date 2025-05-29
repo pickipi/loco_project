@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { Building2, Camera, PartyPopper, Coffee, Upload } from "lucide-react";
 import AddressSearch from "@/components/AddressSearch";
 import dynamic from "next/dynamic";
+import { useAuth } from "@/context/AuthContext";
+import { toast } from 'react-toastify';
 
 // DaumPostcode를 dynamic import로 불러오기
 const DaumPostcode = dynamic(() => import("@/components/DaumPostcode"), {
@@ -29,13 +31,15 @@ interface SpaceFormData {
   closeTime: string;
   minTime: string;
   maxTime: string;
+  refundPolicy: string;
+  spaceRules: string;
 }
 
 export default function RegisterSpacePage() {
   const router = useRouter();
   const [activeStep, setActiveStep] = useState(2);
   const [showAddressSearch, setShowAddressSearch] = useState(false);
-  const [formData, setFormData] = useState<SpaceFormData>({
+  const [formDataState, setFormDataState] = useState<SpaceFormData>({
     name: "",
     type: "",
     description: "",
@@ -48,7 +52,12 @@ export default function RegisterSpacePage() {
     closeTime: "",
     minTime: "1",
     maxTime: "4",
+    refundPolicy: "",
+    spaceRules: "",
   });
+  const { userId } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // localStorage에서 선택된 공간 유형 가져오기
   useEffect(() => {
@@ -56,14 +65,14 @@ export default function RegisterSpacePage() {
     if (selectedTypes) {
       const types = JSON.parse(selectedTypes);
       if (types.length > 0) {
-        setFormData(prev => ({ ...prev, type: types[0] }));
+        setFormDataState(prev => ({ ...prev, type: types[0] }));
       }
     }
   }, []);
 
   // 주소 검색 완료 핸들러
   const handleAddressComplete = (data: any) => {
-    setFormData((prev) => ({
+    setFormDataState((prev) => ({
       ...prev,
       address: data.address,
       zonecode: data.zonecode,
@@ -78,88 +87,86 @@ export default function RegisterSpacePage() {
     >
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormDataState((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // 최종 제출 전 모든 필수 필드 검증
-    if (!formData.name || !formData.description || formData.description.length < 20 || !formData.address) {
-      alert('공간 이름, 공간 소개(20자 이상), 주소는 필수 입력 항목입니다.');
-      return;
-    }
-    if (!formData.capacity || !formData.price || parseInt(formData.price) < 1000 || formData.images.length === 0) {
-      alert('수용 인원, 시간당 가격(1000원 이상), 공간 사진은 필수 입력 항목입니다.');
-      return;
-    }
+    setIsLoading(true);
+    setError(null);
 
     try {
-      // 이미지 업로드 먼저 진행
-      const imageUrls = [];
-      for (const image of formData.images) {
-        const formData = new FormData();
-        formData.append('file', image);
-        
-        const uploadResponse = await fetch(`${API_BASE_URL}/api/v1/spaces/images/upload`, {
-          method: 'POST',
-          body: formData,
-        });
-        
-        if (!uploadResponse.ok) {
-          throw new Error('이미지 업로드 실패');
-        }
-        
-        const uploadData = await uploadResponse.json();
-        imageUrls.push(uploadData.data[0]); // 업로드된 이미지 URL
+      // 1. 이미지 업로드
+      if (formDataState.images.length === 0) {
+        const errorMessage = '이미지를 선택해주세요.';
+        setError(errorMessage);
+        toast.error(errorMessage);
+        setIsLoading(false);
+        return;
       }
 
-      // 공간 등록 API 호출
-      const response = await fetch(`${API_BASE_URL}/api/v1/spaces`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({
-          spaceName: formData.name,
-          spaceType: formData.type,
-          description: formData.description,
-          address: formData.address,
-          detailAddress: formData.detailAddress,
-          maxCapacity: parseInt(formData.capacity),
-          price: parseInt(formData.price),
-          imageUrls: imageUrls,
-          openTime: formData.openTime,
-          closeTime: formData.closeTime,
-          minTime: parseInt(formData.minTime),
-          maxTime: parseInt(formData.maxTime),
-        }),
+      const uploadFormData = new FormData();
+      formDataState.images.forEach(file => {
+        uploadFormData.append('files', file);
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || '공간 등록에 실패했습니다.');
+      // JWT 토큰 가져오기
+      const token = localStorage.getItem('token');
+      if (!token) {
+        const errorMessage = '로그인 정보가 없습니다. 다시 로그인 해주세요.';
+        setError(errorMessage);
+        toast.error(errorMessage);
+        setIsLoading(false);
+        return;
       }
 
-      const data = await response.json();
-      alert('공간이 성공적으로 등록되었습니다!');
-      router.push('/host/spaces/register/complete');
+      console.log("Uploading images...");
+
+      const uploadResponse = await fetch(`${API_BASE_URL}/api/v1/spaces/images/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: uploadFormData,
+      });
+
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json();
+        console.error("Image upload failed response:", errorData);
+        const errorMessage = '이미지 업로드 실패: ' + (errorData.msg || uploadResponse.statusText);
+        setError(errorMessage);
+        toast.error(errorMessage);
+        setIsLoading(false);
+        return;
+      }
+
+      const uploadResult = await uploadResponse.json();
+      console.log("Image upload result:", uploadResult);
+
+      const imageUrls: string[] = uploadResult.data;
+
+      console.log("Uploaded Image URLs:", imageUrls);
+
+      toast.success("이미지 업로드 성공! 다음 단계로 이동하세요.");
     } catch (error) {
-      console.error('공간 등록 오류:', error);
-      alert(error instanceof Error ? error.message : '공간 등록 중 오류가 발생했습니다.');
+      console.error('이미지 업로드 오류:', error);
+      const errorMessage = error instanceof Error ? error.message : '이미지 업로드 중 오류가 발생했습니다.';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const nextStep = () => {
     // 현재 단계의 필수 필드만 검증 후 다음 단계로 이동
     if (activeStep === 2) { // 기본 정보 탭
-      if (!formData.name || !formData.description || formData.description.length < 20 || !formData.address) {
+      if (!formDataState.name || !formDataState.description || formDataState.description.length < 20 || !formDataState.address) {
         alert('공간 이름, 공간 소개(20자 이상), 주소는 필수 입력 항목입니다.');
         return;
       }
     } else if (activeStep === 3) { // 공간 정보 탭
-      if (!formData.capacity || !formData.price || parseInt(formData.price) < 1000 || formData.images.length === 0) {
+      if (!formDataState.capacity || !formDataState.price || parseInt(formDataState.price) < 1000 || formDataState.images.length === 0) {
         alert('수용 인원, 시간당 가격(1000원 이상), 공간 사진은 필수 입력 항목입니다.');
         return;
       }
@@ -284,7 +291,7 @@ export default function RegisterSpacePage() {
                     type="text"
                     id="name"
                     name="name"
-                    value={formData.name}
+                    value={formDataState.name}
                     onChange={handleInputChange}
                     placeholder="공간의 특징이 잘 드러나는 이름을 입력해주세요"
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -302,7 +309,7 @@ export default function RegisterSpacePage() {
                   <textarea
                     id="description"
                     name="description"
-                    value={formData.description}
+                    value={formDataState.description}
                     onChange={handleInputChange}
                     placeholder="공간의 특징, 장점, 주요 시설 등을 자세히 소개해주세요"
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px]"
@@ -320,7 +327,7 @@ export default function RegisterSpacePage() {
                     type="text"
                     id="address"
                     name="address"
-                    value={formData.address}
+                    value={formDataState.address}
                     onChange={handleInputChange}
                     placeholder="주소를 입력해주세요"
                     className="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -342,7 +349,7 @@ export default function RegisterSpacePage() {
                     type="text"
                     id="detailAddress"
                     name="detailAddress"
-                    value={formData.detailAddress}
+                    value={formDataState.detailAddress}
                     onChange={handleInputChange}
                     placeholder="상세 주소를 입력해주세요"
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -366,7 +373,7 @@ export default function RegisterSpacePage() {
                       type="number"
                       id="capacity"
                       name="capacity"
-                      value={formData.capacity}
+                      value={formDataState.capacity}
                       onChange={handleInputChange}
                       placeholder="최대 수용 가능한 인원"
                       className="w-24 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -389,7 +396,7 @@ export default function RegisterSpacePage() {
                       type="number"
                       id="price"
                       name="price"
-                      value={formData.price}
+                      value={formDataState.price}
                       onChange={handleInputChange}
                       placeholder="시간당 가격을 입력해주세요"
                       className="w-40 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -448,12 +455,12 @@ export default function RegisterSpacePage() {
 
                       if (imageFiles.length > 0) {
                         const totalImages =
-                          formData.images.length + imageFiles.length;
+                          formDataState.images.length + imageFiles.length;
                         if (totalImages > 10) {
                           alert("최대 10장까지만 업로드 가능합니다.");
                           return;
                         }
-                        setFormData((prev) => ({
+                        setFormDataState((prev) => ({
                           ...prev,
                           images: [...prev.images, ...imageFiles],
                         }));
@@ -479,13 +486,13 @@ export default function RegisterSpacePage() {
                           return true;
                         });
 
-                        const totalImages = formData.images.length + validFiles.length;
+                        const totalImages = formDataState.images.length + validFiles.length;
                          if (totalImages > 10) {
                           alert("최대 10장까지만 업로드 가능합니다.");
                           return;
                         }
 
-                        setFormData((prev) => ({
+                        setFormDataState((prev) => ({
                           ...prev,
                           images: [...prev.images, ...validFiles],
                         }));
@@ -507,13 +514,13 @@ export default function RegisterSpacePage() {
                   </div>
 
                   {/* 업로드된 이미지 미리보기 */}
-                  {formData.images.length > 0 && (
+                  {formDataState.images.length > 0 && (
                     <div className="mt-4">
                       <div className="mb-2 text-sm text-gray-600">
-                        업로드된 이미지 ({formData.images.length}/10)
+                        업로드된 이미지 ({formDataState.images.length}/10)
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {formData.images.map((image, index) => (
+                        {formDataState.images.map((image, index) => (
                           <div
                             key={index}
                             className="relative group aspect-square"
@@ -527,7 +534,7 @@ export default function RegisterSpacePage() {
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setFormData((prev) => ({
+                                setFormDataState((prev) => ({
                                   ...prev,
                                   images: prev.images.filter(
                                     (_, i) => i !== index
@@ -579,7 +586,7 @@ export default function RegisterSpacePage() {
                   <div className="flex items-center gap-2">
                     <select
                       name="openTime"
-                      value={formData.openTime}
+                      value={formDataState.openTime}
                       onChange={handleInputChange}
                       className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
@@ -596,7 +603,7 @@ export default function RegisterSpacePage() {
                     <span>~</span>
                     <select
                       name="closeTime"
-                      value={formData.closeTime}
+                      value={formDataState.closeTime}
                       onChange={handleInputChange}
                       className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
@@ -620,7 +627,7 @@ export default function RegisterSpacePage() {
                   <div className="flex items-center gap-2">
                     <input
                       type="text"
-                      value={formData.price}
+                      value={formDataState.price}
                       readOnly
                       className="w-40 px-4 py-2 border border-gray-300 rounded-md bg-gray-50"
                     />
@@ -635,7 +642,7 @@ export default function RegisterSpacePage() {
                   <div className="flex items-center gap-2">
                     <select
                       name="minTime"
-                      value={formData.minTime}
+                      value={formDataState.minTime}
                       onChange={handleInputChange}
                       className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
@@ -647,7 +654,7 @@ export default function RegisterSpacePage() {
                     <span>~</span>
                     <select
                       name="maxTime"
-                      value={formData.maxTime}
+                      value={formDataState.maxTime}
                       onChange={handleInputChange}
                       className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
@@ -666,11 +673,41 @@ export default function RegisterSpacePage() {
                   <div className="flex items-center gap-2">
                     <input
                       type="text"
-                      value={`최소 인원: 1명 ~ 최대 인원: ${formData.capacity}명`}
+                      value={`최소 인원: 1명 ~ 최대 인원: ${formDataState.capacity}명`}
                       readOnly
                       className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    환불 규정
+                  </label>
+                  <textarea
+                    id="refundPolicy"
+                    name="refundPolicy"
+                    value={formDataState.refundPolicy}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    rows={6}
+                    placeholder="환불 규정을 상세하게 입력해주세요."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    이용 규정
+                  </label>
+                  <textarea
+                    id="spaceRules"
+                    name="spaceRules"
+                    value={formDataState.spaceRules}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    rows={6}
+                    placeholder="공간 이용 시 지켜야 할 규칙을 입력해주세요."
+                  />
                 </div>
               </div>
             )}
@@ -693,7 +730,7 @@ export default function RegisterSpacePage() {
                 <button
                    type={activeStep === 4 ? "submit" : "button"}
                    onClick={activeStep === 4 ? handleSubmit : nextStep}
-                   className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                   className={`px-6 py-2 ${activeStep === 4 ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-indigo-600 text-white hover:bg-indigo-700'} rounded-md ${isLoading ? 'cursor-not-allowed' : ''}`}
                  >
                    {activeStep === 4 ? "등록 하기" : "다음"}
                  </button>

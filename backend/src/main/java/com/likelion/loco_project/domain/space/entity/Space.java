@@ -84,6 +84,12 @@ public class Space extends BaseEntity {
     @Column(name = "image_url", length = 512, nullable = false)
     private List<String> additionalImageUrls = new ArrayList<>(); // 추가 이미지 URL 목록
 
+    @Column(nullable = true) // 환불 규정은 필수는 아닐 수 있습니다. 요구사항에 따라 변경하세요.
+    private String refundPolicy;
+
+    @Column(nullable = true) // 이용 규정도 필수는 아닐 수 있습니다. 요구사항에 따라 변경하세요.
+    private String spaceRules;
+
     // 이미지 URL 처리를 위한 헬퍼 메서드 추가
     public void setMainImage(String imageUrl) {
         this.imageUrl = imageUrl;

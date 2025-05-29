@@ -52,6 +52,12 @@ public class SpaceCreateRequestDto {
     @Schema(description = "가격", example = "15000")
     private Long price;
 
+    @Schema(description = "환불 규정", example = "예약일 3일 전까지 100% 환불")
+    private String refundPolicy;
+
+    @Schema(description = "이용 규정", example = "취사 금지, 금연")
+    private String spaceRules;
+
     // DTO → Entity (Host 주입)
     public Space toEntity(Host host) {
         List<String> additionalUrls = new ArrayList<>();
