@@ -36,6 +36,8 @@ interface SpaceFormData {
   spaceRules: string;
   agreedRefundPolicy: boolean;
   agreedSpaceRules: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export default function RegisterSpacePage() {
@@ -82,6 +84,8 @@ export default function RegisterSpacePage() {
       ...prev,
       address: data.address,
       zonecode: data.zonecode,
+      latitude: 37.5665, // 임시 위도 값
+      longitude: 126.9780, // 임시 경도 값
     }));
   };
 
@@ -279,6 +283,8 @@ export default function RegisterSpacePage() {
               maxTime: parseInt(formDataState.maxTime, 10), // 숫자로 변환
               refundPolicy: formDataState.refundPolicy,
               spaceRules: formDataState.spaceRules,
+              latitude: formDataState.latitude, // 위도 추가
+              longitude: formDataState.longitude, // 경도 추가
               // agreedRefundPolicy와 agreedSpaceRules는 백엔드 전송에 필요 없을 수 있지만, 필요하다면 추가
           };
 
