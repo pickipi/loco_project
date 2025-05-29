@@ -1,6 +1,5 @@
 package com.likelion.loco_project.domain.host.controller;
 
-
 import com.likelion.loco_project.domain.host.dto.HostRequestDto;
 import com.likelion.loco_project.domain.host.dto.HostResponseDto;
 import com.likelion.loco_project.domain.host.entity.Host;
@@ -9,6 +8,7 @@ import com.likelion.loco_project.domain.user.dto.LoginRequestDto;
 import com.likelion.loco_project.domain.user.dto.LoginResponseDto;
 import com.likelion.loco_project.domain.user.dto.UserRequestDto;
 import com.likelion.loco_project.domain.user.service.UserService;
+import com.likelion.loco_project.global.jwt.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -18,7 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/v1/hosts")

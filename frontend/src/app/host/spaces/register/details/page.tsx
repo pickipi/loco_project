@@ -93,35 +93,61 @@ export default function RegisterSpacePage() {
       alert('수용 인원, 시간당 가격(1000원 이상), 공간 사진은 필수 입력 항목입니다.');
       return;
     }
-    // 단계 3 (이용 규칙)에서는 현재 필수 필드 없음
 
     try {
-      // 실제 API 호출 부분 (주석 해제 및 수정 필요)
-      // const response = await fetch('/api/v1/spaces', { // 엔드포인트 수정 필요
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     // 필요한 경우 인증 토큰 추가
-      //   },
-      //   body: JSON.stringify(formData), // 백엔드 DTO에 맞게 formData 구조 변경 필요
-      // })
+      // 이미지 업로드 먼저 진행
+      const imageUrls = [];
+      for (const image of formData.images) {
+        const formData = new FormData();
+        formData.append('file', image);
+        
+        const uploadResponse = await fetch(`${API_BASE_URL}/api/v1/spaces/images/upload`, {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!uploadResponse.ok) {
+          throw new Error('이미지 업로드 실패');
+        }
+        
+        const uploadData = await uploadResponse.json();
+        imageUrls.push(uploadData.data[0]); // 업로드된 이미지 URL
+      }
 
-      // if (response.ok) {
-      //   const data = await response.json()
-      //   router.push(`/spaces/${data.id}`) // 성공 후 이동할 페이지 수정 필요
-      // } else {
-      //    const errorData = await response.json(); // 오류 응답 처리
-      //    alert(`공간 등록 실패: ${errorData.message || response.statusText}`);
-      // }
+      // 공간 등록 API 호출
+      const response = await fetch(`${API_BASE_URL}/api/v1/spaces`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          spaceName: formData.name,
+          spaceType: formData.type,
+          description: formData.description,
+          address: formData.address,
+          detailAddress: formData.detailAddress,
+          maxCapacity: parseInt(formData.capacity),
+          price: parseInt(formData.price),
+          imageUrls: imageUrls,
+          openTime: formData.openTime,
+          closeTime: formData.closeTime,
+          minTime: parseInt(formData.minTime),
+          maxTime: parseInt(formData.maxTime),
+        }),
+      });
 
-      // 임시 처리 (API 연동 전까지 사용)
-      console.log("제출된 데이터:", formData);
-      alert("공간이 성공적으로 등록되었습니다!");
-      router.push("/host/dashboard"); // 등록 성공 후 이동할 페이지
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '공간 등록에 실패했습니다.');
+      }
 
+      const data = await response.json();
+      alert('공간이 성공적으로 등록되었습니다!');
+      router.push('/host/spaces/register/complete');
     } catch (error) {
-      console.error("공간 등록 오류:", error);
-      alert("공간 등록 중 오류가 발생했습니다.");
+      console.error('공간 등록 오류:', error);
+      alert(error instanceof Error ? error.message : '공간 등록 중 오류가 발생했습니다.');
     }
   };
 

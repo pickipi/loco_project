@@ -12,24 +12,34 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/spaces/images")
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")  // 직접 origin 지정
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @Tag(name = "공간의 이미지", description = "공간 이미지 관리 API")
 public class ApiV1SpaceImageController {
     private final S3Service s3Service;
+
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp"
+    );
 
     @PostMapping("/upload")
     @Operation(summary = "이미지 업로드", description = "공간의 이미지를 업로드합니다.")
     public ResponseEntity<RsData<List<String>>> uploadImages(
             @RequestParam("files") List<MultipartFile> files) {
         List<String> imageUrls = new ArrayList<>();
+        List<String> errors = new ArrayList<>();
         
         try {
             for (MultipartFile file : files) {
-                // 파일 크기 검증 필요
+                // 파일 크기 검증
                 if (file.getSize() > MAX_FILE_SIZE) {
                     errors.add(file.getOriginalFilename() + ": 파일 크기가 5MB를 초과합니다.");
                     continue;
@@ -45,6 +55,13 @@ public class ApiV1SpaceImageController {
                 String imageUrl = s3Service.uploadFile(file);
                 imageUrls.add(imageUrl);
             }
+
+            // 에러가 있는 경우
+            if (!errors.isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(RsData.of("F-1", "일부 파일 업로드 실패", errors));
+            }
+
             return ResponseEntity.ok(RsData.of("S-1", "이미지 업로드 성공", imageUrls));
         } catch (Exception e) {
             return ResponseEntity.badRequest()

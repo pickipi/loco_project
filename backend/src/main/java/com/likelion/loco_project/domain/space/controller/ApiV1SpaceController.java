@@ -4,10 +4,13 @@ import com.likelion.loco_project.domain.space.dto.*;
 import com.likelion.loco_project.domain.space.service.SpaceService;
 import com.likelion.loco_project.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -27,13 +30,15 @@ public class ApiV1SpaceController {
     @PostMapping
     @Operation(summary = "공간 등록", description = "새로운 공간을 등록합니다.")
     public ResponseEntity<RsData<SpaceResponseDto>> createSpace(
+            @AuthenticationPrincipal Long hostId,
             @RequestBody SpaceCreateRequestDto spaceCreateRequestDto) {
         try {
-            SpaceResponseDto response = spaceService.createSpace(hostId, dto);
-            return ResponseEntity.ok(response);
+            SpaceResponseDto response = spaceService.createSpace(hostId, spaceCreateRequestDto);
+            return ResponseEntity.ok(RsData.of("S-1", "공간 등록 성공", response));
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("공간 등록 중 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.badRequest()
+                .body(RsData.of("F-1", "공간 등록 중 오류가 발생했습니다: " + e.getMessage(), null));
         }
     }
 
