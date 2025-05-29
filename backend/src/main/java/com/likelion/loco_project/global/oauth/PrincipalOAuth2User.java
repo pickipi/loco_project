@@ -26,4 +26,5 @@ public class PrincipalOAuth2User implements OAuth2User {
     @Override public String getName() { return user.getEmail(); }
     public boolean isNewUser() { return newUser; }
     public String getRole() { return user.getUserType().name(); }
+    public String getPhoneNumber() { return user.getPhoneNumber(); }
 }

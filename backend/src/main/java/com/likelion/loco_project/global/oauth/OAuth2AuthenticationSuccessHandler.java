@@ -42,6 +42,8 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         // 기존 사용자: JWT 생성 후 프론트로 리다이렉트
         Long userId = principal.getUser().getId();
         String role   = principal.getRole();
+        String realName = principal.getUser().getUsername();
+        String phone = principal.getPhoneNumber();
 
         String accessToken  = jwtTokenProvider.generateAccessToken(userId, role);
         String refreshToken = jwtTokenProvider.generateRefreshToken(userId, role);
@@ -51,6 +53,8 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                 .queryParam("token", accessToken)
                 .queryParam("refreshToken", refreshToken)
                 .queryParam("email", email)
+                .queryParam("name", realName)
+                .queryParam("phone", phone)
                 .build()
                 .encode()
                 .toUriString();
