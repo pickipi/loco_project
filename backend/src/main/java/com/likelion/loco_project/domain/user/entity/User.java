@@ -94,4 +94,12 @@ public class User extends BaseEntity {
     public void changePassword(String newPassword) {
         this.password = newPassword;
     }
+
+    // 사용자 권한 변경 메서드
+    public void updateUserType(UserType newType) {
+        if (this.userType == UserType.ADMIN) {
+            throw new IllegalStateException("관리자의 권한은 변경할 수 없습니다.");
+        }
+        this.userType = newType;
+    }
 }
