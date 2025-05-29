@@ -22,6 +22,10 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -66,6 +70,8 @@ public class SecurityConfig {
 
                 // 3) 인가 설정
                 .authorizeHttpRequests(authorize -> authorize
+                        // 이미지 파일 접근 허용 (가장 높은 우선순위)
+                        .requestMatchers("/global/data/image/**").permitAll()
                         // OPTIONS 요청은 모든 경로에 대해 허용 (CORS Preflight)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // H2 콘솔

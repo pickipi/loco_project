@@ -3,45 +3,34 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import SpaceCard from "@/components/space/SpaceCard";
+import { SpaceListResponseDto } from "@/types/space";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
 
-// 서버에서 받는 데이터 타입
-interface SpaceResponse {
-  id: string;
-  spaceName: string;
-  description: string;
-  address: string;
-  detailAddress?: string;
-  neighborhoodInfo?: string;
-  latitude: number;
-  longitude: number;
-  maxCapacity: number;
-  price: number;
-  spaceRating: number;
-  imageId: number;
-  isActive: boolean;
-}
-
 export default function AllSpacesPage() {
   const router = useRouter();
-  const [spaces, setSpaces] = useState<SpaceResponse[]>([]);
+  const [spaces, setSpaces] = useState<SpaceListResponseDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchSpaces = async () => {
       try {
         const response = await fetch(
-          `${API_BASE_URL}/api/v1/spaces/all?page=0&size=12&sort=id`
+          `${API_BASE_URL}/api/v1/spaces/all`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch spaces");
         }
 
         const data = await response.json();
-        const spaceData = data.data?.content || [];
-        setSpaces(spaceData);
+        if (data.resultCode === 'S-1' && data.data && data.data.content) {
+          setSpaces(data.data.content);
+        } else {
+          console.error('데이터 구조가 예상과 다릅니다:', data);
+          setSpaces([]);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch spaces");
       } finally {
@@ -87,18 +76,7 @@ export default function AllSpacesPage() {
             .map((space) => (
               <SpaceCard
                 key={space.id}
-                id={space.id}
-                title={space.spaceName}
-                location={space.address}
-                capacity={`${space.maxCapacity}명`}
-                price={space.price}
-                rating={Number(space.spaceRating) || 0}
-                imageUrl={`${
-                  space.imageId
-                    ? `/images/${space.imageId}`
-                    : "/placeholder.svg"
-                }`}
-                reviewCount={0}
+                {...space}
               />
             ))}
         </div>

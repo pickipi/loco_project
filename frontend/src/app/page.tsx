@@ -5,36 +5,105 @@ import Link from "next/link";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { FaInstagram, FaTwitter, FaYoutube } from "react-icons/fa";
 import Header from "@/components/header/header";
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
+  const router = useRouter();
+
+  const handleCategoryClick = (categoryName: string) => {
+    // TODO: 백엔드의 SpaceType에 맞게 카테고리 이름 매핑 필요
+    let purpose;
+    switch (categoryName) {
+      case '카페':
+        purpose = 'CAFE'; // 예시
+        break;
+      case '파티룸':
+        purpose = 'PARTY_ROOM'; // 예시
+        break;
+      case '공유오피스':
+        purpose = 'SHARED_OFFICE'; // 예시
+        break;
+      case '스튜디오':
+        purpose = 'STUDIO'; // 예시
+        break;
+      case '연습실':
+        purpose = 'PRACTICE_ROOM'; // 예시
+        break;
+      case '강의실/세미나':
+        purpose = 'LECTURE_ROOM'; // 예시
+        break;
+      case '스포츠/댄스':
+        purpose = 'SPORTS_DANCE'; // 예시
+        break;
+      case '악기연습실':
+        purpose = 'INSTRUMENT_ROOM'; // 예시
+        break;
+      case '녹음실':
+        purpose = 'RECORDING_STUDIO'; // 예시
+        break;
+      case '캠핑장':
+        purpose = 'CAMPING_SITE'; // 예시
+        break;
+      case '주방':
+        purpose = 'KITCHEN'; // 예시
+        break;
+      default:
+        purpose = '';
+    }
+    if (purpose) {
+      router.push(`/spaces/search?purpose=${encodeURIComponent(purpose)}`);
+    } else {
+      router.push(`/spaces/search`);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white relative overflow-x-hidden">
       <Header />
 
       <main className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
-        {/* Carousel Section */}
-        <section className="relative bg-red-500 text-white my-4 rounded-xl overflow-hidden">
-          <div className="mx-auto px-4 py-6 flex items-center justify-between">
-            <button className="absolute left-2 bg-white/20 rounded-full p-2 z-10">
-              <IoIosArrowBack className="text-white" />
+        {/* Carousel Section (개선된 디자인) */}
+        <section className="relative my-4 rounded-xl overflow-hidden h-32 bg-gray-200"> {/* height를 32로 고정 및 aspect-video 제거 */}
+          {/* 배경 이미지 (임시 placeholder 이미지 사용 - 실제 이미지로 교체 필요) */}
+          <Image
+            src="/placeholder.svg" // 임시 placeholder 이미지
+            alt="할인 배너"
+            layout="fill"
+            objectFit="cover"
+            className="z-0"
+          />
+          <div className="absolute inset-0 bg-black opacity-40 z-10"></div> {/* 오버레이 */}
+
+          <div className="relative z-20 flex items-center h-full px-8 py-6">
+            {/* 좌측 화살표 */}
+            <button className="bg-white/30 rounded-full p-2 mr-4">
+              <IoIosArrowBack className="text-white text-xl" />
             </button>
 
-            <div className="flex-1 z-0 ml-8">
+            {/* 캐러셀 내용 */}
+            <div className="flex-1 text-white">
               <div className="flex items-center mb-2">
-                <span className="bg-white text-red-500 rounded-full w-6 h-6 flex items-center justify-center mr-2">i</span>
+                <span className="bg-white text-red-500 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mr-2">i</span>
                 <h2 className="text-xl font-bold">파티룸 찾을 때 주의 할인 받으세요</h2>
               </div>
-              <p className="text-sm">지금 제휴 혜택을 확인하기</p>
+              <p className="text-sm">지금 제휴 혜택을 확인하세요</p>
+              <button className="mt-4 bg-white text-gray-800 text-sm px-4 py-1.5 rounded-full font-medium hover:bg-gray-100 transition-colors duration-200">
+                자세히 보기
+              </button>
             </div>
 
-            <div className="w-20 h-20 bg-white/20 rounded-md"></div>
+            {/* 우측 화살표 */}
+            <button className="bg-white/30 rounded-full p-2 ml-4">
+              <IoIosArrowForward className="text-white text-xl" />
+            </button>
           </div>
-          <div className="absolute bottom-2 right-4 text-xs text-white">
-            1/3
+
+          {/* 페이지네이션 (선택 사항) */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex space-x-1">
+            <span className="w-2 h-2 bg-white rounded-full"></span>
+            <span className="w-2 h-2 bg-white/50 rounded-full"></span>
+            <span className="w-2 h-2 bg-white/50 rounded-full"></span>
           </div>
-          <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/20 rounded-full p-2 z-10">
-            <IoIosArrowForward className="text-white" />
-          </button>
         </section>
 
         {/* Category Navigation */}
@@ -65,7 +134,7 @@ export default function Home() {
                 { name: "캠핑장", icon: "⛺" },
                 { name: "주방", icon: "🍳" }
               ].map((category, index) => (
-                <div key={index} className="flex flex-col items-center mb-3">
+                <div key={index} className="flex flex-col items-center mb-3 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer" onClick={() => handleCategoryClick(category.name)}>
                   <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-1 text-xl">
                     {category.icon}
                   </div>
@@ -78,22 +147,21 @@ export default function Home() {
 
         {/* Large Banner */}
         <section className="py-3">
-          <div className="bg-gray-200 rounded-lg overflow-hidden aspect-[16/9] flex items-center justify-center relative">
+          <div className="bg-gray-200 rounded-lg overflow-hidden h-64 flex items-center justify-center relative"> {/* height를 64로 고정 및 aspect-video 제거 */}
+            {/* 배경 이미지 (예시: 실제 이미지로 교체 필요) */}
+            <Image
+              src="/placeholder.svg" // 임시 placeholder 이미지
+              alt="스튜디오 추천 배너"
+              layout="fill"
+              objectFit="cover"
+              className="z-0"
+            />
+            <div className="absolute inset-0 bg-black opacity-30 z-10"></div> {/* 오버레이 */}
+
             <div className="text-white absolute left-6 bottom-10">
               <h3 className="text-lg font-bold">인생샷 보장하는</h3>
               <h3 className="text-lg font-bold">스튜디오 추천</h3>
               <button className="bg-white text-black text-xs px-3 py-1 rounded-full mt-2">바로가기</button>
-            </div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-16 h-16 rounded-full bg-white/80 flex items-center justify-center">
-                <Image 
-                  src="/placeholder.svg" 
-                  alt="이미지 아이콘" 
-                  width={32} 
-                  height={32}
-                  className="opacity-30"
-                />
-              </div>
             </div>
             <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-1 rounded">
               1/5
@@ -113,16 +181,21 @@ export default function Home() {
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
-                { name: "도심 속 힐링 우드팜", location: "서울 · 강남", price: "25,000원", isHot: true },
-                { name: "모던한 스튜디오", location: "서울 · 강남", price: "25,000원", isHot: false },
-                { name: "어반풍 모임공간", location: "서울 · 잠실", price: "20,000원", isHot: false },
-                { name: "감성 카페 카페공간", location: "경기 · 일산북구", price: "30,000원", isHot: true }
+                { name: "도심 속 힐링 우드팜", location: "서울 · 강남", price: "25,000원", isHot: true, imageUrl: "/placeholder.svg" }, // 이미지 임시 교체
+                { name: "모던한 스튜디오", location: "서울 · 강남", price: "25,000원", isHot: false, imageUrl: "/placeholder.svg" }, // 이미지 임시 교체
+                { name: "어반풍 모임공간", location: "서울 · 잠실", price: "20,000원", isHot: false, imageUrl: "/placeholder.svg" }, // 이미지 임시 교체
+                { name: "감성 카페 카페공간", location: "경기 · 일산북구", price: "30,000원", isHot: true, imageUrl: "/placeholder.svg" } // 이미지 임시 교체
               ].map((space, i) => (
                 <div key={i} className="rounded-lg overflow-hidden shadow-sm">
                   <div className="relative pb-[70%] bg-gray-200">
-                    <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                      이미지
-                    </div>
+                    {/* 썸네일 이미지 추가 */}
+                    <Image
+                      src={space.imageUrl || "/placeholder.svg"} // 이미지 경로 사용 또는 기본 이미지
+                      alt={space.name}
+                      fill
+                      sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
+                      className="object-cover"
+                    />
                     {space.isHot && (
                       <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded">
                         HOT

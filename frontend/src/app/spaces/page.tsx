@@ -48,7 +48,11 @@ export default function SpacesPage() {
       // 백엔드 응답 구조에 맞게 데이터 설정
       // RsData 객체 안에 실제 데이터가 있을 것으로 가정
       if (data.resultCode === 'S-1' && data.data && data.data.content) {
-          setSpaces(data.data.content);
+          // 전체 공간 목록에서 랜덤하게 3개 선택
+          const allSpaces = data.data.content;
+          const shuffledSpaces = allSpaces.sort(() => 0.5 - Math.random());
+          const selectedSpaces = shuffledSpaces.slice(0, 3);
+          setSpaces(selectedSpaces);
       } else {
           console.error('데이터 구조가 예상과 다릅니다:', data);
           setSpaces([]); // 비어있는 배열로 설정
