@@ -34,7 +34,7 @@ public class SpaceService {
     private final Logger logger = LoggerFactory.getLogger(SpaceService.class);
     private final UserRepository userRepository;
 
-    // 공간 생성
+    // 공간 등록
     @Transactional
     public SpaceResponseDto createSpace(SpaceCreateRequestDto dto) {
         // SecurityContextHolder에서 현재 인증된 사용자 정보 가져오기

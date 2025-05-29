@@ -50,18 +50,15 @@ spring:
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
+
 logging:
   level:
     com.likelion.loco: DEBUG
     org.hibernate.SQL: DEBUG
-    org.hibernate.orm.jdbc.bind: DEBUG
-    org.hibernate.orm.jdbc.extract: DEBUG
-    org.springframework.transaction.interceptor: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.web: DEBUG
-    org.springframework.security.web: DEBUG
-    org.springframework.security.web.FilterChainProxy: DEBUG
-    org.springframework.security.web.access.intercept.FilterSecurityInterceptor: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+    org.hibernate.orm.jdbc.extract: TRACE
+    org.springframework.transaction.interceptor: TRACE
+#    org.springframework.security: DEBUG
 
 custom:
   dev: # dev환경에서의 설정
@@ -82,6 +79,7 @@ toss:                           # 토스페이먼츠 파트
     secret-key: NEED_TO_INPUT    # 테스트 키 필요 시 기재 예정
     success-url: "http://localhost:8090/api/v1/payments/success"
     fail-url: "http://localhost:8090/api/v1/payments/fail"
+
 #카카오 맵
 kakao:
   map:

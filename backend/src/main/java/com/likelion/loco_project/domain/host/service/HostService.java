@@ -69,7 +69,7 @@ public class HostService {
         return new HostResponseDto(host);
     }
 
-    // 호스트에서 정보
+    // 호스트 등록 기능 (UserRequestDto 사용)
     @Transactional
     public void registerHost(UserRequestDto dto) {
         User user = userRepository.save(

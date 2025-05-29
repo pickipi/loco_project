@@ -8,6 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface HostRepository extends JpaRepository<Host, Long> {
-    // user_id로 호스트 찾기
+    // user_id 호스트 찾기
     Optional<Host> findByUserId(Long userId);
 }

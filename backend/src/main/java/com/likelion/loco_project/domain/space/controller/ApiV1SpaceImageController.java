@@ -38,7 +38,7 @@ public class ApiV1SpaceImageController {
         
         try {
             for (MultipartFile file : files) {
-                // 파일 크기 검증
+                // 파일 크기 검증 필요
                 if (file.getSize() > MAX_FILE_SIZE) {
                     errors.add(file.getOriginalFilename() + ": 파일 크기가 5MB를 초과합니다.");
                     continue;

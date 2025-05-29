@@ -28,7 +28,7 @@ public class ApiV1HostController {
 
     private final HostService hostService;
     private final UserService userService;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtTokenProvider jwtTokenProvider; // 호스트 로그인 유지를 위함
 
     @Operation(summary = "전체 호스트 조회", description = "등록된 모든 호스트 정보를 조회합니다.")
     @GetMapping
