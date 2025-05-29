@@ -23,6 +23,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder; // 비밀번호 인코더 주입
     private final EmailAuthManager emailAuthManager;
 
+
     //새로운 유저를 생성하고 저장하는 메서드 (회원가입 기능)
     @Transactional
     public UserResponseDto createUser(UserRequestDto dto) {
@@ -64,29 +65,6 @@ public class UserService {
                 .userType(UserType.valueOf(dto.getUserType().toUpperCase())) // 문자열 → enum
                 .rating(0.0)
                 .build();
-    }
-
-    // 카카오 유저 회원가입
-    @Transactional
-    public User registerOAuthUser(String email, String username, UserType type) {
-        // 이메일 중복 체크
-        userRepository.findByEmail(email)
-                .ifPresent(u -> {
-                    throw new RuntimeException("이미 가입된 이메일입니다.");
-                });
-
-        // 랜덤 비밀번호 생성 (UUID) 후 인코딩
-        String randomPassword = UUID.randomUUID().toString();
-        String encodedPassword = passwordEncoder.encode(randomPassword);
-
-        User user = User.builder()
-                .email(email)
-                .username(username)
-                .userType(type)
-                .password(encodedPassword)
-                .build();
-
-        return userRepository.save(user);
     }
 
     //주어진 ID로 유저를 조회하는 메서드

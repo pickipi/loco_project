@@ -1,8 +1,1 @@
 #개발 환경에서..
-spring:
-  # Redis 기본 설정
-  redis:
-    # Redis 서버 호스트 (기본값: localhost)
-    host: localhost
-    # Redis 서버 포트 (기본값: 6379)
-    port: 6379

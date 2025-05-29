@@ -1,21 +1,13 @@
 package com.likelion.loco_project.global.config;
 
 import java.util.List;
-
-import com.likelion.loco_project.global.oauth.CustomOAuth2UserService;
-import com.likelion.loco_project.global.oauth.OAuth2AuthenticationSuccessHandler;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -36,72 +28,46 @@ public class SecurityConfig {
      * @return 구성된 SecurityFilterChain 객체
      * @throws Exception 보안 설정 중 발생할 수 있는 예외
      */
-    private final CustomOAuth2UserService customOAuth2UserService;
-    private final OAuth2AuthenticationSuccessHandler successHandler;
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 1) CORS 설정
+                // 스프링 시큐리티 단계에서 CORS 허용
                 .cors().and()
 
-                // 2) CSRF 비활성화 (REST API)
+                // CSRF 완전히 비활성화 (REST API는 보통 disable)
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // 3) 인가 설정
+                // HTTP 요청에 대한 인가(Authorization) 설정
                 .authorizeHttpRequests(authorize -> authorize
-                        // H2 콘솔
+                        // H2 콘솔 경로는 모든 사용자에게 접근을 허용
                         .requestMatchers("/h2-console/**").permitAll()
-                        // 회원가입·로그인 API
+
+                        // 회원가입 및 로그인 엔드포인트는 인증 없이도 허용
                         .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
-                        .requestMatchers("/api/v1/users/emails/**").permitAll()
-                        // Swagger
+
+                        // Swagger UI 관련 경로도 인증 없이 접근 가능하도록 설정
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        // OAuth2 로그인 엔드포인트
-                        .requestMatchers("/oauth2/authorization/**", "/login/oauth2/code/**", "/login").permitAll()
+
                         // 이미지 업로드 관련 엔드포인트 허용
                         .requestMatchers(HttpMethod.POST, "/api/v1/spaces/images/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/spaces/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/spaces/**").permitAll()
+
                         // 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated()
                 )
 
-                // 미인증 REST 호출에 대해 302 대신 401 응답
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                // H2 콘솔의 프레임 표시를 허용
+                .headers(headers -> headers
+                        .frameOptions(frameOptions -> frameOptions.sameOrigin())
                 )
-                .headers(headers -> headers.frameOptions().sameOrigin())
-                .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable)
 
-                // 4) H2 iframe 허용
-                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
-
-                // 5) 폼로그인·기본 Basic 비활성화
+                // 기본 폼 로그인 비활성화
                 .formLogin(AbstractHttpConfigurer::disable)
+
+                // 기본 HTTP Basic 인증 비활성화
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .headers(h -> h.frameOptions().sameOrigin())
-                // 6) OAuth2 로그인 설정
-                .oauth2Login(oauth2 -> oauth2
-                        // 사용자 로그인 진입 페이지
-                        .loginPage("/login")
-                        // UserInfo 조회 서비스
-                        .userInfoEndpoint(ui -> ui.userService(customOAuth2UserService))
-                        // 로그인 성공 시 JWT 발급 후 리다이렉트
-                        .successHandler(successHandler)
-                        // 로그인 실패 시 처리
-                        .failureHandler((req, res, ex) -> {
-                            if (ex.getCause() instanceof OAuth2AuthorizationException oaex
-                                    && "invalid_request".equals(oaex.getError().getErrorCode())) {
-                                res.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-                                res.getWriter().write("잠시 후 다시 시도해주세요. (토큰 발급 한도 초과)");
-                            } else {
-                                res.sendRedirect("/oauth2/error");
-                            }
-                        })
-                );
 
                 // JWT 인증 필터를 UsernamePasswordAuthenticationFilter 이전에 추가
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

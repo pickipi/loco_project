@@ -4,13 +4,11 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { FaApple, FaCheck } from 'react-icons/fa';
 import { SiNaver, SiKakaotalk } from 'react-icons/si';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import EmailVerificationButton from '@/components/emailverification/EmailVerificationButton';
 
 export default function SignupPage() {
   const router = useRouter();
-  const params = useSearchParams();
-  const alertMsg = params.get("msg");
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -75,7 +73,6 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
 
     // 클라이언트 측 유효성 검사
     if (!isEmailVerified) {
@@ -84,7 +81,7 @@ export default function SignupPage() {
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError("비밀번호가 일치하지 않습니다.");
+      alert('비밀번호와 비밀번호 확인이 일치하지 않습니다.');
       return;
     }
 
@@ -115,11 +112,11 @@ export default function SignupPage() {
         router.push('/login');
       } else {
         const errorData = await response.json();
-        setError(errorData.message || response.statusText);
+        alert(`회원가입 실패: ${errorData.message || response.statusText}`);
       }
     } catch (error) {
       console.error('회원가입 중 오류 발생:', error);
-      setError('회원가입 중 오류가 발생했습니다.');
+      alert('회원가입 중 오류가 발생했습니다.');
     }
   };
 
