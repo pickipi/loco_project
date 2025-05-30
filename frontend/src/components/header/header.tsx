@@ -41,7 +41,7 @@ export default function Header() {
     <>
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
-        <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between relative">
+        <div className="mx-auto max-w-7xl px-4 py-0 flex items-center justify-between relative">
           {/* 왼쪽: 햄버거 메뉴 */}
           <div className="flex items-center">
             <button onClick={toggleSidebar}>
@@ -51,7 +51,7 @@ export default function Header() {
 
           {/* 가운데: 로고 (절대 위치로 중앙 고정) */}
           <div className="flex items-center gap-4">
-            <Link href="/">
+            <Link href="/" className="mt-2">
               <Image src="/logo.png" alt="로고" width={70} height={24} className="object-contain" />
             </Link>
           </div>
@@ -99,7 +99,7 @@ export default function Header() {
           </div>
           <div className="flex flex-col">
             <span className="text-white font-semibold text-base">{realName || username}</span>
-            <Link href="/mypage" className="text-white text-sm hover:underline">
+            <Link href="/mypage" className="text-white text-sm hover:underline mt-2">
               프로필 관리 &gt;
             </Link>
           </div>
@@ -107,10 +107,9 @@ export default function Header() {
 
         <div className="p-4 flex flex-col h-[calc(100%-160px)]">
           <p className="text-xs text-gray-600 mb-4">누적 예약: 0회</p>
-          <button className="text-sm py-2 text-left">이벤트</button>
-          <button className="text-sm py-2 text-left">예약 리스트</button>
+          <button className="text-sm py-2 text-left">나의 예약 리스트</button>
+          <button className="text-sm py-2 text-left">전체 공간 보기</button>
           <button className="text-sm py-2 text-left">관심 공간</button>
-          <button className="text-sm py-2 text-left">스페이스클라우드 홈</button>
 
           <Link
             href="/host"
