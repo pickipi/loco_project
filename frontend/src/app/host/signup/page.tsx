@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import EmailVerificationButton from '@/components/emailverification/EmailVerificationButton'
 import styles from './page.module.css'
+import api from '@/lib/axios'
 
 // API 기본 URL 설정
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
@@ -62,30 +63,17 @@ export default function HostRegisterPage() {
 
     try {
       setIsLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/v1/hosts/signup`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          ...formData,
-          userType: 'HOST'
-        })
+      const response = await api.post('/users/signup', {
+        ...formData,
+        userType: 'HOST'
       });
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('회원가입 실패:', errorData);
-        throw new Error(errorData || '회원가입 처리 중 오류가 발생했습니다.');
-      }
 
       // 성공 시 완료 페이지로 이동
       router.push('/host/signup/complete');
-    } catch (err) {
+    } catch (err: any) {
       console.error('회원가입 오류:', err);
-      setError(err instanceof Error ? err.message : '회원가입 처리 중 오류가 발생했습니다.');
+      const errorMessage = err.response?.data?.message || '회원가입 처리 중 오류가 발생했습니다.';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

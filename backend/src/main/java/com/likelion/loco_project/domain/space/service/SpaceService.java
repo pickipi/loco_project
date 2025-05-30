@@ -101,10 +101,14 @@ public class SpaceService {
     }
 
     // 모든 공간 목록 조회 (페이징 처리)
+    @Transactional(readOnly = true)
     public Page<SpaceListResponseDto> getAllSpacesWithPagination(Pageable pageable) {
-        Page<Space> spacePage = spaceRepository.findAll(pageable);
-        return spacePage.map(SpaceListResponseDto::from);
+        return spaceRepository.findAll(pageable)
+                .map(SpaceListResponseDto::from);   // 여기서 additionalImageUrls까지 읽어서 DTO에 담음
     }
+//    public Page<Space> getAllSpacesWithPagination(Pageable pageable) {
+//        return spaceRepository.findAll(pageable);
+//    }
 
     // 공간 수정
     @Transactional
@@ -226,4 +230,6 @@ public class SpaceService {
         user.getFavoriteSpaces().remove(space);
         userRepository.save(user);
     }
+
+
 }

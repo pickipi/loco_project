@@ -104,15 +104,8 @@ export default function HostHeader() {
         return;
       }
 
-      // 기존 알림 목록 엔드포인트 호출
-      const response = await api.get<ApiResponse<Notification[]>>(
-        "/api/v1/notifications",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      // 알림 목록 조회
+      const response = await api.get<ApiResponse<Notification[]>>("/notifications");
 
       // 읽지 않은 알림 개수 계산
       const unread = response.data.data.filter((noti) => !noti.isRead).length;
@@ -133,7 +126,6 @@ export default function HostHeader() {
       } else {
         // 기타 에러 처리
         console.error('알림 조회 중 기타 에러:', error);
-        // 필요에 따라 사용자에게 에러 알림을 표시할 수 있습니다.
       }
     }
   };
