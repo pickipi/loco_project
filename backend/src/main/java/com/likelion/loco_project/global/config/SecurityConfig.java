@@ -78,6 +78,9 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // OAuth2 로그인 엔드포인트
                         .requestMatchers("/oauth2/authorization/**", "/login/oauth2/code/**", "/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/spaces/**").permitAll()
+                        // **공간 목록** 조회는 모두 허용
+                        .requestMatchers(HttpMethod.GET, "/api/v1/spaces/**").permitAll()
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )

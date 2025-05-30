@@ -1,14 +1,4 @@
-import axios from "axios";
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8090/api/v1";
-
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+import api from "@/lib/axios";
 
 export interface SignupRequest {
   username: string;
@@ -37,14 +27,14 @@ export interface HostRequestDto {
 
 export const userApi = {
   signup: async (data: SignupRequest): Promise<SignupResponse> => {
-    const response = await api.post<SignupResponse>("/users", data);
+    const response = await api.post<SignupResponse>("/api/v1/users", data);
     return response.data;
   },
 };
 
 export const hostApi = {
   register: async (userId: number, data: HostRequestDto) => {
-    const response = await api.post(`/hosts/${userId}`, data);
+    const response = await api.post(`/api/v1/hosts/${userId}`, data);
     return response.data;
   },
 };

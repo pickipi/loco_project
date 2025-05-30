@@ -23,7 +23,7 @@ export default function EmailVerificationButton({ email, onVerified, onChange }:
       
       try {
         setIsLoading(true);
-        const response = await api.post(`/api/v1/users/emails/verification-requests?email=${email}`);
+        const response = await api.post(`/users/emails/verification-requests?email=${email}`);
         console.log("📨 인증코드 전송 응답:", response);
         setSent(true);
         alert("인증 코드가 전송되었습니다. 이메일을 확인해주세요.");
@@ -45,7 +45,7 @@ export default function EmailVerificationButton({ email, onVerified, onChange }:
       try {
         setIsLoading(true);
         console.log("📩 인증 시도:", { email: email.trim(), code: code.trim() });
-        const res = await api.get(`/api/v1/users/emails/verifications`, {
+        const res = await api.get(`/users/emails/verifications`, {
           params: { 
             email: email.trim(), 
             code: code.trim() 

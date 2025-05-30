@@ -2,6 +2,9 @@ package com.likelion.loco_project.domain.space.repository;
 
 import com.likelion.loco_project.domain.host.entity.Host;
 import com.likelion.loco_project.domain.space.entity.Space;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -51,4 +54,8 @@ public interface SpaceRepository extends JpaRepository<Space, Long>, JpaSpecific
 
     @Query("SELECT s.spaceType, COUNT(s) FROM Space s GROUP BY s.spaceType")
     Map<String, Long> countSpacesByType();
+
+    @EntityGraph(attributePaths = "additionalImageUrls")
+    @Override
+    Page<Space> findAll(Pageable pageable);
 }

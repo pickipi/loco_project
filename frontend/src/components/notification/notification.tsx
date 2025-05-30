@@ -64,11 +64,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ userId, jwtToken 
    */
   const fetchNotifications = async () => {
     try {
-      const res = await api.get<ApiResponse<Notification[]>>('/api/v1/notifications', {
-        headers: {
-          Authorization: `Bearer ${jwtToken}`
-        }
-      });
+      const res = await api.get<ApiResponse<Notification[]>>('/notifications');
       setNotifications(res.data.data);
     } catch (error) {
       console.error('알림 목록 가져오기 실패:', error);
@@ -80,11 +76,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ userId, jwtToken 
    */
   const markAsRead = async (id: number) => {
     try {
-      await api.post<ApiResponse<void>>(`/api/v1/notifications/${id}/read`, null, {
-        headers: {
-          Authorization: `Bearer ${jwtToken}`
-        }
-      });
+      await api.post<ApiResponse<void>>(`/notifications/${id}/read`);
       fetchNotifications(); // 목록 갱신
     } catch (error) {
       console.error('알림 읽음 실패:', error);
@@ -96,11 +88,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ userId, jwtToken 
    */
   const deleteNotification = async (id: number) => {
     try {
-      await api.delete<ApiResponse<void>>(`/api/v1/notifications/${id}`, {
-        headers: {
-          Authorization: `Bearer ${jwtToken}`
-        }
-      });
+      await api.delete<ApiResponse<void>>(`/notifications/${id}`);
       // 삭제된 알림을 목록에서 제거
       setNotifications(prev => prev.filter(noti => noti.id !== id));
     } catch (error) {
