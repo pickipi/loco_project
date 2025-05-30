@@ -53,7 +53,7 @@ public class Space extends BaseEntity {
     @Column(nullable = false, precision = 10, scale = 6)
     private BigDecimal longitude; // 경도
 
-    @Column(name = "max_capacity", nullable = false)
+    @Column(name = "max_capacity", nullable = true)
     private Integer maxCapacity; // 최대 인원
 
     @Column(name = "is_active", nullable = true)

@@ -63,7 +63,7 @@ export default function HostRegisterPage() {
 
     try {
       setIsLoading(true);
-      const response = await api.post('/users/signup', {
+      const response = await api.post('/users', {
         ...formData,
         userType: 'HOST'
       });

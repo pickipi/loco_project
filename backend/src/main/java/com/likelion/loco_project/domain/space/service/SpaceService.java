@@ -231,5 +231,10 @@ public class SpaceService {
         userRepository.save(user);
     }
 
+    @Transactional(readOnly = true)
+    public Page<SpaceResponseDto> getSpacesByHostId(Long hostId, Pageable pageable) {
+        Page<Space> spaces = spaceRepository.findByHostId(hostId, pageable);
+        return spaces.map(SpaceResponseDto::fromEntity);
+    }
 
 }

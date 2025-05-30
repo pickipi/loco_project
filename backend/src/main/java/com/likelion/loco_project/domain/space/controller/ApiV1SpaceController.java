@@ -174,4 +174,27 @@ public class ApiV1SpaceController {
                 .body(RsData.of("F-1", "이미지 추가 실패: " + e.getMessage(), null));
         }
     }
+
+    // 호스트별 공간 목록 조회 추가
+    @GetMapping("/my-spaces")
+    @Operation(summary = "내 공간 목록 조회", description = "로그인한 호스트의 공간 목록을 조회합니다.")
+    public ResponseEntity<RsData<Page<SpaceResponseDto>>> getMySpaces(
+            @AuthenticationPrincipal Long hostId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id,desc") String sort) {
+        
+        String[] parts = sort.split(",");
+        String sortBy = parts[0];
+        Sort.Direction direction = Sort.Direction.fromString(parts.length > 1 ? parts[1] : "desc");
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        try {
+            Page<SpaceResponseDto> spaces = spaceService.getSpacesByHostId(hostId, pageable);
+            return ResponseEntity.ok(RsData.of("S-1", "내 공간 목록 조회 성공", spaces));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(RsData.of("F-1", "내 공간 목록 조회 중 오류가 발생했습니다: " + e.getMessage(), null));
+        }
+    }
 }
