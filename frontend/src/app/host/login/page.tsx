@@ -49,9 +49,9 @@ export default function LoginPage() {
   }
 
   const handleKakaoLogin = () => {
-    // 호스트 전용 OAuth2 성공 페이지로 리다이렉트되도록 설정
+    // 호스트 전용 OAuth2 엔드포인트 사용
     const redirectUri = encodeURIComponent('http://localhost:3000/host/oauth2/success');
-    window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/oauth2/authorization/kakao?redirect_uri=${redirectUri}`;
+    window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/host/oauth2/authorization/kakao?redirect_uri=${redirectUri}`;
   };
 
   return (

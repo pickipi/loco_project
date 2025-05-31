@@ -180,7 +180,7 @@ export default function HostHeader() {
               공간작성
             </button>
             <button
-              onClick={() => handleProtectedRoute("/host/spaces")}
+              onClick={() => handleProtectedRoute("/host/spaces/list")}
               className={styles.navLink}
             >
               공간관리

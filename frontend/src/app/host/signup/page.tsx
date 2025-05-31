@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import EmailVerificationButton from '@/components/emailverification/EmailVerificationButton'
 import styles from './page.module.css'
 import api from '@/lib/axios'
@@ -20,9 +20,12 @@ interface SignupData {
 
 export default function HostRegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const emailFromUrl = searchParams.get('email') || '';
+
   const [formData, setFormData] = useState<SignupData>({
     username: '',
-    email: '',
+    email: emailFromUrl,  // URL에서 가져온 이메일로 초기화
     password: '',
     phoneNumber: '',
     userType: 'HOST'
@@ -31,6 +34,13 @@ export default function HostRegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
+
+  // URL에서 이메일이 전달된 경우 이메일 인증 상태를 true로 설정
+  useEffect(() => {
+    if (emailFromUrl) {
+      setIsEmailVerified(true);
+    }
+  }, [emailFromUrl]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -110,13 +120,31 @@ export default function HostRegisterPage() {
             <label htmlFor="email" className={styles.label}>
               이메일
             </label>
-            <EmailVerificationButton 
-              email={formData.email} 
-              onVerified={() => setIsEmailVerified(true)}
-              onChange={(email) => setFormData(prev => ({ ...prev, email }))}
-            />
-            {isEmailVerified && (
-              <p className={styles.verifiedText}>✓ 이메일이 인증되었습니다.</p>
+            {emailFromUrl ? (
+              // 소셜로그인에서 온 경우: 읽기 전용 이메일 필드
+              <>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  readOnly
+                  className={`${styles.input} ${styles.readOnlyInput}`}
+                />
+                <p className={styles.verifiedText}>✓ 소셜로그인으로 인증된 이메일입니다.</p>
+              </>
+            ) : (
+              // 일반 회원가입: 이메일 인증 버튼
+              <>
+                <EmailVerificationButton 
+                  email={formData.email} 
+                  onVerified={() => setIsEmailVerified(true)}
+                  onChange={(email) => setFormData(prev => ({ ...prev, email }))}
+                />
+                {isEmailVerified && (
+                  <p className={styles.verifiedText}>✓ 이메일이 인증되었습니다.</p>
+                )}
+              </>
             )}
           </div>
 
