@@ -86,6 +86,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/spaces/**").permitAll()
                         // 관리자 사용자 목록 조회는 인증된 사용자에게 허용
                         .requestMatchers(HttpMethod.GET, "/api/v1/admin/users").authenticated()
+                        // 사용자 권한 변경 API는 인증된 사용자에게 허용
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/admin/users/{userId}/role").authenticated()
                         // 호스트 전용 엔드포인트는 HOST 권한 필요
                         .requestMatchers("/api/v1/host/**").hasRole("HOST")
                         // 나머지는 인증 필요
