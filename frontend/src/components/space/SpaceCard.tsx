@@ -31,7 +31,7 @@ export default function SpaceCard({
     ? imageUrl.startsWith('http')    // 이미 전체 URL이면 그대로 사용
       ? imageUrl
       : `https://loco-project-s3-image.s3.ap-northeast-2.amazonaws.com/${imageUrl}`  // S3 URL 생성
-    : '/images/placeholder.png';     // 기본 플레이스홀더
+    : '/placeholder.svg';     // 기본 플레이스홀더 경로 변경
 
   return (
     <Link href={`/spaces/${id}`}>

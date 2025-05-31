@@ -8,7 +8,7 @@ import styles from './page.module.css'
 import api from '@/lib/axios'
 
 // API 기본 URL 설정
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8090';
 
 interface SignupData {
   username: string;

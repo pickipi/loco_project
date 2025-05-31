@@ -8,7 +8,7 @@ import AddressSearch from "@/components/AddressSearch";
 import styles from "../../register/details/page.module.css";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8090";
 
 // 카카오맵 동적 import
 const KakaoMap = dynamic(() => import("@/components/map/KakaoMap"), {
