@@ -1,5 +1,6 @@
 package com.likelion.loco_project.domain.user.dto;
 
+import com.likelion.loco_project.domain.user.entity.UserType;
 import lombok.*;
 
 @Getter
@@ -13,4 +14,5 @@ public class UserResponseDto {
     private String email;
     private String phoneNumber;
     private Double rating;
+    private UserType userType;
 }

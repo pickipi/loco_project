@@ -55,6 +55,16 @@ export default function HostLayout({
       <div className="min-h-screen bg-white">
         <HostHeader />
         <HostNavbar />
+<!--인증정보 Provider를 위한 Style--> 
+<!--         <main> 
+          <div
+            style={{
+              maxWidth: isMainPage ? "100%" : "1200px",
+              margin: "0 auto",
+              padding: isMainPage ? "0" : "24px",
+            }}
+          > -->
+        </div>
         <main className="w-full">
           {children}
         </main>
@@ -62,4 +72,4 @@ export default function HostLayout({
       </div>
     </AuthProvider>
   );
-}
+} 

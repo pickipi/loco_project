@@ -9,6 +9,7 @@ export interface AuthContextType {
   userName: string | null;
   userRole: string | null;
   isLoading: boolean;
+  isAdmin: () => boolean;
   login: (token: string, id: string, name: string, role: string) => void;
   logout: () => void;
 }
@@ -20,6 +21,7 @@ export const AuthContext = createContext<AuthContextType>({
   userName: null,
   userRole: null,
   isLoading: true,
+  isAdmin: () => false,
   login: () => {},
   logout: () => {},
 });
@@ -31,27 +33,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userName, setUserName] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
   useEffect(() => {
-    console.log("AuthProvider useEffect triggered");
-    const token = localStorage.getItem('token');
-    const storedUserId = localStorage.getItem('userId');
-    const storedUserName = localStorage.getItem('userName');
-    const storedUserRole = localStorage.getItem('userRole');
+    const initAuth = () => {
+      console.log("AuthProvider useEffect triggered");
+      const token = localStorage.getItem('token');
+      const storedUserId = localStorage.getItem('userId');
+      const storedUserName = localStorage.getItem('userName');
+      const storedUserRole = localStorage.getItem('userRole');
 
-    if (token && storedUserId && storedUserRole) {
-      setIsLoggedIn(true);
-      setUserId(storedUserId);
-      setUserName(storedUserName);
-      setUserRole(storedUserRole);
-    } else {
-      setIsLoggedIn(false);
-      setUserId(null);
-      setUserName(null);
-      setUserRole(null);
-    }
-    setIsLoading(false);
-    console.log("AuthProvider initialization finished. isLoggedIn:", isLoggedIn, "userRole:", userRole);
+      if (token && storedUserId && storedUserRole) {
+        setIsLoggedIn(true);
+        setUserId(storedUserId);
+        setUserName(storedUserName);
+        setUserRole(storedUserRole);
+      } else {
+        setIsLoggedIn(false);
+        setUserId(null);
+        setUserName(null);
+        setUserRole(null);
+      }
+      setIsLoading(false);
+      console.log("AuthProvider initialization finished. isLoggedIn:", isLoggedIn, "userRole:", userRole);
+    };
+    
+    initAuth();
   }, []);
 
   const login = (token: string, id: string, name: string, role: string) => {
@@ -76,9 +81,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUserId(null);
     setUserName(null);
     setUserRole(null);
-  };
+  };  const isAdmin = React.useCallback(() => {
+    console.log('isAdmin check:', { isLoggedIn, userRole });
+    return Boolean(isLoggedIn && userRole === 'ADMIN');
+  }, [isLoggedIn, userRole]);
 
-  const authContextValue: AuthContextType = { isLoggedIn, userId, userName, userRole, isLoading, login, logout };
+  const authContextValue = React.useMemo(() => ({
+    isLoggedIn, 
+    userId, 
+    userName, 
+    userRole, 
+    isLoading, 
+    isAdmin,
+    login, 
+    logout
+  }), [isLoggedIn, userId, userName, userRole, isLoading, isAdmin, login, logout]);
 
   return <AuthContext.Provider value={authContextValue}>{children}</AuthContext.Provider>;
 };
