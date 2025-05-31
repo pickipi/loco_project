@@ -4,17 +4,24 @@ import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import SpaceFilter from "@/components/space/SpaceFilter";
 import SpaceCard from "@/components/space/SpaceCard";
-import MainHeader from "@/components/header/MainHeader";
+import MainHeader from "@/components/header/header";
+
 
 interface SearchResult {
   id: string;
-  title: string;
-  location: string;
-  capacity: string;
+  spaceName: string;
+  address: string;
+  maxCapacity: number;
   price: number;
   rating: number;
   imageUrl: string;
   purpose?: string;
+  
+//   spaceRating: number;
+//   imageId: number;
+//   isActive: boolean;
+//   description: string;
+//   category: string;
 }
 
 export default function SearchResultPage() {
@@ -33,6 +40,16 @@ export default function SearchResultPage() {
   useEffect(() => {
     const fetchResults = async () => {
       try {
+
+//         const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8090";
+//         const response = await fetch(`${API_BASE_URL}/api/v1/spaces/all?page=0&size=12&sort=id`);
+//         if (!response.ok) {
+//           throw new Error("Failed to fetch spaces");
+//         }
+//         const data = await response.json();
+//         const spaceData = data.data?.content || [];
+//         setResults(spaceData);
+
         // TODO: Replace with actual API call
         const mockResults = [
           {
@@ -44,6 +61,8 @@ export default function SearchResultPage() {
             rating: 4.5,
             imageUrl: "/sample-space-1.jpg",
             purpose: "meeting",
+            description: "모던한 인테리어의 회의실",
+            category: "회의실"
           },
           {
             id: "2",
@@ -54,6 +73,8 @@ export default function SearchResultPage() {
             rating: 4.7,
             imageUrl: "/sample-space-2.jpg",
             purpose: "studio",
+            description: "다양한 용도로 사용 가능한 스튜디오",
+            category: "스튜디오"
           },
           {
             id: "3",
@@ -64,6 +85,8 @@ export default function SearchResultPage() {
             rating: 4.8,
             imageUrl: "/sample-space-3.jpg",
             purpose: "party",
+            description: "넓은 공간의 파티룸",
+            category: "파티룸"
           },
         ];
 
@@ -86,32 +109,26 @@ export default function SearchResultPage() {
     if (query) {
       filtered = filtered.filter(
         (space) =>
-          space.title.toLowerCase().includes(query.toLowerCase()) ||
-          space.location.toLowerCase().includes(query.toLowerCase())
+          space.spaceName.toLowerCase().includes(query.toLowerCase()) ||
+          space.address.toLowerCase().includes(query.toLowerCase())
       );
     }
 
     // 지역 필터링
     if (location) {
       filtered = filtered.filter((space) =>
-        space.location.toLowerCase().includes(location.toLowerCase())
+        space.address.toLowerCase().includes(location.toLowerCase())
       );
-    }
-
-    // 용도 필터링
-    if (purpose) {
-      filtered = filtered.filter((space) => space.purpose === purpose);
     }
 
     // 수용 인원 필터링
     if (capacity) {
       const [min, max] = capacity.split("-");
       filtered = filtered.filter((space) => {
-        const spaceCapacity = parseInt(space.capacity);
         if (max === "+") {
-          return spaceCapacity >= parseInt(min);
+          return space.maxCapacity >= parseInt(min);
         }
-        return spaceCapacity >= parseInt(min) && spaceCapacity <= parseInt(max);
+        return space.maxCapacity >= parseInt(min) && space.maxCapacity <= parseInt(max);
       });
     }
 
@@ -119,6 +136,9 @@ export default function SearchResultPage() {
     filtered = filtered.filter(
       (space) => space.price >= minPrice && space.price <= maxPrice
     );
+
+    // 활성화된 공간만 필터링
+    filtered = filtered.filter((space) => space.isActive);
 
     setFilteredResults(filtered);
   }, [query, location, purpose, capacity, minPrice, maxPrice, results]);
@@ -155,7 +175,19 @@ export default function SearchResultPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredResults.map((space) => (
-                  <SpaceCard key={space.id} {...space} />
+                  <SpaceCard
+                    key={space.id}
+                    id={space.id}
+                    title={space.spaceName}
+                    location={space.address}
+                    capacity={`${space.maxCapacity}명`}
+                    price={space.price}
+                    rating={Number(space.spaceRating) || 0}
+                    imageUrl={space.imageId ? `/images/${space.imageId}` : "/placeholder.svg"}
+                    reviewCount={0}
+                    description=""
+                    category="회의실"
+                  />
                 ))}
               </div>
             )}

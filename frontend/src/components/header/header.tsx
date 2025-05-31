@@ -108,7 +108,9 @@ export default function Header() {
         <div className="p-4 flex flex-col h-[calc(100%-160px)]">
           <p className="text-xs text-gray-600 mb-4">누적 예약: 0회</p>
           <button className="text-sm py-2 text-left">나의 예약 리스트</button>
-          <button className="text-sm py-2 text-left">전체 공간 보기</button>
+          <Link href="/spaces" className="text-sm py-2 text-left">
+            전체 공간 보기
+          </Link>
           <button className="text-sm py-2 text-left">관심 공간</button>
 
           <Link

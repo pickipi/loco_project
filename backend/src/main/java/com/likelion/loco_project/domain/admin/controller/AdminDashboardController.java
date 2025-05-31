@@ -7,12 +7,10 @@ import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/v1/admin/dashboard")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 @Tag(name = "관리자 대시보드", description = "관리자 대시보드 관련 API, 대시보드 요약 정보 조회 / 최근 예약 목록 조회 / 처리 대기 공간 목록 조회 / 월별 매출 데이터 조회 / 월별 예약 통계 조회 / 공간 유형별 분포 데이터 조회")
 public class AdminDashboardController {
     private final AdminDashboardService dashboardService;

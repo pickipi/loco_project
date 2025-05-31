@@ -31,7 +31,7 @@ export default function HostHeader() {
   const [username, setUsername] = useState("");
   const [realName, setRealName] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+  
   // 알림 관련 상태 추가
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -90,6 +90,7 @@ export default function HostHeader() {
         console.error("알림 데이터 형식이 올바르지 않습니다:", response.data);
         setUnreadCount(0);
       }
+
     } catch (error: any) {
       console.error("알림 목록 및 읽지 않은 개수 조회 실패:", error);
       
@@ -124,6 +125,7 @@ export default function HostHeader() {
       }
       setUnreadCount(0);
     }
+  }
   };
   */
 
@@ -173,7 +175,7 @@ export default function HostHeader() {
 
           {/* Desktop Navigation */}
           <nav className={styles.desktopNav}>
-            <button
+            <button 
               onClick={() => handleProtectedRoute("/host/spaces/register")}
               className={styles.navLink}
             >
@@ -209,7 +211,7 @@ export default function HostHeader() {
                   className={styles.notificationContainer}
                   ref={notificationRef}
                 >
-                  <button
+                  <button 
                     className={styles.notificationButton}
                     onClick={() => setIsNotificationOpen(!isNotificationOpen)}
                   >
