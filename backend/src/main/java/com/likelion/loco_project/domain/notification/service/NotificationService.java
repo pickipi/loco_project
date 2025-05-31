@@ -119,12 +119,12 @@ public class NotificationService {
     }
 
     // 예약 상태 enum을 사용자 친화적 메시지로 변환
-    private String getReservationStatusMessage(ReservationStatus status) {
+    private String getReservationStatusMessage(Reservation.ReservationStatus status) {
         return switch (status) {
             case PENDING -> "대기 중";
-            case APPROVED -> "승인됨";
-            case REJECTED -> "거절됨";
-            case CANCELED -> "취소됨";
+            case CONFIRMED -> "확정됨";
+            case CANCELLED -> "취소됨";
+            default -> "알 수 없음"; // 정의되지 않은 상태 처리
         };
     }
 

@@ -1,6 +1,7 @@
 package com.likelion.loco_project.domain.space.controller;
 
 import com.likelion.loco_project.domain.space.dto.*;
+import com.likelion.loco_project.domain.space.entity.Space;
 import com.likelion.loco_project.domain.space.service.SpaceService;
 import com.likelion.loco_project.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,7 +11,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -59,26 +62,59 @@ public class ApiV1SpaceController {
         return ResponseEntity.ok(RsData.of("S-200", "공간 조회 성공", dto));
     }
 
-    // 모든 공간 목록 조회
-    @Operation(
-        summary = "모든 공간 목록 조회",
-        description = "등록된 모든 공간의 목록을 조회합니다.",
-        responses = {
-            @ApiResponse(responseCode = "200", description = "공간 목록 조회 성공")
-        }
-    )
+//    // 모든 공간 목록 조회
+//    @Operation(summary = "모든 공간 조회 (페이징)", description = "모든 공간을 페이지 단위로 조회합니다.")
+//    @GetMapping("/all")
+//    public RsData<Page<SpaceResponseDto>> getAllSpaces(
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "12") int size,
+//            @RequestParam(defaultValue = "id,desc") String sort
+//    ) {
+//        // 1) sort 파싱
+//        String[] parts = sort.split(",");
+//        String sortBy = parts[0];
+//        Sort.Direction direction = Sort.Direction.fromString(parts.length > 1 ? parts[1] : "asc");
+//
+//        // 2) Pageable 생성
+//        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+//
+//        // 3) 엔티티 Page<Space> 가져오기
+//        Page<Space> spaces = spaceService.getAllSpacesWithPagination(pageable);
+//
+//        // 4) DTO 로 매핑 (SpaceListResponseDto.from)
+//        Page<SpaceResponseDto> dtoPage = spaces.map(SpaceResponseDto::fromEntity);
+//        return RsData.of("S-1", "조회 성공", dtoPage);
+//    }
+
     @GetMapping("/all")
-    public ResponseEntity<RsData<Page<SpaceListResponseDto>>> getAllSpaces(
-            @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
-            @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "페이지당 항목 수", example = "12")
-            @RequestParam(defaultValue = "12") int size,
-            @Parameter(description = "정렬 기준 필드", example = "id")
-            @RequestParam(defaultValue = "id") String sort) {
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(sort));
-        Page<SpaceListResponseDto> spaces = spaceService.getAllSpacesWithPagination(pageRequest);
-        return ResponseEntity.ok(RsData.of("S-1", "모든 공간 목록을 조회했습니다.", spaces));
+    public Page<SpaceListResponseDto> getAllSpaces(
+            @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        return spaceService.getAllSpacesWithPagination(pageable);
     }
+
+//    @GetMapping("/api/v1/spaces/all")
+//    public Page<SpaceListResponseDto> getAllSpaces(
+//            @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable
+//    ) {
+//        Page<Space> spaces = spaceService.getAllSpacesWithPagination(pageable);
+//        return spaces.map(SpaceListResponseDto::from);
+//    }
+
+//    @GetMapping("/api/v1/spaces/all")
+//    public Page<SpaceListResponseDto> getAllSpacesWithPagination(
+//            @RequestParam(name = "page",  defaultValue = "0") int page,
+//            @RequestParam(name = "size",  defaultValue = "12") int size,
+//            @RequestParam(name = "sort",  defaultValue = "id,desc") String sort
+//    ) {
+//        Pageable pageable = PageRequest.of(page, size, Sort.by(
+//                Sort.Order.by(sort.split(",")[0])
+//                        .with(sort.split(",")[1].equalsIgnoreCase("desc")
+//                                ? Sort.Direction.DESC : Sort.Direction.ASC)
+//        ));
+//        return spaceService.getAllSpacesWithPagination(pageable);
+//    }
+
 
     // 공간 수정
     @Operation(summary = "공간 정보 수정", description = "공간 ID에 해당하는 공간의 정보를 수정합니다.")
@@ -136,6 +172,29 @@ public class ApiV1SpaceController {
         } catch (Exception e) {
             return ResponseEntity.badRequest()
                 .body(RsData.of("F-1", "이미지 추가 실패: " + e.getMessage(), null));
+        }
+    }
+
+    // 호스트별 공간 목록 조회 추가
+    @GetMapping("/my-spaces")
+    @Operation(summary = "내 공간 목록 조회", description = "로그인한 호스트의 공간 목록을 조회합니다.")
+    public ResponseEntity<RsData<Page<SpaceResponseDto>>> getMySpaces(
+            @AuthenticationPrincipal Long hostId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id,desc") String sort) {
+        
+        String[] parts = sort.split(",");
+        String sortBy = parts[0];
+        Sort.Direction direction = Sort.Direction.fromString(parts.length > 1 ? parts[1] : "desc");
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        try {
+            Page<SpaceResponseDto> spaces = spaceService.getSpacesByHostId(hostId, pageable);
+            return ResponseEntity.ok(RsData.of("S-1", "내 공간 목록 조회 성공", spaces));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(RsData.of("F-1", "내 공간 목록 조회 중 오류가 발생했습니다: " + e.getMessage(), null));
         }
     }
 }

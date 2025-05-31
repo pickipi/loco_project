@@ -44,7 +44,9 @@ public class AuthController {
                 token,
                 "로그인 완료!",
                 user.getId(),
-                userRole // 실제 사용자의 역할을 응답에 포함
+//                 userRole // 실제 사용자의 역할을 응답에 포함 - 관리자페이지 ADMIN 역할 수행을 위한 코드
+                user.getUsername(),
+                isHost ? "HOST" : "GUEST"
         );
         return ResponseEntity.ok(resDto);
     }

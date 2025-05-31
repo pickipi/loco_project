@@ -5,6 +5,7 @@ import { useState } from 'react'
 import styles from './page.module.css'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
+import api from '@/lib/axios'
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,35 +21,38 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          password
-        }),
+      const response = await api.post('/auth/login', {
+        email,
+        password
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        
-        login(data.token, data.userId.toString(), data.userName, data.role);
-        
-        alert('로그인 성공!');
-        router.push('/host');
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || '로그인에 실패했습니다.');
+      const data = response.data;
+      
+      // 호스트 권한 확인
+      if (data.role !== 'HOST') {
+        setError('호스트 계정이 아닙니다.');
+        return;
       }
-    } catch (error) {
+      
+      // 로그인 정보 저장 (username 사용)
+      login(data.token, data.userId.toString(), data.username, data.role);
+      
+      alert('로그인 성공!');
+      router.push('/host');
+    } catch (error: any) {
       console.error('로그인 오류:', error);
-      setError('로그인 처리 중 오류가 발생했습니다.');
+      const errorMessage = error.response?.data?.message || '로그인 처리 중 오류가 발생했습니다.';
+      setError(errorMessage);
     } finally {
       setIsLoading(false)
     }
   }
+
+  const handleKakaoLogin = () => {
+    // 호스트 전용 OAuth2 성공 페이지로 리다이렉트되도록 설정
+    const redirectUri = encodeURIComponent('http://localhost:3000/host/oauth2/success');
+    window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/oauth2/authorization/kakao?redirect_uri=${redirectUri}`;
+  };
 
   return (
     <main className={styles.container}>
@@ -133,26 +137,7 @@ export default function LoginPage() {
         <div className={styles.socialButtons}>
           <button
             type="button"
-            onClick={() => {
-              setIsLoading(true)
-              // TODO: Google 로그인 구현
-            }}
-            disabled={isLoading}
-            className={styles.socialButton}
-          >
-            <img
-              className={styles.socialIcon}
-              src="https://www.svgrepo.com/show/475647/google-color.svg"
-              alt="Google logo"
-            />
-            Google로 계속하기
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setIsLoading(true)
-              // TODO: Kakao 로그인 구현
-            }}
+            onClick={handleKakaoLogin}
             disabled={isLoading}
             className={styles.socialButton}
           >

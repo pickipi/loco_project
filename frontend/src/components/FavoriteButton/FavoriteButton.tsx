@@ -1,7 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8090';
+import api from "@/lib/axios";
 
 interface FavoriteButtonProps {
   spaceId: number;
@@ -14,9 +12,9 @@ export default function FavoriteButton({ spaceId, isInitiallyFavorited }: Favori
   const toggleFavorite = async () => {
     try {
       if (isFavorited) {
-        await axios.delete(`${API_BASE_URL}/api/v1/spaces/${spaceId}/favorite`);
+        await api.delete(`/api/v1/spaces/${spaceId}/favorite`);
       } else {
-        await axios.post(`${API_BASE_URL}/api/v1/spaces/${spaceId}/favorite`);
+        await api.post(`/api/v1/spaces/${spaceId}/favorite`);
       }
       setIsFavorited(!isFavorited);
     } catch (err) {
