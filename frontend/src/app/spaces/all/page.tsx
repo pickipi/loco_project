@@ -99,6 +99,8 @@ export default function AllSpacesPage() {
                     : "/placeholder.svg"
                 }`}
                 reviewCount={0}
+                description={space.description}
+                category="공간"
               />
             ))}
         </div>

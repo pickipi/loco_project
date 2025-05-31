@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import SpaceFilter from "@/components/space/SpaceFilter";
 import SpaceCard from "@/components/space/SpaceCard";
-import MainHeader from "@/components/header/MainHeader";
+import MainHeader from "@/components/MainHeader";
 
 interface SearchResult {
   id: string;
@@ -15,6 +15,8 @@ interface SearchResult {
   rating: number;
   imageUrl: string;
   purpose?: string;
+  description: string;
+  category: string;
 }
 
 export default function SearchResultPage() {
@@ -44,6 +46,8 @@ export default function SearchResultPage() {
             rating: 4.5,
             imageUrl: "/sample-space-1.jpg",
             purpose: "meeting",
+            description: "모던한 인테리어의 회의실",
+            category: "회의실"
           },
           {
             id: "2",
@@ -54,6 +58,8 @@ export default function SearchResultPage() {
             rating: 4.7,
             imageUrl: "/sample-space-2.jpg",
             purpose: "studio",
+            description: "다양한 용도로 사용 가능한 스튜디오",
+            category: "스튜디오"
           },
           {
             id: "3",
@@ -64,6 +70,8 @@ export default function SearchResultPage() {
             rating: 4.8,
             imageUrl: "/sample-space-3.jpg",
             purpose: "party",
+            description: "넓은 공간의 파티룸",
+            category: "파티룸"
           },
         ];
 
