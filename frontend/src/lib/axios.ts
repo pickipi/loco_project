@@ -57,7 +57,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use((response) => {
   return response;
 }, (error) => {
-  if (error.response?.status === 401) {
+  if (error.response?.status === 401 && window.location.pathname !== '/login') {
     // Clear authentication data
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
