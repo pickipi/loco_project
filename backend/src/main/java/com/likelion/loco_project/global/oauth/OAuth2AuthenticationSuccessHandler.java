@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.likelion.loco_project.global.jwt.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -13,6 +15,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.IOException;
 import java.util.Map;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccessHandler {
@@ -27,9 +30,20 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         PrincipalOAuth2User principal = (PrincipalOAuth2User) authentication.getPrincipal();
         String email = principal.getUser().getEmail();
         
-        // 리다이렉트 URI에서 호스트 로그인 여부 확인
+        // 세션에서 userType 확인
+        HttpSession session = request.getSession();
+        String userType = (String) session.getAttribute("oauth_userType");
         String redirectUri = request.getParameter("redirect_uri");
-        boolean isHostLogin = redirectUri != null && redirectUri.contains("/host/");
+        boolean isHostLogin = "HOST".equals(userType) || (redirectUri != null && redirectUri.contains("/host/"));
+
+        // 디버깅을 위한 로그 추가
+        log.info("OAuth2 Success - Email: {}, UserType from session: {}, RedirectUri: {}, IsHostLogin: {}, IsNewUser: {}", 
+                 email, userType, redirectUri, isHostLogin, principal.isNewUser());
+
+        // 세션에서 userType 정보 제거
+        if (userType != null) {
+            session.removeAttribute("oauth_userType");
+        }
 
         // 신규 사용자라면 회원가입 페이지로 리다이렉트
         if (principal.isNewUser()) {
@@ -42,6 +56,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                     .encode()
                     .toUriString();
 
+            log.info("Redirecting new user to: {}", signupUrl);
             response.sendRedirect(signupUrl);
             return;
         }
@@ -52,10 +67,26 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         String realName = principal.getUser().getUsername();
         String phone = principal.getPhoneNumber();
 
+        // 호스트 로그인인데 일반 계정인 경우
+        if (isHostLogin && !"HOST".equals(role)) {
+            String signupUrl = UriComponentsBuilder
+                    .fromHttpUrl("http://localhost:3000")
+                    .path("/host/signup")
+                    .queryParam("email", email)
+                    .queryParam("msg", "호스트 계정으로 가입이 필요합니다")
+                    .build()
+                    .encode()
+                    .toUriString();
+
+            log.info("Redirecting existing non-host user to host signup: {}", signupUrl);
+            response.sendRedirect(signupUrl);
+            return;
+        }
+
         String accessToken = jwtTokenProvider.generateAccessToken(userId, role);
         String refreshToken = jwtTokenProvider.generateRefreshToken(userId, role);
 
-        // 호스트 로그인인 경우 호스트용 성공 페이지로 리다이렉트
+        // 성공 페이지로 리다이렉트
         String redirectUrl = UriComponentsBuilder
                 .fromHttpUrl("http://localhost:3000")
                 .path(isHostLogin ? "/host/oauth2/success" : "/oauth2/success")
@@ -69,6 +100,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                 .encode()
                 .toUriString();
 
+        log.info("Redirecting existing user to success page: {}", redirectUrl);
         response.sendRedirect(redirectUrl);
     }
 }

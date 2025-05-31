@@ -40,22 +40,40 @@ export default function HostProfile() {
   const [error, setError] = useState<string | null>(null); // 에러 상태
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // 탈퇴 모달 표시 여부
   const [isDeleting, setIsDeleting] = useState(false); // 탈퇴 처리 중 상태
+  const [isHostRegistering, setIsHostRegistering] = useState(false); // 호스트 등록 처리 중 상태
+  const [isHostRegistered, setIsHostRegistered] = useState(false); // 호스트 등록 상태
 
   // 컴포넌트 마운트 시 프로필 데이터 로드
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const storedUsername = localStorage.getItem('username');
+      const storedUsername = localStorage.getItem('realName');
       const storedEmail = localStorage.getItem('email');
       const storedPhone = localStorage.getItem('phoneNumber');
-      const userId = localStorage.getItem('userId');
+      const token = localStorage.getItem('token');
 
-      if (!storedUsername || !storedEmail) {
+      if (!storedUsername || !storedEmail || !token) {
+        router.push('/host/login');
+        return;
+      }
+
+      // JWT 토큰에서 userId 추출
+      let userId = 0;
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        const payload = JSON.parse(jsonPayload);
+        userId = parseInt(payload.sub) || 0;
+      } catch (error) {
+        console.error('토큰 파싱 오류:', error);
         router.push('/host/login');
         return;
       }
 
       setProfileData({
-        id: userId ? parseInt(userId) : 0,
+        id: userId,
         username: storedUsername,
         email: storedEmail,
         phoneNumber: storedPhone || '',
@@ -63,8 +81,75 @@ export default function HostProfile() {
         marketingSMS: false,
       });
       setIsLoading(false);
+
+      // 호스트 등록 상태 확인
+      checkHostStatus(userId);
     }
   }, [router]);
+
+  // 호스트 등록 상태 확인
+  const checkHostStatus = async (userId: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/hosts/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        setIsHostRegistered(true);
+      }
+    } catch (err) {
+      // 호스트 정보가 없으면 404 에러가 발생할 수 있음 (정상적인 상황)
+      console.log('호스트 정보 없음');
+    }
+  };
+
+  // 호스트 등록 처리
+  const handleHostRegistration = async () => {
+    setIsHostRegistering(true);
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.push('/host/login');
+        return;
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/hosts/${profileData.id}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          verified: false,
+          bankName: '',
+          accountNumber: '',
+          accountUser: '',
+          registration: new Date().toISOString()
+        })
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          router.push('/host/login');
+          return;
+        }
+        throw new Error('호스트 등록 처리 중 오류가 발생했습니다.');
+      }
+
+      setIsHostRegistered(true);
+      alert('호스트 등록이 완료되었습니다!');
+    } catch (err) {
+      console.error('호스트 등록 오류:', err);
+      setError('호스트 등록 처리 중 오류가 발생했습니다.');
+    } finally {
+      setIsHostRegistering(false);
+    }
+  };
 
   // 회원 탈퇴 처리
   const handleDeleteAccount = async () => {
@@ -76,7 +161,7 @@ export default function HostProfile() {
         return;
       }
 
-      const response = await fetch(`/api/v1/host/${profileData.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/host/${profileData.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -194,6 +279,24 @@ export default function HostProfile() {
                   <Link href="/host/profile/changepassword" className={styles.editButton}>
                     변경하기
                   </Link>
+                </div>
+              </div>
+
+              {/* 호스트 등록 섹션 */}
+              <div className={styles.field}>
+                <label>호스트 등록</label>
+                <div className={styles.value}>
+                  {isHostRegistered ? (
+                    <span className={styles.hostRegistered}>✓ 호스트로 등록됨</span>
+                  ) : (
+                    <button 
+                      className={styles.hostRegisterButton}
+                      onClick={handleHostRegistration}
+                      disabled={isHostRegistering}
+                    >
+                      {isHostRegistering ? '등록중...' : '호스트 등록하기'}
+                    </button>
+                  )}
                 </div>
               </div>
 

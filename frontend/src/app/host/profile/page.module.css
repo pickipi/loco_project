@@ -210,4 +210,33 @@
   padding: 20px;
   color: #dc2626;
   font-weight: 600;
+}
+
+/* 호스트 등록 관련 스타일 */
+.hostRegisterButton {
+  background-color: #7047EB;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.hostRegisterButton:hover:not(:disabled) {
+  background-color: #8561ED;
+}
+
+.hostRegisterButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.hostRegistered {
+  color: #10b981;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 } 
