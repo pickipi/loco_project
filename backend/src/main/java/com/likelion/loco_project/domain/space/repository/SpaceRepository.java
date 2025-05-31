@@ -58,4 +58,7 @@ public interface SpaceRepository extends JpaRepository<Space, Long>, JpaSpecific
     @EntityGraph(attributePaths = "additionalImageUrls")
     @Override
     Page<Space> findAll(Pageable pageable);
+
+    @Query("SELECT s FROM Space s WHERE s.host.id = :hostId")
+    Page<Space> findByHostId(@Param("hostId") Long hostId, Pageable pageable);
 }

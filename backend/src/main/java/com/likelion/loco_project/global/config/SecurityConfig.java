@@ -74,6 +74,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/users/emails/**").permitAll()
+                        // 호스트 관련 공개 엔드포인트
+                        .requestMatchers("/api/v1/host/signup", "/api/v1/host/login").permitAll()
+                        .requestMatchers("/api/v1/host/oauth2/**").permitAll()
                         // Swagger
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // OAuth2 로그인 엔드포인트
@@ -81,6 +84,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/spaces/**").permitAll()
                         // **공간 목록** 조회는 모두 허용
                         .requestMatchers(HttpMethod.GET, "/api/v1/spaces/**").permitAll()
+                        // 호스트 전용 엔드포인트는 HOST 권한 필요
+                        .requestMatchers("/api/v1/host/**").hasRole("HOST")
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )

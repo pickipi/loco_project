@@ -44,6 +44,7 @@ public class AuthController {
                 token,
                 "로그인 완료!",
                 user.getId(),
+                user.getUsername(),
                 isHost ? "HOST" : "GUEST"
         );
         return ResponseEntity.ok(resDto);
