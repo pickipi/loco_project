@@ -6,15 +6,22 @@ import SpaceFilter from "@/components/space/SpaceFilter";
 import SpaceCard from "@/components/space/SpaceCard";
 import MainHeader from "@/components/header/header";
 
+
 interface SearchResult {
   id: string;
   spaceName: string;
   address: string;
   maxCapacity: number;
   price: number;
-  spaceRating: number;
-  imageId: number;
-  isActive: boolean;
+  rating: number;
+  imageUrl: string;
+  purpose?: string;
+  
+//   spaceRating: number;
+//   imageId: number;
+//   isActive: boolean;
+//   description: string;
+//   category: string;
 }
 
 export default function SearchResultPage() {
@@ -33,14 +40,57 @@ export default function SearchResultPage() {
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8090";
-        const response = await fetch(`${API_BASE_URL}/api/v1/spaces/all?page=0&size=12&sort=id`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch spaces");
-        }
-        const data = await response.json();
-        const spaceData = data.data?.content || [];
-        setResults(spaceData);
+
+//         const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8090";
+//         const response = await fetch(`${API_BASE_URL}/api/v1/spaces/all?page=0&size=12&sort=id`);
+//         if (!response.ok) {
+//           throw new Error("Failed to fetch spaces");
+//         }
+//         const data = await response.json();
+//         const spaceData = data.data?.content || [];
+//         setResults(spaceData);
+
+        // TODO: Replace with actual API call
+        const mockResults = [
+          {
+            id: "1",
+            title: "모던한 회의실",
+            location: "서울 강남구",
+            capacity: "10",
+            price: 20000,
+            rating: 4.5,
+            imageUrl: "/sample-space-1.jpg",
+            purpose: "meeting",
+            description: "모던한 인테리어의 회의실",
+            category: "회의실"
+          },
+          {
+            id: "2",
+            title: "스튜디오",
+            location: "서울 마포구",
+            capacity: "15",
+            price: 35000,
+            rating: 4.7,
+            imageUrl: "/sample-space-2.jpg",
+            purpose: "studio",
+            description: "다양한 용도로 사용 가능한 스튜디오",
+            category: "스튜디오"
+          },
+          {
+            id: "3",
+            title: "파티룸",
+            location: "서울 용산구",
+            capacity: "20",
+            price: 45000,
+            rating: 4.8,
+            imageUrl: "/sample-space-3.jpg",
+            purpose: "party",
+            description: "넓은 공간의 파티룸",
+            category: "파티룸"
+          },
+        ];
+
+        setResults(mockResults);
         setLoading(false);
       } catch (error) {
         console.error("Failed to fetch search results:", error);

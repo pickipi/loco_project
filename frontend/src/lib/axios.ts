@@ -8,7 +8,7 @@ const api = axios.create({
   // API 서버의 기본 주소 설정 (환경 변수에서 가져옴)
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL + "/api/v1",
   
-  // 요청 제한 시간 설정 (5초)
+  // 요청 제한 시간 설정 (10초)
   timeout: 10000,
   
   // 기본 헤더 설정
@@ -36,6 +36,24 @@ api.interceptors.request.use(config => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
+});
+
+// Response interceptor
+api.interceptors.response.use((response) => {
+  return response;
+}, (error) => {
+  // 401 에러 발생 시 리다이렉트 로직 제거
+  // if (error.response?.status === 401 && window.location.pathname !== '/login') {
+  //   // Clear authentication data
+  //   localStorage.removeItem('token');
+  //   localStorage.removeItem('userId');
+  //   localStorage.removeItem('userName');
+  //   localStorage.removeItem('userRole');
+      
+  //   // Redirect to login page
+  //   window.location.href = '/login';
+  // }
+  return Promise.reject(error);
 });
 
 /**

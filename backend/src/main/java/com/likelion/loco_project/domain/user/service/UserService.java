@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,10 +32,18 @@ public class UserService {
     @Transactional
     public UserResponseDto createUser(UserRequestDto dto) {
 
-        // 이메일 인증 여부
-        if (!emailAuthManager.isVerified(dto.getEmail())) {
-            throw new BusinessLogicException(ExceptionCode.EMAIL_NOT_VERIFIED);
+        // 이메일 인증 여부 - ADMIN 타입일 경우 건너뛰기
+        if (UserType.valueOf(dto.getUserType().toUpperCase()) != UserType.ADMIN) {
+            // ADMIN이 아닌 경우에만 이메일 인증 검사를 수행
+            if (!emailAuthManager.isVerified(dto.getEmail())) {
+                throw new BusinessLogicException(ExceptionCode.EMAIL_NOT_VERIFIED);
+            }
         }
+
+        // // 이메일 인증 여부
+        // if (!emailAuthManager.isVerified(dto.getEmail())) {
+        //     throw new BusinessLogicException(ExceptionCode.EMAIL_NOT_VERIFIED);
+        // }
 
         // 이메일 중복 체크 및 User 엔티티 생성
         User user = createUserEntity(dto);
@@ -48,6 +57,7 @@ public class UserService {
                 .email(saved.getEmail())
                 .phoneNumber(saved.getPhoneNumber())
                 .rating(saved.getRating())
+                .userType(saved.getUserType())
                 .build();
     }
 
@@ -94,8 +104,8 @@ public class UserService {
     }
 
     //주어진 ID로 유저를 조회하는 메서드
-    public UserResponseDto getUserById(Long id) {
-        return userRepository.findById(id)
+    public UserResponseDto getUserById(Long userId) {
+        return userRepository.findById(userId)
                 .filter(user -> !user.isDeleted()) // 논리 삭제된 사용자 제외
                 .map(user -> UserResponseDto.builder()
                         .id(user.getId())
@@ -103,8 +113,9 @@ public class UserService {
                         .email(user.getEmail())
                         .phoneNumber(user.getPhoneNumber())
                         .rating(user.getRating())
+                        .userType(user.getUserType())
                         .build())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
     }
 
     //로그인 기능: 이메일과 비밀번호로 사용자 인증
@@ -152,14 +163,13 @@ public class UserService {
                 .filter(u -> !u.isDeleted())
                 .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
 
-        user.updateUserInfo(dto.getUsername(), dto.getPhoneNumber());
-
-        return UserResponseDto.builder()
+        user.updateUserInfo(dto.getUsername(), dto.getPhoneNumber());        return UserResponseDto.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .phoneNumber(user.getPhoneNumber())
                 .rating(user.getRating())
+                .userType(user.getUserType())
                 .build();
     }
 
@@ -231,5 +241,43 @@ public class UserService {
 
         User savedUser = userRepository.save(user);
         return UserProfileResponseDto.fromEntity(savedUser);
+    }
+
+    // 전체 사용자 목록 조회 (관리자용)
+    public List<UserResponseDto> getAllUsers() {
+        return userRepository.findAll().stream()
+                .filter(user -> !user.isDeleted()) // 논리 삭제된 사용자 제외
+                .map(user -> UserResponseDto.builder()
+                        .id(user.getId())
+                        .username(user.getUsername())
+                        .email(user.getEmail())
+                        .phoneNumber(user.getPhoneNumber())
+                        .userType(user.getUserType())
+                        .rating(user.getRating())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    // 사용자 권한 변경 (관리자용)
+    @Transactional
+    public UserResponseDto updateUserRole(Long userId, String role) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+
+        // ADMIN 역할은 변경 불가
+        if (user.getUserType() == UserType.ADMIN) {
+            throw new BusinessLogicException(ExceptionCode.CANNOT_MODIFY_ADMIN);
+        }
+
+        user.updateUserType(UserType.valueOf(role.toUpperCase()));
+        
+        return UserResponseDto.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .userType(user.getUserType())
+                .rating(user.getRating())
+                .build();
     }
 }
