@@ -38,35 +38,21 @@ api.interceptors.request.use(config => {
   return config;
 });
 
-// Request interceptor
-api.interceptors.request.use((config) => {
-  // Get the token from localStorage
-  const token = localStorage.getItem('token');
-  
-  // If token exists, add it to the request headers
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  
-  return config;
-}, (error) => {
-  return Promise.reject(error);
-});
-
 // Response interceptor
 api.interceptors.response.use((response) => {
   return response;
 }, (error) => {
-  if (error.response?.status === 401) {
-    // Clear authentication data
-    localStorage.removeItem('token');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userRole');
-    
-    // Redirect to login page
-    window.location.href = '/login';
-  }
+  // 401 에러 발생 시 리다이렉트 로직 제거
+  // if (error.response?.status === 401 && window.location.pathname !== '/login') {
+  //   // Clear authentication data
+  //   localStorage.removeItem('token');
+  //   localStorage.removeItem('userId');
+  //   localStorage.removeItem('userName');
+  //   localStorage.removeItem('userRole');
+      
+  //   // Redirect to login page
+  //   window.location.href = '/login';
+  // }
   return Promise.reject(error);
 });
 

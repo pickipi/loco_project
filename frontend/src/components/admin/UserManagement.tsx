@@ -23,7 +23,7 @@ export default function UserManagement() {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await api.get("/api/v1/admin/users", {
+      const response = await api.get("/admin/users", {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -39,22 +39,23 @@ export default function UserManagement() {
 
   const handleRoleToggle = async (userId: number, currentRole: string) => {
     const newRole = currentRole === "GUEST" ? "HOST" : "GUEST";
+    setUsers(
+      users.map((user) =>
+        user.id === userId ? { ...user, userType: newRole } : user
+      )
+    );
+    console.log(`프론트엔드 상태 업데이트: User ${userId}의 권한을 ${newRole}로 변경 시도`);
+
     try {
       const token = localStorage.getItem('token');
-      await api.patch(`/api/v1/admin/users/${userId}/role`, { role: newRole }, {
+      const response = await api.patch(`/admin/users/${userId}/role`, { role: newRole }, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
-      setUsers(
-        users.map((user) =>
-          user.id === userId ? { ...user, userType: newRole } : user
-        )
-      );
-      toast.success(`사용자 권한이 ${newRole}로 변경되었습니다.`);
+      console.log(`백엔드 API 호출 완료:`, response.data);
     } catch (error) {
-      console.error("Failed to update user role:", error);
-      toast.error("권한 변경에 실패했습니다.");
+      console.error("백엔드 API 호출 실패:", error);
     }
   };
 
