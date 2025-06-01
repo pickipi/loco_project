@@ -183,10 +183,7 @@ public class ApiV1SpaceController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size,
             @RequestParam(name = "sort", defaultValue = "id,desc") String sort) {
-        
-        System.out.println("=== getMySpaces 호출됨 ===");
-        System.out.println("hostId: " + hostId);
-        
+
         String[] parts = sort.split(",");
         String sortBy = parts[0];
         Sort.Direction direction = Sort.Direction.fromString(parts.length > 1 ? parts[1] : "desc");
@@ -196,7 +193,6 @@ public class ApiV1SpaceController {
             Page<SpaceResponseDto> spaces = spaceService.getSpacesByHostId(hostId, pageable);
             return ResponseEntity.ok(RsData.of("S-1", "내 공간 목록 조회 성공", spaces));
         } catch (Exception e) {
-            System.err.println("에러 발생: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.badRequest()
                 .body(RsData.of("F-1", "내 공간 목록 조회 중 오류가 발생했습니다: " + e.getMessage(), null));
