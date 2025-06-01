@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "@/app/components/ThemeToggle";
 import { useRouter } from "next/navigation";
+import Header from "@/components/header/header";
 
 export default function SpaceDetailPage({
   params,
@@ -32,21 +33,24 @@ export default function SpaceDetailPage({
   useEffect(() => {
     const fetchSpaceDetail = async () => {
       try {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8090";
+        const API_BASE_URL =
+          process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8090";
         const response = await fetch(`${API_BASE_URL}/api/v1/spaces/${id}`, {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
 
         if (!response.ok) {
           if (response.status === 401) {
-            alert('로그인이 필요합니다.');
-            router.push('/login');
+            alert("로그인이 필요합니다.");
+            router.push("/login");
           } else {
-            throw new Error(`Failed to fetch space details: ${response.status}`);
+            throw new Error(
+              `Failed to fetch space details: ${response.status}`
+            );
           }
         }
 
@@ -54,7 +58,7 @@ export default function SpaceDetailPage({
         const spaceData = data.data;
 
         if (!spaceData) {
-          throw new Error('No space data received');
+          throw new Error("No space data received");
         }
 
         // API 응답 데이터를 컴포넌트에서 사용하는 형식으로 변환
@@ -73,14 +77,14 @@ export default function SpaceDetailPage({
           host: {
             id: spaceData.hostId || "1",
             name: spaceData.hostName || "호스트",
-            profileImage: spaceData.hostProfileImage || "/images/placeholder.png",
+            profileImage:
+              spaceData.hostProfileImage || "/images/placeholder.png",
           },
-          imageUrl:
-            spaceData.imageUrl
-              ? spaceData.imageUrl.startsWith("http")
-                ? spaceData.imageUrl
-                : `https://loco-project-s3-image.s3.ap-northeast-2.amazonaws.com/${spaceData.imageUrl}`
-              : "/images/placeholder.png",
+          imageUrl: spaceData.imageUrl
+            ? spaceData.imageUrl.startsWith("http")
+              ? spaceData.imageUrl
+              : `https://loco-project-s3-image.s3.ap-northeast-2.amazonaws.com/${spaceData.imageUrl}`
+            : "/images/placeholder.png",
           imageId: spaceData.imageId || null,
           additionalImageUrls: Array.isArray(spaceData.imageUrls)
             ? spaceData.imageUrls
@@ -114,7 +118,11 @@ export default function SpaceDetailPage({
         setLoading(false);
       } catch (error) {
         console.error("Error fetching space details:", error);
-        setError(error instanceof Error ? error.message : "Failed to fetch space details");
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch space details"
+        );
         setLoading(false);
       }
     };
@@ -165,6 +173,7 @@ export default function SpaceDetailPage({
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-800">
+      <Header />
       <ThemeToggle />
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
@@ -181,7 +190,9 @@ export default function SpaceDetailPage({
                 <div className="flex items-center mr-4">
                   <Star className="w-5 h-5 text-yellow-500 mr-1" />
                   <span className="font-medium">{space.rating}</span>
-                  <span className="text-gray-500 ml-1">({space.reviewCount})</span>
+                  <span className="text-gray-500 ml-1">
+                    ({space.reviewCount})
+                  </span>
                 </div>
                 <div className="flex items-center mr-4">
                   <Users size={16} className="mr-1" />
@@ -206,25 +217,31 @@ export default function SpaceDetailPage({
                   />
                 </div>
 
-                {space.additionalImageUrls && space.additionalImageUrls.length > 0 && (
-                  <div className="grid grid-cols-4 gap-4 mt-4">
-                    {space.additionalImageUrls.map((imgKey: string, idx: number) => (
-                      <div key={idx} className="relative h-24 rounded-lg overflow-hidden">
-                        <Image
-                          src={
-                            imgKey.startsWith("http")
-                              ? imgKey
-                              : `https://loco-project-s3-image.s3.ap-northeast-2.amazonaws.com/${imgKey}`
-                          }
-                          alt={`${space.name} 이미지 ${idx + 2}`}
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {space.additionalImageUrls &&
+                  space.additionalImageUrls.length > 0 && (
+                    <div className="grid grid-cols-4 gap-4 mt-4">
+                      {space.additionalImageUrls.map(
+                        (imgKey: string, idx: number) => (
+                          <div
+                            key={idx}
+                            className="relative h-24 rounded-lg overflow-hidden"
+                          >
+                            <Image
+                              src={
+                                imgKey.startsWith("http")
+                                  ? imgKey
+                                  : `https://loco-project-s3-image.s3.ap-northeast-2.amazonaws.com/${imgKey}`
+                              }
+                              alt={`${space.name} 이미지 ${idx + 2}`}
+                              fill
+                              className="object-cover"
+                              unoptimized
+                            />
+                          </div>
+                        )
+                      )}
+                    </div>
+                  )}
               </div>
 
               <p className="text-gray-700">{space.description}</p>
@@ -263,7 +280,9 @@ export default function SpaceDetailPage({
               <div className="mb-4">
                 <div className="text-2xl font-bold text-indigo-600 mb-1">
                   ₩{space.price.toLocaleString()}
-                  <span className="text-gray-500 text-base font-normal">/시간</span>
+                  <span className="text-gray-500 text-base font-normal">
+                    /시간
+                  </span>
                 </div>
               </div>
 
@@ -326,7 +345,9 @@ export default function SpaceDetailPage({
                   <div className="flex items-center">
                     <div className="relative w-10 h-10 rounded-full overflow-hidden mr-3">
                       <Image
-                        src={space.host.profileImage || "/images/placeholder.png"}
+                        src={
+                          space.host.profileImage || "/images/placeholder.png"
+                        }
                         alt={space.host.name}
                         fill
                         className="object-cover"
