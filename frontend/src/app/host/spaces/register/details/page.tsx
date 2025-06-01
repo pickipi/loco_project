@@ -311,7 +311,7 @@ export default function RegisterSpacePage() {
 
           console.log("Submitting space data:", submitPayload);
 
-          const submitResponse = await fetch(`${API_BASE_URL}/api/v1/spaces`, {
+          const submitResponse = await fetch(`${API_BASE_URL}/api/v1/spaces/complete`, {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json',

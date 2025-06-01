@@ -233,8 +233,34 @@ public class SpaceService {
 
     @Transactional(readOnly = true)
     public Page<SpaceResponseDto> getSpacesByHostId(Long hostId, Pageable pageable) {
-        Page<Space> spaces = spaceRepository.findByHostId(hostId, pageable);
-        return spaces.map(SpaceResponseDto::fromEntity);
+        System.out.println("=== SpaceService.getSpacesByHostId 호출 ===");
+        System.out.println("받은 hostId: " + hostId);
+        
+        try {
+            // hostId가 실제로는 userId일 수 있으므로 두 가지 방법을 시도
+            Page<Space> spaces;
+            
+            // 1. 먼저 hostId로 직접 조회 시도
+            spaces = spaceRepository.findByHostId(hostId, pageable);
+            System.out.println("hostId로 직접 조회한 결과: " + spaces.getTotalElements() + "개");
+            
+            // 2. 만약 결과가 없다면, hostId를 userId로 간주하고 Host를 찾아서 조회
+            if (spaces.getTotalElements() == 0) {
+                System.out.println("hostId로 조회 결과가 없음. userId로 간주하여 Host 찾기 시도...");
+                Host host = hostRepository.findByUserId(hostId)
+                        .orElseThrow(() -> new IllegalArgumentException("호스트를 찾을 수 없습니다. User ID: " + hostId));
+                
+                System.out.println("찾은 Host ID: " + host.getId());
+                spaces = spaceRepository.findByHostId(host.getId(), pageable);
+                System.out.println("Host ID로 재조회한 결과: " + spaces.getTotalElements() + "개");
+            }
+            
+            return spaces.map(SpaceResponseDto::fromEntity);
+        } catch (Exception e) {
+            System.err.println("SpaceService 에러: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
 }
