@@ -10,11 +10,12 @@ import {
   Clock,
   Users,
   Star,
-  Calendar,
+  Calendar as CalendarIcon,
   ChevronRight,
 } from "lucide-react";
 import { ThemeToggle } from "@/app/components/ThemeToggle";
 import { useRouter } from "next/navigation";
+import Calendar from "@/components/Calendar";
 import Header from "@/components/header/header";
 
 export default function SpaceDetailPage({
@@ -28,6 +29,7 @@ export default function SpaceDetailPage({
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [showCalendar, setShowCalendar] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -131,8 +133,9 @@ export default function SpaceDetailPage({
   }, [id, router]);
 
   // 날짜/시간 선택 핸들러들...
-  const handleDateSelect = (date: Date) => {
+  const handleDateSelect = (date: Date | null) => {
     setSelectedDate(date);
+    setShowCalendar(false);
   };
   const handleTimeSelect = (time: string) => {
     setSelectedTime(time);
@@ -142,9 +145,13 @@ export default function SpaceDetailPage({
       alert("날짜와 시간을 선택해주세요.");
       return;
     }
-    alert(
-      `${selectedDate.toLocaleDateString()} ${selectedTime}에 예약이 완료되었습니다.`
-    );
+    // 예약 페이지로 이동하며 선택된 날짜와 시간, 공간 ID를 쿼리 파라미터로 전달
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth() + 1;
+    const day = selectedDate.getDate();
+    const formattedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+
+    router.push(`/reservation?spaceId=${space.id}&date=${formattedDate}&time=${selectedTime}`);
   };
 
   if (loading) {
@@ -291,9 +298,12 @@ export default function SpaceDetailPage({
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   날짜 선택
                 </label>
-                <button className="w-full flex items-center justify-between px-4 py-2 border rounded-md">
+                <button 
+                  onClick={() => setShowCalendar(!showCalendar)}
+                  className="w-full flex items-center justify-between px-4 py-2 border rounded-md"
+                >
                   <div className="flex items-center">
-                    <Calendar size={18} className="mr-2 text-gray-500" />
+                    <CalendarIcon size={18} className="mr-2 text-gray-500" />
                     <span>
                       {selectedDate
                         ? selectedDate.toLocaleDateString()
@@ -303,6 +313,16 @@ export default function SpaceDetailPage({
                   <ChevronRight size={18} className="text-gray-500" />
                 </button>
               </div>
+
+              {/* 캘린더 표시 영역 */}
+              {showCalendar && (
+                <div className="mb-4">
+                  <Calendar 
+                    selectedDate={selectedDate}
+                    onChange={handleDateSelect}
+                  />
+                </div>
+              )}
 
               {/* 시간 선택 */}
               <div className="mb-6">
@@ -363,7 +383,10 @@ export default function SpaceDetailPage({
                       </Link>
                     </div>
                   </div>
-                  <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-300 transition">
+                  <button 
+                    onClick={() => router.push(`/host/chat?hostId=${space.host.id}&spaceId=${space.id}`)}
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-300 transition"
+                  >
                     호스트와 채팅하기
                   </button>
                 </div>
