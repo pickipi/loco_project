@@ -73,7 +73,8 @@ export default function HostRegisterPage() {
 
     try {
       setIsLoading(true);
-      const response = await api.post('/users', {
+      
+      const response = await api.post('/users/host', {
         ...formData,
         userType: 'HOST'
       });
@@ -82,6 +83,7 @@ export default function HostRegisterPage() {
       router.push('/host/signup/complete');
     } catch (err: any) {
       console.error('회원가입 오류:', err);
+      console.error('에러 응답:', err.response?.data);
       const errorMessage = err.response?.data?.message || '회원가입 처리 중 오류가 발생했습니다.';
       setError(errorMessage);
     } finally {
