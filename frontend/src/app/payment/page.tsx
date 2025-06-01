@@ -5,6 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { loadTossPayments } from "@tosspayments/payment-sdk";
 import api from '@/lib/axios'; // API 호출을 위해 axios 인스턴스 import
 
+// 환경 변수 NEXT_PUBLIC_TOSS_CLIENT_KEY가 .env 파일에 올바르게 설정되어 있는지 확인하세요.
+
 interface PaymentInfo {
   spaceName: string; // space 대신 spaceName 사용
   date: string;
@@ -69,21 +71,38 @@ export default function PaymentPage() {
     }
 
     try {
+      // 토스페이먼츠 SDK 로드
       const tossPayments = await loadTossPayments(
         process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY!
       );
 
+      // SDK 로드 실패 시 에러 처리
+      if (!tossPayments) {
+          console.error("토스페이먼츠 SDK 로드에 실패했습니다.");
+          alert("결제 시스템 연결에 실패했습니다. 잠시 후 다시 시도해주세요.");
+          return;
+      }
+
+      // 결제 금액 유효성 최종 확인
+      if (typeof paymentInfo.amount !== 'number' || paymentInfo.amount <= 0) {
+          console.error("유효하지 않은 결제 금액입니다:", paymentInfo.amount);
+          alert("유효하지 않은 결제 금액입니다.");
+          return;
+      }
+
+      // 결제 요청
       await tossPayments.requestPayment("카드", {
         amount: paymentInfo.amount,
         orderId: `order_${Date.now()}`,
         orderName: `${paymentInfo.spaceName} 예약`,
-        customerName: "홍길동", // 실제로는 사용자 정보에서 가져와야 함
+        customerName: "홍길동", // TODO: 실제로는 사용자 정보에서 가져와야 함
         successUrl: `${window.location.origin}/payment/success`,
         failUrl: `${window.location.origin}/payment/fail`,
       });
     } catch (error) {
       console.error("결제 처리 중 오류 발생:", error);
        // 사용자에게 오류 메시지 표시
+       alert("결제 처리 중 오류가 발생했습니다. 오류 내용: " + (error instanceof Error ? error.message : String(error)));
     }
   };
 
