@@ -71,8 +71,8 @@ const HostSpaceListPage = () => {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await api.get<SpaceResponse>(
-        `${API_BASE_URL}/api/v1/spaces/all`,
+      const response = await api.get(
+        `${API_BASE_URL}/api/v1/spaces/my-spaces`,
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -80,11 +80,28 @@ const HostSpaceListPage = () => {
         }
       );
 
-      setSpaceData(response.data);
+      console.log('API 응답:', response.data);
+
+      // RsData 구조에서 실제 데이터 추출
+      if (response.data && response.data.data) {
+  
+        setSpaceData(response.data.data);
+     
+      } else {
+    
+        setSpaceData(response.data);
+      }
+      
       setError('');
     } catch (err: any) {
       console.error('공간 목록 불러오기 실패:', err);
-      setError('공간 목록을 불러오는데 실패했습니다.');
+      if (err.response?.status === 401) {
+        setError('로그인이 필요합니다. 다시 로그인해주세요.');
+      } else if (err.response?.status === 404) {
+        setError('호스트 정보를 찾을 수 없습니다.');
+      } else {
+        setError('공간 목록을 불러오는데 실패했습니다.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -137,7 +154,7 @@ const HostSpaceListPage = () => {
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold">내 공간 목록</h1>
+        <h1 className="text-2xl font-extrabold text-black">내가 등록한 공간</h1>
         <button
           onClick={() => router.push('/host/spaces/register')}
           className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
@@ -183,7 +200,7 @@ const HostSpaceListPage = () => {
                 </div>
               </div>
               <div className="p-4">
-                <h2 className="text-xl font-semibold mb-2">{space.spaceName}</h2>
+                <h2 className="text-xl font-bold text-black mb-2">{space.spaceName}</h2>
                 <p className="text-gray-600 text-sm mb-2">{space.address} {space.detailAddress}</p>
                 <p className="text-gray-700 mb-2">
                   최대 {space.maxCapacity}명 · {space.price.toLocaleString()}원/시간
@@ -192,7 +209,7 @@ const HostSpaceListPage = () => {
                   평점: {space.spaceRating.toFixed(1)}
                 </p>
                 <button
-                  onClick={() => router.push(`/host/spaces/${space.id}`)}
+                  onClick={() => router.push(`/host/spaces/list/${space.id}`)}
                   className="w-full py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600"
                 >
                   상세보기
