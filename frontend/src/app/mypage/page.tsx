@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -9,7 +9,9 @@ import api from "@/lib/axios";
 import { uploadImageToS3 } from "@/services/s3Service";
 import { useAuth } from "@/context/AuthContext";
 
-// 모달 컴포넌트 - 닉네임 변경
+// ─────────────────────────────────────────────────────────────────────────────
+// 모달 컴포넌트: 닉네임 변경
+// ─────────────────────────────────────────────────────────────────────────────
 function ChangeUsernameModal({
   show,
   onClose,
@@ -35,7 +37,7 @@ function ChangeUsernameModal({
       setIsSubmitting(true);
       await onSubmit(newUsername);
       onClose();
-    } catch (error) {
+    } catch {
       setError("닉네임 변경에 실패했습니다");
     } finally {
       setIsSubmitting(false);
@@ -79,7 +81,9 @@ function ChangeUsernameModal({
   );
 }
 
-// 모달 컴포넌트 - 연락처 변경
+// ─────────────────────────────────────────────────────────────────────────────
+// 모달 컴포넌트: 연락처 변경
+// ─────────────────────────────────────────────────────────────────────────────
 function ChangePhoneModal({
   show,
   onClose,
@@ -94,9 +98,9 @@ function ChangePhoneModal({
   const [newPhone, setNewPhone] = useState(currentPhone);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // 하이픈을 제거하고 숫자만 추출
     const numbersOnly = newPhone.replace(/-/g, "");
     if (!numbersOnly.match(/^\d{10,11}$/)) {
       setError("올바른 전화번호 형식이 아닙니다");
@@ -104,14 +108,13 @@ function ChangePhoneModal({
     }
     try {
       setIsSubmitting(true);
-      // 전화번호를 xxx-xxxx-xxxx 형식으로 변환
       const formattedPhone = numbersOnly.replace(
         /(\d{3})(\d{3,4})(\d{4})/,
         "$1-$2-$3"
       );
       await onSubmit(formattedPhone);
       onClose();
-    } catch (error) {
+    } catch {
       setError("전화번호 변경에 실패했습니다");
     } finally {
       setIsSubmitting(false);
@@ -130,9 +133,7 @@ function ChangePhoneModal({
             value={newPhone}
             onChange={(e) => {
               const input = e.target.value;
-              // 숫자와 하이픈만 허용
               const cleaned = input.replace(/[^\d-]/g, "");
-              // xxx-xxxx-xxxx 형식으로 자동 포맷팅
               const formatted = cleaned.replace(
                 /(\d{3})(\d{4})(\d{4})/,
                 "$1-$2-$3"
@@ -166,9 +167,13 @@ function ChangePhoneModal({
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 메인 컴포넌트: 마이페이지
+// ─────────────────────────────────────────────────────────────────────────────
 export default function Mypage() {
   const router = useRouter();
   const { updateUserName } = useAuth();
+
   const [userId, setUserId] = useState<string>("");
   const [realName, setRealName] = useState("");
   const [username, setUsername] = useState("");
@@ -180,77 +185,97 @@ export default function Mypage() {
   const [showPhoneModal, setShowPhoneModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // 프로필 이미지 input ref
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // ─── 로컬스토리지 + 서버에서 사용자 정보 가져오기 ────────────────────────────
   useEffect(() => {
     if (typeof window !== "undefined") {
-      // 로컬 스토리지에서 기본 정보 가져오기
-      const storedUserId = localStorage.getItem("userId") || "19"; // 임시로 하드코딩된 userId 사용
-      const storedRealName = localStorage.getItem("realName") || "김동규";
-      const storedUsername = localStorage.getItem("username") || "김동규";
-      const storedEmail = localStorage.getItem("email") || "kdg109@naver.com";
-      const storedPhone =
-        localStorage.getItem("phoneNumber") || "010-1234-5678";
+      const storedUserId = localStorage.getItem("userId") || "";
+      const storedRealName = localStorage.getItem("realName") || "";
+      const storedUsername = localStorage.getItem("username") || "";
+      const storedEmail = localStorage.getItem("email") || "";
+      const storedPhone = localStorage.getItem("phoneNumber") || "";
       const storedProfileImage = localStorage.getItem("profileImage");
 
       setUserId(storedUserId);
-      setRealName(storedRealName || storedUsername || ""); // realName이 없으면 username 사용
+      setRealName(storedRealName || storedUsername || "");
       setUsername(storedUsername || "");
       setEmail(storedEmail || "");
       setPhone(storedPhone || "");
-      if (storedProfileImage) setProfileImage(storedProfileImage);
+      if (storedProfileImage) {
+        setProfileImage(storedProfileImage);
+      }
 
-      // API 호출      // API 호출 (실패해도 UI는 표시)
-      fetchUserProfile().catch(console.error);
+      // 서버 API 호출
+      api
+        .get(`/users/${storedUserId}`)
+        .then((response) => {
+          const userInfo = response.data;
+          if (userInfo) {
+            setRealName(userInfo.realName || userInfo.username);
+            setUsername(userInfo.username);
+            setPhone(userInfo.phoneNumber);
+            setEmail(userInfo.email);
+            if (userInfo.imageUrl) {
+              setProfileImage(userInfo.imageUrl);
+            }
+          }
+        })
+        .catch(() => {
+          console.log("API 호출 실패, 로컬 데이터 사용");
+        });
     }
-  }, [router]); // 프로필 정보 가져오기
+  }, [router]);
+
+  // ─── 프로필 정보를 다시 가져오는 함수 ───────────────────────────────────
   const fetchUserProfile = async () => {
     try {
       setIsLoading(true);
       const response = await api.get(`/users/${userId}`);
       const userInfo = response.data;
 
-      setRealName(userInfo.realName || userInfo.username); // realName이 없으면 username 사용
-      setUsername(userInfo.username);
-      setPhone(userInfo.phoneNumber);
-      setEmail(userInfo.email);
-      if (userInfo.imageUrl) setProfileImage(userInfo.imageUrl); // 로컬스토리지 업데이트
+      if (userInfo) {
+        setRealName(userInfo.realName || userInfo.username);
+        setUsername(userInfo.username);
+        setPhone(userInfo.phoneNumber);
+        setEmail(userInfo.email);
+        if (userInfo.imageUrl) {
+          setProfileImage(userInfo.imageUrl);
+        }
+      }
+
       localStorage.setItem("username", userInfo.username);
-      localStorage.setItem("userName", userInfo.username); // 헤더에서 사용하는 userName 추가
+      localStorage.setItem("userName", userInfo.username); // Header용
       localStorage.setItem("phoneNumber", userInfo.phoneNumber);
       localStorage.setItem("email", userInfo.email);
-      if (userInfo.imageUrl)
+      if (userInfo.imageUrl) {
         localStorage.setItem("profileImage", userInfo.imageUrl);
+      }
     } catch (error) {
       console.error("프로필 정보 가져오기 실패:", error);
     } finally {
       setIsLoading(false);
     }
   };
-  // 닉네임 변경
+
+  // ─── 닉네임 변경 핸들러 ─────────────────────────────────────────────────
   const handleUsernameChange = async (newUsername: string) => {
     try {
       setIsLoading(true);
-      const response = await api.put(`/users/${userId}`, {
+      await api.put(`/users/${userId}`, {
         username: newUsername,
         phoneNumber: phone,
-      }); // 프로필 정보 다시 가져오기
+      });
       await fetchUserProfile();
       setUsername(newUsername);
-      setRealName(newUsername); // realName도 즉시 업데이트
+      setRealName(newUsername);
 
-      // localStorage 업데이트
       localStorage.setItem("username", newUsername);
-      localStorage.setItem("userName", newUsername); // 헤더에서 사용하는 userName
-      localStorage.setItem("realName", newUsername); // realName도 localStorage에 저장
+      localStorage.setItem("userName", newUsername);
+      localStorage.setItem("realName", newUsername);
 
-      // AuthContext의 userName 업데이트 (이것이 헤더에 반영됨)
       updateUserName(newUsername);
-
-      // 페이지 새로고침
-      window.location.reload(); // router.refresh() 대신 전체 페이지 새로고침
-
-      setShowUsernameModal(false);
+      window.location.reload();
     } catch (error) {
       console.error("닉네임 변경 실패:", error);
       throw error;
@@ -258,24 +283,19 @@ export default function Mypage() {
       setIsLoading(false);
     }
   };
-  // 연락처 변경
+
+  // ─── 연락처 변경 핸들러 ─────────────────────────────────────────────────
   const handlePhoneChange = async (newPhone: string) => {
     try {
       setIsLoading(true);
-      const response = await api.put(`/users/${userId}`, {
+      await api.put(`/users/${userId}`, {
         username,
         phoneNumber: newPhone,
       });
-
-      // 프로필 정보 다시 가져오기
       await fetchUserProfile();
       setPhone(newPhone);
       localStorage.setItem("phoneNumber", newPhone);
-
-      // 페이지 새로고침
       window.location.reload();
-
-      setShowPhoneModal(false);
     } catch (error) {
       console.error("연락처 변경 실패:", error);
       throw error;
@@ -283,7 +303,8 @@ export default function Mypage() {
       setIsLoading(false);
     }
   };
-  // 프로필 이미지 변경
+
+  // ─── 프로필 이미지 변경 핸들러 ─────────────────────────────────────────
   const handleProfileImageChange = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -297,15 +318,9 @@ export default function Mypage() {
 
     try {
       setIsLoading(true);
-      // S3에 이미지 업로드
       const uploadResponse = await uploadImageToS3(file);
       const imageUrl = uploadResponse.imageUrl;
-
-      // 프로필 이미지 URL 업데이트
-      const response = await api.put(`/users/${userId}/profile-image`, {
-        imageUrl,
-      });
-
+      await api.put(`/users/${userId}/profile-image`, { imageUrl });
       setProfileImage(imageUrl);
       localStorage.setItem("profileImage", imageUrl);
     } catch (error) {
@@ -316,6 +331,7 @@ export default function Mypage() {
     }
   };
 
+  // ─── 렌더링 시작 ───────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -328,7 +344,7 @@ export default function Mypage() {
         )}
 
         <div className="flex flex-col md:flex-row rounded-xl overflow-hidden bg-white shadow-sm">
-          {/* Left - 프로필 이미지 */}
+          {/* ── Left: 프로필 이미지 영역 ───────────────────────────────────── */}
           <div className="w-full md:w-1/3 bg-white px-6 py-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-100">
             <div className="relative w-28 h-28">
               {profileImage ? (
@@ -340,12 +356,11 @@ export default function Mypage() {
                 />
               ) : (
                 <div className="w-full h-full rounded-full bg-gray-200 text-white flex items-center justify-center text-4xl font-bold">
-                  {username?.charAt(0).toUpperCase() || ""}
+                  {username.charAt(0).toUpperCase() || ""}
                 </div>
               )}
             </div>
             <div className="text-center mt-3">
-              {" "}
               <p className="font-semibold text-lg text-gray-800">{realName}</p>
               <button
                 className="text-sm text-blue-600 hover:underline mt-1"
@@ -363,10 +378,10 @@ export default function Mypage() {
             </div>
           </div>
 
-          {/* Right - 정보 목록 */}
+          {/* ── Right: 사용자 정보 목록 ───────────────────────────────────── */}
           <div className="w-full md:w-2/3 px-6 py-8 space-y-6">
+            {/* 닉네임 */}
             <div className="flex justify-between items-center">
-              {" "}
               <span className="text-gray-800 font-medium">닉네임</span>
               <div className="flex items-center gap-2">
                 <span className="text-gray-600">{realName}</span>
@@ -379,6 +394,7 @@ export default function Mypage() {
               </div>
             </div>
 
+            {/* 이메일 */}
             <div className="flex justify-between items-center">
               <span className="text-gray-800 font-medium">이메일</span>
               <div className="flex items-center gap-2">
@@ -387,6 +403,7 @@ export default function Mypage() {
               </div>
             </div>
 
+            {/* 연락처 */}
             <div className="flex justify-between items-center">
               <span className="text-gray-800 font-medium">연락처</span>
               <div className="flex items-center gap-2">
@@ -400,6 +417,7 @@ export default function Mypage() {
               </div>
             </div>
 
+            {/* SNS 연동 상태 */}
             <div className="flex justify-between items-center">
               <span className="text-gray-800 font-medium">SNS 연동</span>
               <div className="flex items-center gap-3">
@@ -426,12 +444,13 @@ export default function Mypage() {
                       className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 ${
                         isKakaoLinked ? "translate-x-5" : ""
                       }`}
-                    ></div>
+                    />
                   </div>
                 </label>
               </div>
             </div>
 
+            {/* 비밀번호 변경 링크 */}
             <div className="flex justify-between items-center">
               <span className="text-gray-800 font-medium">비밀번호</span>
               <Link
@@ -442,8 +461,8 @@ export default function Mypage() {
               </Link>
             </div>
 
+            {/* 서비스 탈퇴 버튼 */}
             <div className="pt-6 text-center border-t border-gray-100">
-              {" "}
               <button
                 className="text-sm text-gray-500 hover:underline"
                 onClick={async () => {
@@ -457,8 +476,8 @@ export default function Mypage() {
                       await api.delete(`/users/${userId}`);
                       localStorage.clear();
                       router.push("/");
-                    } catch (error) {
-                      console.error("회원 탈퇴 실패:", error);
+                    } catch {
+                      console.error("회원 탈퇴 실패:");
                       alert("회원 탈퇴에 실패했습니다.");
                     } finally {
                       setIsLoading(false);
