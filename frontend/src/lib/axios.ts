@@ -39,26 +39,22 @@ api.interceptors.request.use((config) => {
 });
 
 // Response interceptor
-api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    // 401 에러 발생 시 리다이렉트
-    if (
-      error.response?.status === 401 &&
-      window.location.pathname !== "/login"
-    ) {
-      // Clear authentication data
-      localStorage.clear();
-      // 로그인 페이지로 리다이렉트
-      if (typeof window !== "undefined") {
-        window.location.href = "/login";
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+api.interceptors.response.use((response) => {
+  return response;
+}, (error) => {
+  // 401 에러 발생 시 리다이렉트 로직 제거
+  // if (error.response?.status === 401 && window.location.pathname !== '/login') {
+  //   // Clear authentication data
+  //   localStorage.removeItem('token');
+  //   localStorage.removeItem('userId');
+  //   localStorage.removeItem('userName');
+  //   localStorage.removeItem('userRole');
+
+  //   // Redirect to login page
+  //   window.location.href = '/login';
+  // }
+  return Promise.reject(error);
+});
 
 /**
  * 사용 예시:
