@@ -76,13 +76,9 @@ public class Space extends BaseEntity {
     @Column(name = "image_url", length = 512)
     private String imageUrl; // 대표 이미지 URL
 
-    @Builder.Default
-    @ElementCollection
-    @CollectionTable(
-        name = "space_images",
-        joinColumns = @JoinColumn(name = "space_id", nullable = false)
-    )
-    @Column(name = "image_url", length = 512, nullable = false)
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "space_additional_images", joinColumns = @JoinColumn(name = "space_id"))
+    @Column(name = "image_url")
     private List<String> additionalImageUrls = new ArrayList<>(); // 추가 이미지 URL 목록
 
     @Column(nullable = true) // 환불 규정은 필수는 아닐 수 있습니다. 요구사항에 따라 변경하세요.

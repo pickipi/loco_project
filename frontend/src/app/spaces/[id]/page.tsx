@@ -14,6 +14,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { ThemeToggle } from "@/app/components/ThemeToggle";
+import { useRouter } from "next/navigation";
 
 export default function SpaceDetailPage({
   params,
@@ -26,6 +27,7 @@ export default function SpaceDetailPage({
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchSpaceDetail = async () => {
@@ -35,12 +37,17 @@ export default function SpaceDetailPage({
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
           },
-          credentials: 'include',
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to fetch space details: ${response.status}`);
+          if (response.status === 401) {
+            alert('로그인이 필요합니다.');
+            router.push('/login');
+          } else {
+            throw new Error(`Failed to fetch space details: ${response.status}`);
+          }
         }
 
         const data = await response.json();
@@ -69,11 +76,11 @@ export default function SpaceDetailPage({
             profileImage: spaceData.hostProfileImage || "/images/placeholder.png",
           },
           imageUrl:
-            spaceData.imageUrl ||
-            (Array.isArray(spaceData.imageUrls) &&
-            spaceData.imageUrls.length > 0
-              ? spaceData.imageUrls[0]
-              : ""),
+            spaceData.imageUrl
+              ? spaceData.imageUrl.startsWith("http")
+                ? spaceData.imageUrl
+                : `https://loco-project-s3-image.s3.ap-northeast-2.amazonaws.com/${spaceData.imageUrl}`
+              : "/images/placeholder.png",
           imageId: spaceData.imageId || null,
           additionalImageUrls: Array.isArray(spaceData.imageUrls)
             ? spaceData.imageUrls
@@ -113,7 +120,7 @@ export default function SpaceDetailPage({
     };
 
     fetchSpaceDetail();
-  }, [id]);
+  }, [id, router]);
 
   // 날짜/시간 선택 핸들러들...
   const handleDateSelect = (date: Date) => {
@@ -190,13 +197,7 @@ export default function SpaceDetailPage({
               <div className="mb-4">
                 <div className="relative w-full h-[300px] rounded-lg overflow-hidden">
                   <Image
-                    src={
-                      space.imageUrl
-                        ? space.imageUrl.startsWith("http")
-                          ? space.imageUrl
-                          : `https://loco-project-s3-image.s3.ap-northeast-2.amazonaws.com/${space.imageUrl}`
-                        : "/images/placeholder.png"
-                    }
+                    src={space.imageUrl}
                     alt={space.name}
                     fill
                     className="object-cover"

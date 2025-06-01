@@ -52,85 +52,86 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 1) CORS 설정 (CorsFilter는 addFilterBefore로 명시적으로 추가하여 순서 제어)
-                .cors(AbstractHttpConfigurer::disable)
+            // 1) CORS 설정 (CorsFilter는 addFilterBefore로 명시적으로 추가하여 순서 제어)
+            .cors(AbstractHttpConfigurer::disable)
 
-                // 2) CSRF 비활성화 (REST API)
-                .csrf(AbstractHttpConfigurer::disable)
+            // 2) CSRF 비활성화 (REST API)
+            .csrf(AbstractHttpConfigurer::disable)
 
-                // CorsFilter를 Spring Security 필터 체인 맨 앞에 추가
-                .addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class)
+            // CorsFilter를 Spring Security 필터 체인 맨 앞에 추가
+            .addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class)
 
-                // JWT 인증 필터 추가: CorsFilter 이후, UsernamePasswordAuthenticationFilter 이전에 실행
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            // JWT 인증 필터 추가: CorsFilter 이후, UsernamePasswordAuthenticationFilter 이전에 실행
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
-                // 3) 인가 설정
-                .authorizeHttpRequests(authorize -> authorize
-                        // OPTIONS 요청은 모든 경로에 대해 허용 (CORS Preflight)
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // H2 콘솔
-                        .requestMatchers("/h2-console/**").permitAll()
-                        // 회원가입·로그인 API
-                        .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
-                        .requestMatchers("/api/v1/users/emails/**").permitAll()
-                        // 호스트 관련 공개 엔드포인트
-                        .requestMatchers("/api/v1/host/signup", "/api/v1/host/login").permitAll()
-                        .requestMatchers("/api/v1/host/oauth2/**").permitAll()
-                        // Swagger
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        // OAuth2 로그인 엔드포인트
-                        .requestMatchers("/oauth2/authorization/**", "/login/oauth2/code/**", "/login").permitAll()
-                        // 호스트 전용 OAuth2 엔드포인트 추가
-                        .requestMatchers("/host/oauth2/authorization/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/spaces/**").permitAll()
-                        // 공간 목록 조회는 모두 허용
-                        .requestMatchers(HttpMethod.GET, "/api/v1/spaces/**").permitAll()
-                        // 관리자 사용자 목록 조회는 인증된 사용자에게 허용
-                        .requestMatchers(HttpMethod.GET, "/api/v1/admin/users").authenticated()
-                        // 사용자 권한 변경 API는 인증된 사용자에게 허용
-                        .requestMatchers(HttpMethod.PATCH, "/api/v1/admin/users/{userId}/role").authenticated()
-                        // 호스트 전용 엔드포인트는 HOST 권한 필요
-                        .requestMatchers("/api/v1/host/**").hasRole("HOST")
-                        // 나머지는 인증 필요
-                        .anyRequest().authenticated()
-                )
+            // 3) 인가 설정
+            .authorizeHttpRequests(authorize -> authorize
+                // 공간 목록 조회 (GET /api/v1/spaces)는 모두 허용
+                .requestMatchers(HttpMethod.GET, "/api/v1/spaces").permitAll()
+                // 공간 상세 조회 (GET /api/v1/spaces/{id})는 인증된 사용자만 접근 가능
+                .requestMatchers(HttpMethod.GET, "/api/v1/spaces/{id}").authenticated()
+                // OPTIONS 요청은 모든 경로에 대해 허용 (CORS Preflight)
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                // H2 콘솔
+                .requestMatchers("/h2-console/**").permitAll()
+                // 회원가입·로그인 API
+                .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
+                .requestMatchers("/api/v1/users/emails/**").permitAll()
+                // 호스트 관련 공개 엔드포인트
+                .requestMatchers("/api/v1/host/signup", "/api/v1/host/login").permitAll()
+                .requestMatchers("/api/v1/host/oauth2/**").permitAll()
+                // Swagger
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                // OAuth2 로그인 엔드포인트
+                .requestMatchers("/oauth2/authorization/**", "/login/oauth2/code/**", "/login").permitAll()
+                // 호스트 전용 OAuth2 엔드포인트 추가
+                .requestMatchers("/host/oauth2/authorization/**").permitAll()
+                // 관리자 사용자 목록 조회는 인증된 사용자에게 허용
+                .requestMatchers(HttpMethod.GET, "/api/v1/admin/users").authenticated()
+                // 사용자 권한 변경 API는 인증된 사용자에게 허용
+                .requestMatchers(HttpMethod.PATCH, "/api/v1/admin/users/{userId}/role").authenticated()
+                // 호스트 전용 엔드포인트는 HOST 권한 필요
+                .requestMatchers("/api/v1/host/**").hasRole("HOST")
+                // 나머지는 인증 필요
+                .anyRequest().authenticated()
+            )
 
-                // 미인증 REST 호출에 대해 302 대신 401 응답
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-                )
-                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
-                .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable)
+            // 미인증 REST 호출에 대해 302 대신 401 응답
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+            )
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+            .formLogin(AbstractHttpConfigurer::disable)
+            .httpBasic(AbstractHttpConfigurer::disable)
 
-                // 4) H2 iframe 허용
-                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+            // 4) H2 iframe 허용
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
 
-                // 5) 폼로그인·기본 Basic 비활성화
-                .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable)
-                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+            // 5) 폼로그인·기본 Basic 비활성화
+            .formLogin(AbstractHttpConfigurer::disable)
+            .httpBasic(AbstractHttpConfigurer::disable)
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
 
-                // 6) OAuth2 로그인 설정
-                .oauth2Login(oauth2 -> oauth2
-                        // 사용자 로그인 진입 페이지
-                        .loginPage("/login")
-                        // UserInfo 조회 서비스
-                        .userInfoEndpoint(ui -> ui.userService(customOAuth2UserService))
-                        // 로그인 성공 시 JWT 발급 후 리다이렉트
-                        .successHandler(successHandler)
-                        // 로그인 실패 시 처리
-                        .failureHandler((req, res, ex) -> {
-                            if (ex.getCause() instanceof OAuth2AuthorizationException oaex
-                                    && "invalid_request".equals(oaex.getError().getErrorCode())) {
-                                res.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-                                res.getWriter().write("잠시 후 다시 시도해주세요. (토큰 발급 한도 초과)");
-                            } else {
-                                res.sendRedirect("/oauth2/error");
-                            }
-                        })
-                );
+            // 6) OAuth2 로그인 설정
+            .oauth2Login(oauth2 -> oauth2
+                // 사용자 로그인 진입 페이지
+                .loginPage("/login")
+                // UserInfo 조회 서비스
+                .userInfoEndpoint(ui -> ui.userService(customOAuth2UserService))
+                // 로그인 성공 시 JWT 발급 후 리다이렉트
+                .successHandler(successHandler)
+                // 로그인 실패 시 처리
+                .failureHandler((req, res, ex) -> {
+                    if (ex.getCause() instanceof OAuth2AuthorizationException oaex
+                        && "invalid_request".equals(oaex.getError().getErrorCode())) {
+                        res.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+                        res.getWriter().write("잠시 후 다시 시도해주세요. (토큰 발급 한도 초과)");
+                    } else {
+                        res.sendRedirect("/oauth2/error");
+                    }
+                })
+            );
 
         return http.build();
     }
