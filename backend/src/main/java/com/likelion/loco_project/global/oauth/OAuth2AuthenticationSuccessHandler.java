@@ -2,6 +2,7 @@ package com.likelion.loco_project.global.oauth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.likelion.loco_project.global.jwt.JwtTokenProvider;
+import com.likelion.loco_project.global.redis.RedisService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -21,6 +22,7 @@ import java.util.Map;
 public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccessHandler {
     private final JwtTokenProvider jwtTokenProvider;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final RedisService redisService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -47,6 +49,12 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
         // 신규 사용자라면 회원가입 페이지로 리다이렉트
         if (principal.isNewUser()) {
+            
+            // 소셜로그인 신규 사용자의 이메일을 Redis에 인증된 상태로 저장
+            String authCodeKey = "AuthCode " + email;
+            redisService.setValues(authCodeKey, "SOCIAL_LOGIN_VERIFIED", java.time.Duration.ofMinutes(30));
+            log.info("소셜로그인 신규 사용자 이메일 사전 인증 처리: {}", email);
+            
             String signupUrl = UriComponentsBuilder
                     .fromHttpUrl("http://localhost:3000")
                     .path(isHostLogin ? "/host/signup" : "/signup")
