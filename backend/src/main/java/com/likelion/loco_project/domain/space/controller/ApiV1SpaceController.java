@@ -57,7 +57,7 @@ public class ApiV1SpaceController {
     @GetMapping("/{id}")
     public ResponseEntity<RsData<SpaceResponseDto>> getSpace(
             @Parameter(description = "조회할 공간 ID", required = true, example = "1")
-            @PathVariable Long id) {
+            @PathVariable("id") Long id) {
         SpaceResponseDto dto = spaceService.getSpace(id);
         return ResponseEntity.ok(RsData.of("S-200", "공간 조회 성공", dto));
     }
