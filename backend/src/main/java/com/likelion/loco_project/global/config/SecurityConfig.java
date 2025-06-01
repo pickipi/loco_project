@@ -93,6 +93,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/admin/users/{userId}/role").authenticated()
                 // 호스트 전용 엔드포인트는 HOST 권한 필요
                 .requestMatchers("/api/v1/host/**").hasRole("HOST")
+                // 예약 페이지는 인증된 사용자만 접근 가능
+                .requestMatchers("/reservation").authenticated()
+                // 호스트 채팅 페이지는 인증된 사용자만 접근 가능
+                .requestMatchers("/host/chat").authenticated()
                 // 나머지는 인증 필요
                 .anyRequest().authenticated()
             )

@@ -342,7 +342,10 @@ export default function SpaceDetailPage({
                       </Link>
                     </div>
                   </div>
-                  <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-300 transition">
+                  <button 
+                    onClick={() => router.push(`/host/chat?hostId=${space.host.id}`)}
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-300 transition"
+                  >
                     호스트와 채팅하기
                   </button>
                 </div>
