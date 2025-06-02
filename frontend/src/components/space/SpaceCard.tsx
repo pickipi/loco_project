@@ -16,11 +16,11 @@ export interface SpaceCardProps {
 
 export default function SpaceCard({
   id,
-  title,
-  location,
-  capacity,
+  spaceName,
+  address,
+  maxCapacity,
   price,
-  rating,
+  spaceRating,
   imageUrl,
   reviewCount = 0,
   description,
@@ -43,9 +43,7 @@ export default function SpaceCard({
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             priority={true}
-            quality={85}
-            style={{ objectFit: "cover" }}
-            className="transition-transform duration-200 hover:scale-105"
+            className="object-cover"
           />
           <div className="absolute top-2 right-2 bg-[#40322F] text-white px-2 py-1 rounded text-sm">
             {category}
@@ -54,7 +52,7 @@ export default function SpaceCard({
 
         <div className="p-4">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{spaceName}</h3>
             <div className="flex items-center">
               <span className="text-yellow-400">★</span>
               <span className="ml-1 text-gray-600">{rating.toFixed(1)}</span>

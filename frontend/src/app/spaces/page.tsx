@@ -28,6 +28,7 @@ interface PageResponse {
   last: boolean;
   empty: boolean;
 }
+*/
 
 export default function SpaceListPage() {
   const router = useRouter();
@@ -74,9 +75,9 @@ export default function SpaceListPage() {
     }
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
+  useEffect(() => {
+    fetchSpaces();
+  }, []); // 컴포넌트 마운트 시 한 번만 실행
 
   const handleCategoryClick = (category: string) => {
     setSelectedCategory(category === selectedCategory ? null : category);
@@ -119,6 +120,44 @@ export default function SpaceListPage() {
           </p>
           <SearchForm />
         </div>
+      </div>
+
+      {/* Featured Spaces Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-900">추천 공간</h2>{" "}
+          <Link
+            href="/spaces/all"
+            className="text-[#40322F] hover:text-[#594a47] font-medium flex items-center"
+          >
+            모든 공간 보기
+            <svg
+              className="w-5 h-5 ml-1"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </Link>
+        </div>
+
+        {isLoading ? (
+          <p>공간 목록을 불러오는 중...</p>
+        ) : (
+          spaces.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {spaces.map((space) => (
+            <SpaceCard key={space.id} {...space} />
+          ))}
+        </div>
+          ) : (
+            <p>등록된 공간이 없습니다.</p>
+          )
+        )}
       </div>
 
       {/* Space Categories */}

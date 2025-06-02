@@ -27,9 +27,9 @@ interface SearchResult {
 export default function SearchResultPage() {
   const searchParams = useSearchParams();
   const query = searchParams.get("query");
-  const [results, setResults] = useState<SearchResult[]>([]);
+  const [allSpaces, setAllSpaces] = useState<SpaceListResponseDto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filteredResults, setFilteredResults] = useState<SearchResult[]>([]);
+  const [filteredSpaces, setFilteredSpaces] = useState<SpaceListResponseDto[]>([]);
 
   const location = searchParams.get("location");
   const purpose = searchParams.get("purpose");
@@ -40,57 +40,21 @@ export default function SearchResultPage() {
   useEffect(() => {
     const fetchResults = async () => {
       try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/spaces/all`);
 
-//         const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8090";
-//         const response = await fetch(`${API_BASE_URL}/api/v1/spaces/all?page=0&size=12&sort=id`);
-//         if (!response.ok) {
-//           throw new Error("Failed to fetch spaces");
-//         }
-//         const data = await response.json();
-//         const spaceData = data.data?.content || [];
-//         setResults(spaceData);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log('검색 페이지 공간 데이터 가져오기 성공:', data);
 
-        // TODO: Replace with actual API call
-        const mockResults = [
-          {
-            id: "1",
-            title: "모던한 회의실",
-            location: "서울 강남구",
-            capacity: "10",
-            price: 20000,
-            rating: 4.5,
-            imageUrl: "/sample-space-1.jpg",
-            purpose: "meeting",
-            description: "모던한 인테리어의 회의실",
-            category: "회의실"
-          },
-          {
-            id: "2",
-            title: "스튜디오",
-            location: "서울 마포구",
-            capacity: "15",
-            price: 35000,
-            rating: 4.7,
-            imageUrl: "/sample-space-2.jpg",
-            purpose: "studio",
-            description: "다양한 용도로 사용 가능한 스튜디오",
-            category: "스튜디오"
-          },
-          {
-            id: "3",
-            title: "파티룸",
-            location: "서울 용산구",
-            capacity: "20",
-            price: 45000,
-            rating: 4.8,
-            imageUrl: "/sample-space-3.jpg",
-            purpose: "party",
-            description: "넓은 공간의 파티룸",
-            category: "파티룸"
-          },
-        ];
+        if (data.resultCode === 'S-1' && data.data && data.data.content) {
+          setAllSpaces(data.data.content);
+        } else {
+          console.error('검색 페이지 데이터 구조가 예상과 다릅니다:', data);
+          setAllSpaces([]);
+        }
 
-        setResults(mockResults);
         setLoading(false);
       } catch (error) {
         console.error("Failed to fetch search results:", error);
@@ -101,11 +65,9 @@ export default function SearchResultPage() {
     fetchResults();
   }, []);
 
-  // 검색어와 필터를 적용하는 로직
   useEffect(() => {
-    let filtered = [...results];
+    let filtered = [...allSpaces];
 
-    // 검색어로 필터링
     if (query) {
       filtered = filtered.filter(
         (space) =>
@@ -114,17 +76,21 @@ export default function SearchResultPage() {
       );
     }
 
-    // 지역 필터링
     if (location) {
       filtered = filtered.filter((space) =>
         space.address.toLowerCase().includes(location.toLowerCase())
       );
     }
 
-    // 수용 인원 필터링
+    if (purpose) {
+      filtered = filtered.filter((space) => space.spaceType === purpose);
+    }
+
     if (capacity) {
       const [min, max] = capacity.split("-");
       filtered = filtered.filter((space) => {
+        const spaceCapacity = space.maxCapacity;
+
         if (max === "+") {
           return space.maxCapacity >= parseInt(min);
         }
@@ -132,32 +98,26 @@ export default function SearchResultPage() {
       });
     }
 
-    // 가격 필터링
     filtered = filtered.filter(
       (space) => space.price >= minPrice && space.price <= maxPrice
     );
 
-    // 활성화된 공간만 필터링
-    filtered = filtered.filter((space) => space.isActive);
-
-    setFilteredResults(filtered);
-  }, [query, location, purpose, capacity, minPrice, maxPrice, results]);
+    setFilteredSpaces(filtered.filter(space => space.isActive));
+  }, [query, location, purpose, capacity, minPrice, maxPrice, allSpaces]);
 
   return (
     <div className="min-h-screen bg-white">
       <MainHeader />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex flex-col md:flex-row gap-8">
-          {/* 필터 사이드바 */}
           <aside className="w-full md:w-64 flex-shrink-0">
             <SpaceFilter />
           </aside>
 
-          {/* 검색 결과 */}
           <main className="flex-1">
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-900">
-                검색 결과: {filteredResults.length}개의 공간
+                검색 결과: {filteredSpaces.length}개의 공간
               </h1>
               {query && (
                 <p className="text-gray-600 mt-2">'{query}' 검색 결과입니다.</p>
@@ -168,7 +128,7 @@ export default function SearchResultPage() {
               <div className="text-center py-12">
                 <p>검색 중...</p>
               </div>
-            ) : filteredResults.length === 0 ? (
+            ) : filteredSpaces.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-500">검색 결과가 없습니다.</p>
               </div>

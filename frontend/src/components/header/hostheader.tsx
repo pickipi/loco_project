@@ -119,6 +119,7 @@ export default function HostHeader() {
         console.error('알림 서버 응답 없음:', error.request);
         toast.error('알림 서버에 연결할 수 없습니다.');
       } else {
+
         // 요청 설정 중 발생한 오류
         console.error('알림 요청 설정 오류:', error.message);
         toast.error('알림 요청을 설정하는 중 오류가 발생했습니다.');
@@ -181,8 +182,8 @@ export default function HostHeader() {
             >
               공간작성
             </button>
-            <button
-              onClick={() => handleProtectedRoute("/host/spaces/list")}
+            <button 
+              onClick={() => handleProtectedRoute("/host/spaces")}
               className={styles.navLink}
             >
               공간관리

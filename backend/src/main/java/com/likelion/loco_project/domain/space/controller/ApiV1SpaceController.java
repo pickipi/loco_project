@@ -156,7 +156,29 @@ public class ApiV1SpaceController {
     // 공간 검색
     @GetMapping("/search")
     @Operation(summary = "공간 검색", description = "조건에 맞는 공간을 검색합니다.")
-    public ResponseEntity<Page<SpaceResponseDto>> searchSpaces(SpaceSearchDto searchDto) {
+    public ResponseEntity<Page<SpaceResponseDto>> searchSpaces(
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) Integer minPrice,
+            @RequestParam(required = false) Integer maxPrice,
+            @RequestParam(required = false) Integer capacity,
+            @RequestParam(required = false) List<String> spaceTypes,
+            @RequestParam(required = false) List<String> facilities,
+            @RequestParam(required = false, defaultValue = "id") String sortBy,
+            @RequestParam(required = false, defaultValue = "DESC") String sortDirection,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "10") int size) {
+        SpaceSearchDto searchDto = new SpaceSearchDto();
+        searchDto.setLocation(location);
+        searchDto.setMinPrice(minPrice);
+        searchDto.setMaxPrice(maxPrice);
+        searchDto.setCapacity(capacity);
+        searchDto.setSpaceTypes(spaceTypes);
+        searchDto.setFacilities(facilities);
+        searchDto.setSortBy(sortBy);
+        searchDto.setSortDirection(sortDirection);
+        searchDto.setPage(page);
+        searchDto.setSize(size);
+        
         return ResponseEntity.ok(spaceService.searchSpaces(searchDto));
     }
 
