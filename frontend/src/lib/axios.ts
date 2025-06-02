@@ -6,7 +6,7 @@ import axios from "axios";
  */
 const api = axios.create({
   // API 서버의 기본 주소 설정 (환경 변수에서 가져옴)
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL + "/api/v1",
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
 
   // 요청 제한 시간 설정 (10초)
   timeout: 10000,
@@ -27,13 +27,19 @@ const publicPaths = [
   "/auth/verify-code", // 메일 인증 코드 확인
   "/auth/login", // 로그인
   "/auth/signup", // 회원가입
+  "/api/v1/spaces/all", // 공간 목록 조회
+  "/api/v1/spaces/search", // 공간 검색
 ];
 
 // 🔐 요청 시 자동으로 Authorization 헤더 붙이기
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
+  // publicPaths에 해당하는 경로는 토큰을 붙이지 않음
+  const isPublicPath = publicPaths.some(path => config.url?.includes(path));
+  if (!isPublicPath) {
+    const token = localStorage.getItem("token");
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
   }
   return config;
 });
