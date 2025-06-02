@@ -41,21 +41,19 @@ export default function PaymentPage() {
     // spaceId로 공간 정보 가져오기
     const fetchSpaceDetail = async () => {
       try {
-        const response = await api.get(`/spaces/${spaceId}`);
+        const response = await api.get(`/api/v1/spaces/${spaceId}`);
         if (response.data && response.data.data) {
           const spaceData = response.data.data;
           setPaymentInfo(prevInfo => ({
             ...prevInfo,
-            spaceName: spaceData.spaceName, // 공간 이름 설정
-            amount: spaceData.price, // 공간 가격으로 결제 금액 설정 (임시)
+            spaceName: spaceData.spaceName,
+            amount: spaceData.price,
           }));
         } else {
           console.error('공간 정보를 가져오는데 실패했습니다.');
-          // 에러 상태 표시 필요
         }
       } catch (error) {
         console.error("공간 정보 가져오는 중 오류 발생:", error);
-        // 에러 상태 표시 필요
       } finally {
         setLoadingSpace(false);
       }

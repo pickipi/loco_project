@@ -35,7 +35,7 @@ export default function ReservationPage() {
 
     const fetchSpaceDetail = async () => {
       try {
-        const response = await api.get(`/spaces/${spaceId}`);
+        const response = await api.get(`/api/v1/spaces/${spaceId}`);
         if (response.data && response.data.data) {
           setSpace(response.data.data);
         } else {
