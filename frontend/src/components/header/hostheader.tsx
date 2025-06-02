@@ -5,10 +5,9 @@ import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { IoNotifications } from "react-icons/io5";
-import NotificationPanel from "../notification/notification";
+// import NotificationPanel from "../notification/notification";
 import styles from "./hostheader.module.css";
 import api from "@/lib/axios";
-import { useAuth } from "@/context/AuthContext";
 import { toast } from 'react-toastify';
 
 // Notification 인터페이스 정의
@@ -28,18 +27,29 @@ interface ApiResponse<T> {
 
 export default function HostHeader() {
   const router = useRouter();
-  const {
-    isLoggedIn,
-    userName: authUserName,
-    userId: authUserId,
-    logout,
-  } = useAuth(); // useAuth 훅으로 로그인 상태와 정보, 로그아웃 함수 가져오기
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState("");
+  const [realName, setRealName] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   // 알림 관련 상태 추가
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const notificationRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const storedUsername = localStorage.getItem("username");
+    const storedRealName = localStorage.getItem("realName");
+
+    if (token) {
+      setIsLoggedIn(true);
+      setUsername(storedUsername || "");
+      setRealName(storedRealName || "");
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, []);
 
   // 알림 패널 외부 클릭 시 패널 닫기
   useEffect(() => {
@@ -58,36 +68,8 @@ export default function HostHeader() {
     };
   }, []);
 
-  // 토큰 유효성 검사 함수 추가
-  const validateToken = () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      return false;
-    }
-
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-
-      const payload = JSON.parse(jsonPayload);
-      const expirationTime = payload.exp * 1000;
-      
-      if (Date.now() >= expirationTime) {
-        localStorage.removeItem('token');
-        return false;
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('토큰 검증 중 오류:', error);
-      return false;
-    }
-  };
-
   // 읽지 않은 알림 개수를 가져오는 함수 수정
+  /*
   const fetchNotificationsAndCountUnread = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -97,63 +79,69 @@ export default function HostHeader() {
         return;
       }
 
-      // 토큰 유효성 검사
-      if (!validateToken()) {
-        console.log('토큰이 유효하지 않습니다. (fetchNotificationsAndCountUnread)');
+      // 호스트용 알림 API 엔드포인트로 수정
+      const response = await api.get<ApiResponse<Notification[]>>("/api/v1/host/notifications");
+
+      if (response.data && Array.isArray(response.data.data)) {
+        // 읽지 않은 알림 개수 계산
+        const unread = response.data.data.filter((noti) => !noti.isRead).length;
+        setUnreadCount(unread);
+      } else {
+        console.error("알림 데이터 형식이 올바르지 않습니다:", response.data);
         setUnreadCount(0);
-        return;
       }
 
-      // 기존 알림 목록 엔드포인트 호출
-      const response = await api.get<ApiResponse<Notification[]>>(
-        "/api/v1/notifications",
-        {
-        headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      // 읽지 않은 알림 개수 계산
-      const unread = response.data.data.filter((noti) => !noti.isRead).length;
-      setUnreadCount(unread);
     } catch (error: any) {
       console.error("알림 목록 및 읽지 않은 개수 조회 실패:", error);
       
-      // 401 에러 처리
-      if (error.response && error.response.status === 401) {
-        console.log('알림 조회 중 인증 만료 (401).');
-        localStorage.removeItem('token');
-        setUnreadCount(0);
-        toast.error('인증이 만료되었습니다. 다시 로그인해주세요.', {
-          onClose: () => {
-            router.push('/host/login');
-          }
-        });
+      if (error.response) {
+        // HTTP 에러 응답이 있는 경우
+        switch (error.response.status) {
+          case 401:
+            console.log('알림 조회 중 인증 만료 (401).');
+            handleLogout();
+            toast.error('인증이 만료되었습니다. 다시 로그인해주세요.');
+            break;
+          case 403:
+            console.log('알림 조회 권한 없음 (403).');
+            toast.error('알림을 조회할 권한이 없습니다.');
+            break;
+          case 500:
+            console.log('서버 내부 오류 (500).');
+            toast.error('서버에서 알림을 가져오는 중 오류가 발생했습니다.');
+            break;
+          default:
+            console.error('알림 조회 중 기타 에러:', error);
+            toast.error('알림을 가져오는 중 문제가 발생했습니다.');
+        }
+      } else if (error.request) {
+        // 요청은 보냈지만 응답을 받지 못한 경우
+        console.error('알림 서버 응답 없음:', error.request);
+        toast.error('알림 서버에 연결할 수 없습니다.');
       } else {
-        // 기타 에러 처리
-        console.error('알림 조회 중 기타 에러:', error);
-        // 필요에 따라 사용자에게 에러 알림을 표시할 수 있습니다.
+
+        // 요청 설정 중 발생한 오류
+        console.error('알림 요청 설정 오류:', error.message);
+        toast.error('알림 요청을 설정하는 중 오류가 발생했습니다.');
+      }
+      setUnreadCount(0);
     }
   }
   };
+  */
 
   // 초기 읽지 않은 알림 개수 조회 및 주기적 업데이트
+  /*
   useEffect(() => {
-    // isLoggedIn이 true이고, userId와 userName이 유효한 값일 때만 알림 조회 로직 실행
-    if (isLoggedIn && authUserId && authUserName) {
-      console.log('로그인 상태 확인됨. 알림 조회 시작.');
+    if (isLoggedIn) {
       fetchNotificationsAndCountUnread(); // 초기 로드
       const interval = setInterval(fetchNotificationsAndCountUnread, 30000); // 30초마다 갱신
-      return () => {
-        console.log('알림 조회 인터벌 클리어.');
-        clearInterval(interval);
-      } // 컴포넌트 언마운트 시 인터벌 정리
+      return () => clearInterval(interval); // 컴포넌트 언마운트 시 인터벌 정리
     } else {
-      console.log('로그인 상태 아님. 알림 조회 중단.');
       setUnreadCount(0); // 로그인 상태가 아니면 알림 카운트 0으로 초기화
     }
-  }, [isLoggedIn, authUserId, authUserName]); // isLoggedIn, authUserId, authUserName가 변경될 때마다 실행
+  }, [isLoggedIn]);
+  */
 
   // 보호된 경로 접근 핸들러
   const handleProtectedRoute = (path: string) => {
@@ -167,7 +155,10 @@ export default function HostHeader() {
 
   // 로그아웃 핸들러
   const handleLogout = () => {
-    logout(); // useAuth에서 제공하는 로그아웃 함수 호출
+    localStorage.clear();
+    setIsLoggedIn(false);
+    setUsername("");
+    setRealName("");
     router.push("/host/login");
   };
 
@@ -215,7 +206,8 @@ export default function HostHeader() {
           <div className={styles.authContainer}>
             {isLoggedIn ? (
               <>
-                {/* 알림 아이콘 추가 */}
+                {/* 알림 아이콘 추가 - 임시 비활성화 */}
+                {/*
                 <div
                   className={styles.notificationContainer}
                   ref={notificationRef}
@@ -233,13 +225,14 @@ export default function HostHeader() {
                   </button>
                   {isNotificationOpen && (
                     <div className={styles.notificationPanel}>
-                      <NotificationPanel 
-                        userId={authUserId ? Number(authUserId) : 0}
+                      <NotificationPanel
+                        userId={parseInt(username) || 0}
                         jwtToken={localStorage.getItem("token") || ""}
                       />
                     </div>
                   )}
                 </div>
+                */}
                 <button
                   onClick={() => handleProtectedRoute("/host/profile")}
                   className={styles.navLink}
@@ -247,7 +240,7 @@ export default function HostHeader() {
                   프로필
                 </button>
                 <span className={styles.userEmail}>
-                  {authUserName || "사용자"}님
+                  {realName || username}님
                 </span>
                 <button onClick={handleLogout} className={styles.logoutButton}>
                   로그아웃
@@ -311,8 +304,9 @@ export default function HostHeader() {
             </button>
             {isLoggedIn ? (
               <>
-                {/* 모바일 알림 메뉴 아이템 */}
-                <button 
+                {/* 모바일 알림 메뉴 아이템 - 임시 비활성화 */}
+                {/*
+                <button
                   className={styles.mobileMenuItem}
                   onClick={() => setIsNotificationOpen(!isNotificationOpen)}
                 >
@@ -326,6 +320,7 @@ export default function HostHeader() {
                     )}
                   </div>
                 </button>
+                */}
                 <button
                   onClick={() => handleProtectedRoute("/host/profile")}
                   className={styles.mobileMenuItem}
@@ -333,7 +328,7 @@ export default function HostHeader() {
                   프로필
                 </button>
                 <span className={styles.userEmail}>
-                  {authUserName || "사용자"}님
+                  {realName || username}님
                 </span>
                 <button
                   onClick={handleLogout}

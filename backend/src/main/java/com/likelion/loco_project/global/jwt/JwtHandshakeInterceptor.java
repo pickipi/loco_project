@@ -38,7 +38,7 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
             if (jwtTokenProvider.validateToken(token)) {
                 // 토큰에서 userId, role을 꺼내고
                 Long userId = jwtTokenProvider.getUserIdFromToken(token);
-                String role   = jwtTokenProvider.getRoleFromToken(token);
+                String role = jwtTokenProvider.getRoleFromToken(token);
 
                 // (선택) User 엔티티가 필요하면 조회
                 User user = userRepository.findById(userId)

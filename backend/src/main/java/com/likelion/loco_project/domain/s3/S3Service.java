@@ -22,6 +22,9 @@ public class S3Service {
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
+    @Value("${cloud.aws.region.static}")
+    private String region;
+
     // 이미지 파일을 저장할 S3 버킷 내의 기본 디렉토리
     private final String s3UploadDir = "global/data/image/";
 
@@ -34,57 +37,59 @@ public class S3Service {
     public String uploadFile(MultipartFile file) {
         // 파일 이름 생성 (중복 방지를 위해 UUID 사용)
         String originalFileName = file.getOriginalFilename();
-        String fileExtension = "";
+        String extension = "";
         if (originalFileName != null && originalFileName.contains(".")) {
-            fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
+            extension = originalFileName.substring(originalFileName.lastIndexOf("."));
         }
-        String storedFileName = UUID.randomUUID().toString() + fileExtension;
+        String storedFileName = UUID.randomUUID().toString() + extension;
 
         // S3 버킷 내 객체 키 생성 (디렉토리 경로 + 파일 이름)
         String s3ObjectKey = s3UploadDir + storedFileName;
 
         try {
             // S3 PutObjectRequest 생성
-            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+            PutObjectRequest por = PutObjectRequest.builder()
                     .bucket(bucketName) // 버킷 이름 설정
                     .key(s3ObjectKey) // 객체 키 설정 (S3에 저장될 경로/파일명)
                     .contentType(file.getContentType()) // 파일 타입 설정
                     .contentLength(file.getSize()) // 파일 크기 설정
                     .build();
-
             // S3에 파일 업로드 실행
-            s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+            s3Client.putObject(por, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
 
             // 업로드 성공 시 S3 객체 키 반환
-            return s3ObjectKey;
+            // 절대 URL 생성
+            return String.format(
+                    "https://%s.s3.%s.amazonaws.com/%s",
+                    bucketName,
+                    region,
+                    s3ObjectKey
+            );
 
-        } catch (S3Exception e) {
+        } catch (S3Exception | IOException e) {
             // S3 관련 예외 처리
-            throw new RuntimeException("파일을 S3에 업로드하는 것이 실패했습니다. : " + e.getMessage(), e);
-        } catch (IOException e) {
-            // 파일 스트림 처리 예외
-            throw new RuntimeException("파일을 읽는 것에 실패했습니다. : " + e.getMessage(), e);
+            throw new RuntimeException("S3 업로드 실패: " + e.getMessage(), e);
         }
     }
 
     /** 파일 삭제 방식 - S3 객체 삭제
      * 지정된 S3 객체 키에 해당하는 파일을 S3 버킷에서 삭제
-     * @param s3ObjectKey 삭제할 S3 객체 키
+     * @param fileUrl 삭제할 S3 객체 키
      * @throws RuntimeException 파일 삭제 실패 시 발생
      */
-    public void deleteFile(String s3ObjectKey) {
+    public void deleteFile(String fileUrl) {
+        // fileUrl 이 절대 URL 이므로 key 만 분리해서 삭제
+        String key = fileUrl
+                .replaceFirst("^https?://[^/]+/", "");
         try {
-            // S3 DeleteObjectRequest 생성
-            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
-                    .bucket(bucketName) // 버킷 이름 설정
-                    .key(s3ObjectKey) // 삭제할 객체 키 설정
+            DeleteObjectRequest dor = DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
                     .build();
-
-            // S3 객체 삭제 실행
-            s3Client.deleteObject(deleteObjectRequest);
-
+            s3Client.deleteObject(dor);
         } catch (S3Exception e) {
-            System.err.println("S3 데이터를 삭제하는데 실패했습니다. : " + s3ObjectKey + " - " + e.getMessage());
+            // 로깅만
+            System.err.println("S3 삭제 실패: " + key + " - " + e.getMessage());
         }
     }
 }

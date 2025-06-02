@@ -1,6 +1,8 @@
 package com.likelion.loco_project.domain.user.controller;
 
 import com.likelion.loco_project.domain.auth.EmailAuthManager;
+import com.likelion.loco_project.domain.host.dto.HostRequestDto;
+import com.likelion.loco_project.domain.host.service.HostService;
 import com.likelion.loco_project.domain.user.dto.*;
 import com.likelion.loco_project.domain.user.entity.User;
 import com.likelion.loco_project.domain.user.entity.UserType;
@@ -21,12 +23,45 @@ import org.springframework.web.bind.annotation.*;
 public class ApiV1UserController {
     private final UserService userService;
     private final EmailAuthManager emailAuthManager;
+    private final HostService hostService;
 
     @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다.")
     @PostMapping
     public ResponseEntity<UserResponseDto> registerUser(@RequestBody UserRequestDto dto) {
         UserResponseDto createdUser = userService.createUser(dto);
         return ResponseEntity.ok(createdUser);
+    }
+
+    @Operation(summary = "게스트 회원가입", description = "새로운 게스트(GUEST) 계정을 등록합니다.")
+    @PostMapping("/guest")
+    public ResponseEntity<UserResponseDto> registerGuest(@RequestBody UserRequestDto dto) {
+        // 강제로 userType을 GUEST로 설정
+        dto.setUserType(UserType.GUEST.name());
+        return registerUser(dto);
+    }
+
+    @Operation(summary = "호스트 회원가입", description = "새로운 호스트(HOST) 계정을 등록합니다.")
+    @PostMapping("/host")
+    public ResponseEntity<UserResponseDto> registerHost(@RequestBody UserRequestDto dto) {
+        // 강제로 HOST 타입 지정
+        dto.setUserType(UserType.HOST.name());
+
+        // 1. 유저 생성
+        UserResponseDto user = registerUser(dto).getBody();
+
+        // 2. HostRequestDto 기본값으로 준비
+        HostRequestDto hostDto = HostRequestDto.builder()
+                .verified(false)  // 기본적으로 미인증 상태
+                .bankName("")     // 빈 문자열로 초기화
+                .accountNumber("") // 빈 문자열로 초기화
+                .accountUser("")   // 빈 문자열로 초기화
+                .registration(java.time.LocalDateTime.now()) // 현재 시간으로 설정
+                .build();
+
+        // 3. 호스트 엔티티 등록
+        hostService.registerHost(user.getId(), hostDto);
+
+        return ResponseEntity.ok(user);
     }
 
     @Operation(summary = "사용자 정보 조회", description = "사용자 ID로 특정 사용자의 정보를 조회합니다.")

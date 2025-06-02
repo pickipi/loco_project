@@ -4,11 +4,25 @@ import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import SpaceFilter from "@/components/space/SpaceFilter";
 import SpaceCard from "@/components/space/SpaceCard";
-import MainHeader from "@/components/header/MainHeader";
-import { SpaceListResponseDto } from "@/types/space";
+import MainHeader from "@/components/header/header";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8090";
+
+interface SearchResult {
+  id: string;
+  spaceName: string;
+  address: string;
+  maxCapacity: number;
+  price: number;
+  rating: number;
+  imageUrl: string;
+  purpose?: string;
+  
+//   spaceRating: number;
+//   imageId: number;
+//   isActive: boolean;
+//   description: string;
+//   category: string;
+}
 
 export default function SearchResultPage() {
   const searchParams = useSearchParams();
@@ -76,10 +90,11 @@ export default function SearchResultPage() {
       const [min, max] = capacity.split("-");
       filtered = filtered.filter((space) => {
         const spaceCapacity = space.maxCapacity;
+
         if (max === "+") {
-          return spaceCapacity >= parseInt(min);
+          return space.maxCapacity >= parseInt(min);
         }
-        return spaceCapacity >= parseInt(min) && spaceCapacity <= parseInt(max);
+        return space.maxCapacity >= parseInt(min) && space.maxCapacity <= parseInt(max);
       });
     }
 
@@ -119,8 +134,20 @@ export default function SearchResultPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredSpaces.map((space) => (
-                  <SpaceCard key={space.id} {...space} />
+                {filteredResults.map((space) => (
+                  <SpaceCard
+                    key={space.id}
+                    id={space.id}
+                    title={space.spaceName}
+                    location={space.address}
+                    capacity={`${space.maxCapacity}명`}
+                    price={space.price}
+                    rating={Number(space.spaceRating) || 0}
+                    imageUrl={space.imageId ? `/images/${space.imageId}` : "/placeholder.svg"}
+                    reviewCount={0}
+                    description=""
+                    category="회의실"
+                  />
                 ))}
               </div>
             )}

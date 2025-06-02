@@ -249,7 +249,31 @@ export default function RegisterSpacePage() {
       setIsLoading(true);
       setError(null);
 
-      // 이미지 URL이 없으면 최종 제출 불가 (이미지 업로드 단계에서 처리됨)
+      // 필수 필드 검증
+      const requiredFields = {
+          name: '공간 이름',
+          type: '공간 유형',
+          description: '공간 소개',
+          address: '주소',
+          capacity: '수용 인원',
+          price: '가격',
+          openTime: '운영 시작 시간',
+          closeTime: '운영 종료 시간',
+          refundPolicy: '환불 정책',
+          spaceRules: '이용 규칙'
+      };
+
+      // for (const [field, label] of Object.entries(requiredFields)) {
+      //     if (!formDataState[field as keyof SpaceFormData]) {
+      //         const errorMessage = `${label}을(를) 입력해주세요.`;
+      //         setError(errorMessage);
+      //         toast.error(errorMessage);
+      //         setIsLoading(false);
+      //         return;
+      //     }
+      // }
+
+      // 이미지 URL이 없으면 최종 제출 불가
       if (formDataState.imageUrls.length === 0) {
           const errorMessage = '이미지 업로드가 완료되지 않았습니다.';
           setError(errorMessage);
@@ -265,6 +289,7 @@ export default function RegisterSpacePage() {
               setError(errorMessage);
               toast.error(errorMessage);
               setIsLoading(false);
+              router.push('/host/login');
               return;
           }
 
@@ -273,24 +298,20 @@ export default function RegisterSpacePage() {
               type: formDataState.type,
               description: formDataState.description,
               address: formDataState.address,
-              detailAddress: formDataState.detailAddress,
-              capacity: parseInt(formDataState.capacity, 10), // 숫자로 변환
-              price: parseInt(formDataState.price, 10), // 숫자로 변환
-              imageUrls: formDataState.imageUrls, // 업로드된 이미지 URL 사용
-              openTime: formDataState.openTime,
-              closeTime: formDataState.closeTime,
-              minTime: parseInt(formDataState.minTime, 10), // 숫자로 변환
-              maxTime: parseInt(formDataState.maxTime, 10), // 숫자로 변환
+              detailAddress: formDataState.detailAddress || "",
+              capacity: parseInt(formDataState.capacity) || 1,
+              price: parseInt(formDataState.price, 10),
+              imageUrls: formDataState.imageUrls,
               refundPolicy: formDataState.refundPolicy,
               spaceRules: formDataState.spaceRules,
-              latitude: formDataState.latitude, // 위도 추가
-              longitude: formDataState.longitude, // 경도 추가
-              // agreedRefundPolicy와 agreedSpaceRules는 백엔드 전송에 필요 없을 수 있지만, 필요하다면 추가
+              neighborhoodInfo: "",
+              latitude: formDataState.latitude || 37.5665,
+              longitude: formDataState.longitude || 126.9780
           };
 
-          console.log("Submitting final space data:", submitPayload);
+          console.log("Submitting space data:", submitPayload);
 
-          const submitResponse = await fetch(`${API_BASE_URL}/api/v1/spaces`, {
+          const submitResponse = await fetch(`${API_BASE_URL}/api/v1/spaces/complete`, {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json',
@@ -299,18 +320,33 @@ export default function RegisterSpacePage() {
               body: JSON.stringify(submitPayload),
           });
 
-          if (!submitResponse.ok) {
-              const errorData = await submitResponse.json();
-              console.error("Final submission failed response:", errorData);
-              const errorMessage = '공간 등록 실패: ' + (errorData.msg || submitResponse.statusText);
-              setError(errorMessage);
-              toast.error(errorMessage);
-              setIsLoading(false);
-              return;
+          // 응답 상태 코드 로깅
+          console.log("Response status:", submitResponse.status);
+          
+          // 응답 헤더 로깅
+          console.log("Response headers:", Object.fromEntries(submitResponse.headers.entries()));
+
+          let responseData;
+          const responseText = await submitResponse.text();
+          console.log("Raw response:", responseText);
+
+          try {
+              responseData = responseText ? JSON.parse(responseText) : null;
+              console.log("Parsed response data:", responseData);
+          } catch (e) {
+              console.error("Failed to parse response as JSON:", e);
+              throw new Error('서버 응답을 처리할 수 없습니다.');
           }
 
-          const submitResult = await submitResponse.json();
-          console.log("Final submission result:", submitResult);
+          if (!submitResponse.ok) {
+              const errorMessage = responseData?.msg || '공간 등록에 실패했습니다.';
+              console.error("Registration failed:", errorMessage);
+              throw new Error(errorMessage);
+          }
+
+          if (!responseData) {
+              throw new Error('서버로부터 응답을 받지 못했습니다.');
+          }
 
           toast.success("공간이 성공적으로 등록되었습니다!");
           // 성공 후 리다이렉션
@@ -474,7 +510,7 @@ export default function RegisterSpacePage() {
                     value={formDataState.name}
                     onChange={handleInputChange}
                     placeholder="공간의 특징이 잘 드러나는 이름을 입력해주세요"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
                     required
                   />
                 </div>
@@ -492,7 +528,7 @@ export default function RegisterSpacePage() {
                     value={formDataState.description}
                     onChange={handleInputChange}
                     placeholder="공간의 특징, 장점, 주요 시설 등을 자세히 소개해주세요"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px]"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px] text-black"
                     required
                     minLength={20}
                   />
@@ -510,7 +546,7 @@ export default function RegisterSpacePage() {
                     value={formDataState.address}
                     onChange={handleInputChange}
                     placeholder="주소를 입력해주세요"
-                    className="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
                     required
                     readOnly
                   />
@@ -532,7 +568,7 @@ export default function RegisterSpacePage() {
                     value={formDataState.detailAddress}
                     onChange={handleInputChange}
                     placeholder="상세 주소를 입력해주세요"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
                   />
                 </div>
               </div>
@@ -556,7 +592,7 @@ export default function RegisterSpacePage() {
                       value={formDataState.capacity}
                       onChange={handleInputChange}
                       placeholder="최대 수용 가능한 인원"
-                      className="w-24 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-24 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
                       min="1"
                       required
                     />
@@ -579,7 +615,7 @@ export default function RegisterSpacePage() {
                       value={formDataState.price}
                       onChange={handleInputChange}
                       placeholder="시간당 가격을 입력해주세요"
-                      className="w-40 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-40 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
                       min="1000"
                       step="1000"
                       required
@@ -773,7 +809,7 @@ export default function RegisterSpacePage() {
                       name="openTime"
                       value={formDataState.openTime}
                       onChange={handleInputChange}
-                      className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
                     >
                       <option value="">시작 시간</option>
                       {Array.from({ length: 24 }).map((_, i) => (
@@ -790,7 +826,7 @@ export default function RegisterSpacePage() {
                       name="closeTime"
                       value={formDataState.closeTime}
                       onChange={handleInputChange}
-                      className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
                     >
                       <option value="">종료 시간</option>
                       {Array.from({ length: 24 }).map((_, i) => (
@@ -829,7 +865,7 @@ export default function RegisterSpacePage() {
                       name="minTime"
                       value={formDataState.minTime}
                       onChange={handleInputChange}
-                      className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
                     >
                       <option value="1">1시간</option>
                       <option value="2">2시간</option>
@@ -841,7 +877,7 @@ export default function RegisterSpacePage() {
                       name="maxTime"
                       value={formDataState.maxTime}
                       onChange={handleInputChange}
-                      className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
                     >
                       <option value="4">4시간</option>
                       <option value="6">6시간</option>

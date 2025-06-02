@@ -1,7 +1,7 @@
 plugins {
 	java
-	id("org.springframework.boot") version "3.4.5"
-	id("io.spring.dependency-management") version "1.1.7"
+	id("org.springframework.boot") version "3.2.3"
+	id("io.spring.dependency-management") version "1.1.4"
 }
 
 group = "com.likelion"
@@ -76,6 +76,10 @@ dependencies {
 	//OAuth2 클라이언트
 	implementation ("org.springframework.boot:spring-boot-starter-oauth2-client")
 
+}
+
+tasks.withType<JavaCompile> {
+	options.compilerArgs.addAll(listOf("-parameters"))
 }
 
 tasks.withType<Test> {

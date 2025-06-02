@@ -1,13 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import EmailVerificationButton from '@/components/emailverification/EmailVerificationButton'
 import styles from './page.module.css'
+import api from '@/lib/axios'
 
 // API 기본 URL 설정
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8090';
 
 interface SignupData {
   username: string;
@@ -19,9 +20,12 @@ interface SignupData {
 
 export default function HostRegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const emailFromUrl = searchParams.get('email') || '';
+
   const [formData, setFormData] = useState<SignupData>({
     username: '',
-    email: '',
+    email: emailFromUrl,  // URL에서 가져온 이메일로 초기화
     password: '',
     phoneNumber: '',
     userType: 'HOST'
@@ -30,6 +34,13 @@ export default function HostRegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
+
+  // URL에서 이메일이 전달된 경우 이메일 인증 상태를 true로 설정
+  useEffect(() => {
+    if (emailFromUrl) {
+      setIsEmailVerified(true);
+    }
+  }, [emailFromUrl]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -62,30 +73,19 @@ export default function HostRegisterPage() {
 
     try {
       setIsLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/v1/hosts/signup`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          ...formData,
-          userType: 'HOST'
-        })
+      
+      const response = await api.post('/users/host', {
+        ...formData,
+        userType: 'HOST'
       });
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('회원가입 실패:', errorData);
-        throw new Error(errorData || '회원가입 처리 중 오류가 발생했습니다.');
-      }
 
       // 성공 시 완료 페이지로 이동
       router.push('/host/signup/complete');
-    } catch (err) {
+    } catch (err: any) {
       console.error('회원가입 오류:', err);
-      setError(err instanceof Error ? err.message : '회원가입 처리 중 오류가 발생했습니다.');
+      console.error('에러 응답:', err.response?.data);
+      const errorMessage = err.response?.data?.message || '회원가입 처리 중 오류가 발생했습니다.';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -122,13 +122,31 @@ export default function HostRegisterPage() {
             <label htmlFor="email" className={styles.label}>
               이메일
             </label>
-            <EmailVerificationButton 
-              email={formData.email} 
-              onVerified={() => setIsEmailVerified(true)}
-              onChange={(email) => setFormData(prev => ({ ...prev, email }))}
-            />
-            {isEmailVerified && (
-              <p className={styles.verifiedText}>✓ 이메일이 인증되었습니다.</p>
+            {emailFromUrl ? (
+              // 소셜로그인에서 온 경우: 읽기 전용 이메일 필드
+              <>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  readOnly
+                  className={`${styles.input} ${styles.readOnlyInput}`}
+                />
+                <p className={styles.verifiedText}>✓ 소셜로그인으로 인증된 이메일입니다.</p>
+              </>
+            ) : (
+              // 일반 회원가입: 이메일 인증 버튼
+              <>
+                <EmailVerificationButton 
+                  email={formData.email} 
+                  onVerified={() => setIsEmailVerified(true)}
+                  onChange={(email) => setFormData(prev => ({ ...prev, email }))}
+                />
+                {isEmailVerified && (
+                  <p className={styles.verifiedText}>✓ 이메일이 인증되었습니다.</p>
+                )}
+              </>
             )}
           </div>
 

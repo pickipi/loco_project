@@ -33,7 +33,7 @@ export default function RegisterCompletePage() {
         </p>
         <div className={styles.buttonGroup}>
           <button
-            onClick={() => router.push("/host/spaces")}
+            onClick={() => router.push("/host/spaces/list")}
             className={styles.primaryButton}
           >
             공간 목록 보기

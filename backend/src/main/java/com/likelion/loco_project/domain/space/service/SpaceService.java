@@ -103,14 +103,12 @@ public class SpaceService {
     // 모든 공간 목록 조회 (페이징 처리)
     @Transactional(readOnly = true)
     public Page<SpaceListResponseDto> getAllSpacesWithPagination(Pageable pageable) {
-        Page<Space> spacePage = spaceRepository.findAll(pageable);
-        // 지연 로딩 컬렉션 미리 초기화
-        spacePage.getContent().forEach(space -> {
-            space.getAdditionalImageUrls().size(); // 컬렉션에 접근하여 초기화
-        });
-        
-        return spacePage.map(SpaceListResponseDto::from); // 초기화된 엔티티를 DTO로 매핑
+        return spaceRepository.findAll(pageable)
+                .map(SpaceListResponseDto::from);   // 여기서 additionalImageUrls까지 읽어서 DTO에 담음
     }
+//    public Page<Space> getAllSpacesWithPagination(Pageable pageable) {
+//        return spaceRepository.findAll(pageable);
+//    }
 
     // 공간 수정
     @Transactional
@@ -232,4 +230,30 @@ public class SpaceService {
         user.getFavoriteSpaces().remove(space);
         userRepository.save(user);
     }
+
+    @Transactional(readOnly = true)
+    public Page<SpaceResponseDto> getSpacesByHostId(Long hostId, Pageable pageable) {
+        
+        try {
+            // hostId가 실제로는 userId일 수 있으므로 두 가지 방법을 시도
+            Page<Space> spaces;
+            
+            // 1. 먼저 hostId로 직접 조회 시도
+            spaces = spaceRepository.findByHostId(hostId, pageable);
+            
+            // 2. 만약 결과가 없다면, hostId를 userId로 간주하고 Host를 찾아서 조회
+            if (spaces.getTotalElements() == 0) {
+                Host host = hostRepository.findByUserId(hostId)
+                        .orElseThrow(() -> new IllegalArgumentException("호스트를 찾을 수 없습니다. User ID: " + hostId));
+                spaces = spaceRepository.findByHostId(host.getId(), pageable);
+            }
+            
+            return spaces.map(SpaceResponseDto::fromEntity);
+        } catch (Exception e) {
+            System.err.println("SpaceService 에러: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
 }
