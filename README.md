@@ -81,12 +81,18 @@ npm run dev
 ```
 ---
 ## 💡백엔드
-### build 디렉토리로 이동 (jar 파일)
+### backend 디렉토리에서 빌드 진행
+```bash
+cd backend
+./gradlew clean build
+```
+or
+```bash
+./gradlew build
+```
+### 실행 파일 (jar)이 있는 디렉토리로 이동 및 jar 파일 실행
 ```bash
 cd backend/build/libs
-```
-### jar 파일 실행
-```bash
 java -jar loco_project-0.0.1-SNAPSHOT.jar
 ```
 ![image](https://github.com/user-attachments/assets/b3575b46-e746-4181-8dd2-fa06064f46a2)
