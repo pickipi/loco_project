@@ -18,15 +18,20 @@ export default function AllSpacesPage() {
     const fetchSpaces = async () => {
       try {
         const response = await fetch(
-          `${API_BASE_URL}/api/v1/spaces/all`
+          `${API_BASE_URL}/api/v1/spaces/all`,
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
         );
         if (!response.ok) {
           throw new Error("Failed to fetch spaces");
         }
 
         const data = await response.json();
-        if (data.resultCode === 'S-1' && data.data && data.data.content) {
-          setSpaces(data.data.content);
+        if (data.content) {
+          setSpaces(data.content);
         } else {
           console.error('데이터 구조가 예상과 다릅니다:', data);
           setSpaces([]);
@@ -76,7 +81,15 @@ export default function AllSpacesPage() {
             .map((space) => (
               <SpaceCard
                 key={space.id}
-                {...space}
+                id={space.id.toString()}
+                title={space.spaceName}
+                location={space.address}
+                capacity={space.maxCapacity.toString()}
+                price={space.price}
+                rating={space.spaceRating || 0}
+                imageUrl={space.imageUrl || ''}
+                description=""
+                category={space.spaceType}
               />
             ))}
         </div>

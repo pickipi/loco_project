@@ -28,7 +28,6 @@ interface PageResponse {
   last: boolean;
   empty: boolean;
 }
-*/
 
 export default function SpaceListPage() {
   const router = useRouter();
@@ -41,30 +40,38 @@ export default function SpaceListPage() {
   const [totalPages, setTotalPages] = useState(0);
   const pageSize = 12;
 
-  useEffect(() => {
-    const fetchSpaces = async () => {
-      try {
-        setLoading(true);
-        const res = await api.get<PageResponse>('/spaces/all', {
-          params: {
-            page: currentPage,
-            size: pageSize,
-            sort: 'id,desc'
-          }
-        });
-        
-        const page = res.data;
-        setSpaces(page.content);
-        setTotalPages(page.totalPages);
-        setCurrentPage(page.number);
-      } catch (err) {
-        console.error('공간 목록 조회 실패:', err);
-        setError('공간 목록을 불러오는데 실패했습니다.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchSpaces = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get<PageResponse>('/api/v1/spaces/all', {
+        params: {
+          page: currentPage,
+          size: pageSize,
+          sort: 'id,desc'
+        }
+      });
 
+      if (res.data && res.data.content) {
+        setSpaces(res.data.content);
+        setTotalPages(res.data.totalPages);
+        setCurrentPage(res.data.number);
+      } else {
+        console.error('데이터 구조가 예상과 다릅니다:', res.data);
+        setSpaces([]);
+      }
+    } catch (err: any) {
+      console.error('공간 목록 조회 실패:', err);
+      if (err.response?.status === 401) {
+        setError('공간 목록을 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.');
+      } else {
+        setError('공간 목록을 불러오는데 실패했습니다.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchSpaces();
   }, [currentPage]);
 
@@ -74,10 +81,6 @@ export default function SpaceListPage() {
       router.push(`/spaces/search?query=${encodeURIComponent(searchQuery)}`);
     }
   };
-
-  useEffect(() => {
-    fetchSpaces();
-  }, []); // 컴포넌트 마운트 시 한 번만 실행
 
   const handleCategoryClick = (category: string) => {
     setSelectedCategory(category === selectedCategory ? null : category);
@@ -108,7 +111,6 @@ export default function SpaceListPage() {
   return (
     <main className="min-h-screen bg-white">
       <Header />
-
       {/* Hero Section */}
       <div className="bg-[#40322F] py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -125,7 +127,7 @@ export default function SpaceListPage() {
       {/* Featured Spaces Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">추천 공간</h2>{" "}
+          <h2 className="text-3xl font-bold text-gray-900">추천 공간</h2>
           <Link
             href="/spaces/all"
             className="text-[#40322F] hover:text-[#594a47] font-medium flex items-center"
@@ -145,15 +147,26 @@ export default function SpaceListPage() {
           </Link>
         </div>
 
-        {isLoading ? (
+        {loading ? (
           <p>공간 목록을 불러오는 중...</p>
         ) : (
           spaces.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {spaces.map((space) => (
-            <SpaceCard key={space.id} {...space} />
-          ))}
-        </div>
+                <SpaceCard
+                  key={space.id}
+                  id={space.id.toString()}
+                  title={space.spaceName}
+                  location={space.address}
+                  capacity={space.maxCapacity.toString()}
+                  price={space.price}
+                  rating={0}
+                  imageUrl={space.imageUrl}
+                  description=""
+                  category=""
+                />
+              ))}
+            </div>
           ) : (
             <p>등록된 공간이 없습니다.</p>
           )

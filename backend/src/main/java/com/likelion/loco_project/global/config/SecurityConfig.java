@@ -72,8 +72,12 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 // 공간 목록 조회 (GET /api/v1/spaces)는 모두 허용
                 .requestMatchers(HttpMethod.GET, "/api/v1/spaces").permitAll()
+                // 공간 목록 조회 (GET /api/v1/spaces/all)는 모두 허용
+                .requestMatchers(HttpMethod.GET, "/api/v1/spaces/all").permitAll()
                 // 공간 상세 조회 (GET /api/v1/spaces/{id})는 인증된 사용자만 접근 가능
                 .requestMatchers(HttpMethod.GET, "/api/v1/spaces/{id}").authenticated()
+                // 공간 검색 (GET /api/v1/spaces/search)는 모두 허용
+                .requestMatchers(HttpMethod.GET, "/api/v1/spaces/search").permitAll()
                 // OPTIONS 요청은 모든 경로에 대해 허용 (CORS Preflight)
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // H2 콘솔

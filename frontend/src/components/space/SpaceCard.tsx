@@ -16,11 +16,11 @@ export interface SpaceCardProps {
 
 export default function SpaceCard({
   id,
-  spaceName,
-  address,
-  maxCapacity,
+  title,
+  location,
+  capacity,
   price,
-  spaceRating,
+  rating,
   imageUrl,
   reviewCount = 0,
   description,
@@ -52,7 +52,7 @@ export default function SpaceCard({
 
         <div className="p-4">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-semibold text-gray-900">{spaceName}</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
             <div className="flex items-center">
               <span className="text-yellow-400">★</span>
               <span className="ml-1 text-gray-600">{rating.toFixed(1)}</span>
